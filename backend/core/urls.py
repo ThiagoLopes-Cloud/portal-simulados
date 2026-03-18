@@ -1,22 +1,26 @@
-"""
-URL configuration for core project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+# Importa o módulo de URLs do Django
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
+# Define as rotas principais do projeto
+# include() importa as URLs de cada app
 urlpatterns = [
+    # Rota do Django Admin — painel administrativo
     path('admin/', admin.site.urls),
+
+    # Rotas de autenticação — login, register, profile, token refresh
+    # Todas as rotas do app users ficam sob o prefixo /api/
+    path('api/', include('users.urls')),
+
+    # Rotas de simulados — listar e detalhar simulados
+    # GET /api/simulados/ e GET /api/simulados/{id}/
+    path('api/simulados/', include('simulados.urls')),
+
+    # Rotas de respostas — enviar respostas do aluno
+    # POST /api/responder/
+    path('api/responder/', include('respostas.urls')),
+
+    # Rotas de resultados e ranking — ver resultados e ranking
+    # GET /api/resultados/ e GET /api/ranking/
+    path('api/resultados/', include('resultados.urls')),
 ]

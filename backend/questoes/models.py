@@ -9,10 +9,10 @@ class Questao(models.Model):
     """
     Representa uma questão de múltipla escolha vinculada a um simulado.
     Cada questão tem 4 alternativas (A, B, C, D) e uma resposta correta.
+    Suporta imagens via URL externa no enunciado e nas alternativas.
     """
 
     # Opções de resposta correta disponíveis
-    # O primeiro valor é salvo no banco, o segundo é exibido no Admin
     OPCAO_A = 'A'
     OPCAO_B = 'B'
     OPCAO_C = 'C'
@@ -41,11 +41,28 @@ class Questao(models.Model):
         verbose_name='Enunciado'
     )
 
+    # URL da imagem do enunciado — opcional
+    # blank=True e null=True — campo não obrigatório
+    # URLField valida automaticamente se o valor é uma URL válida
+    imagem_enunciado = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='Imagem do Enunciado (URL)',
+        help_text='Cole a URL de uma imagem para ilustrar o enunciado (opcional)'
+    )
+
     # Campos de texto curto — armazenam o texto de cada alternativa
     opcao_a = models.CharField(max_length=300, verbose_name='Alternativa A')
     opcao_b = models.CharField(max_length=300, verbose_name='Alternativa B')
     opcao_c = models.CharField(max_length=300, verbose_name='Alternativa C')
     opcao_d = models.CharField(max_length=300, verbose_name='Alternativa D')
+
+    # URLs das imagens das alternativas — todas opcionais
+    # Útil para questões com gráficos ou figuras nas alternativas
+    imagem_opcao_a = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa A (URL)')
+    imagem_opcao_b = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa B (URL)')
+    imagem_opcao_c = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa C (URL)')
+    imagem_opcao_d = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa D (URL)')
 
     # Campo que armazena qual alternativa é a correta (A, B, C ou D)
     # choices=OPCOES_CHOICES limita os valores aceitos às opções definidas acima
@@ -56,14 +73,12 @@ class Questao(models.Model):
     )
 
     # Campo de ordem para organizar as questões dentro do simulado
-    # blank=True e null=True — campo opcional
     ordem = models.PositiveIntegerField(
         default=1,
         verbose_name='Ordem'
     )
 
     # Método __str__ define como o objeto aparece como texto
-    # Mostra os primeiros 50 caracteres do enunciado no Django Admin
     def __str__(self):
         return f'Questão {self.ordem}: {self.enunciado[:50]}...'
 
@@ -71,4 +86,4 @@ class Questao(models.Model):
     class Meta:
         verbose_name = 'Questão'
         verbose_name_plural = 'Questões'
-        ordering = ['simulado', 'ordem']  # Ordena por simulado e depois por ordem
+        ordering = ['simulado', 'ordem']
