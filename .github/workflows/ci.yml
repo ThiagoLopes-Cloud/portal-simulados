@@ -32,6 +32,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Django checks
+        env:
+          SECRET_KEY: 'temporary-secret-key'
         run: |
           cd backend
           python manage.py check
