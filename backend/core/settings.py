@@ -9,9 +9,11 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Lê a SECRET_KEY do .env
-SECRET_KEY = os.getenv('SECRET_KEY')
+# Lê a SECRET_KEY do ambiente — obrigatória em produção
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-apenas-desenvolvimento')
 
-DEBUG = True
+# False em produção, True em desenvolvimento
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 # Permite qualquer origem em produção
 # Em produção final coloque apenas o domínio do Vercel
