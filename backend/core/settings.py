@@ -13,7 +13,14 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Permite qualquer origem em produção
+# Em produção final coloque apenas o domínio do Vercel
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',        # desenvolvimento local
+]
+
+# Permite qualquer origem temporariamente para o deploy
+CORS_ALLOW_ALL_ORIGINS = True
 
 INSTALLED_APPS = [
     # Apps padrão do Django
