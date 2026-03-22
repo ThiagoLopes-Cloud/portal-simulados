@@ -50,6 +50,7 @@ MIDDLEWARE = [
     # CorsMiddleware DEVE ser o primeiro — intercepta requisições do Vue.js
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve arquivos estáticos em produção
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -132,3 +133,8 @@ STATIC_URL = 'static/'
 
 # Define que o campo ID padrão dos models é BigAutoField (inteiro grande)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuração de arquivos estáticos para produção
+# WhiteNoise serve os arquivos estáticos diretamente pelo Django
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
