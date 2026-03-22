@@ -4,7 +4,7 @@ import axios from 'axios'
 // Cria uma instância do axios com configurações padrão
 // Em produção usa a URL do Railway, em desenvolvimento usa localhost
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api',
+  baseURL: 'https://portal-simulados-production.up.railway.app/api',
 })
 
 // Interceptor de requisição — executado antes de cada chamada à API
@@ -46,15 +46,3 @@ api.interceptors.response.use(
 )
 
 export default api
-
-
-Salva com Ctrl+S. Agora cria o arquivo .env.production dentro da pasta frontend:
-
-powershell
-New-Item C:\Users\eshel\OneDrive\Documentos\PU\portal-simulados\frontend\.env.production -Type File
-
-
-Abre e cola:
-
-env
-VITE_API_URL=https://portal-simulados-production.up.railway.app/api
