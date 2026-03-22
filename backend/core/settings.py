@@ -77,17 +77,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Configuração do banco de dados PostgreSQL
-# Substitui 'sua_senha_aqui' pela senha que você definiu na instalação
+import dj_database_url
+
+# Configuração do banco de dados
+# Em produção usa a DATABASE_URL do Railway
+# Em desenvolvimento usa o PostgreSQL local
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql', # Usa PostgreSQL
-        'NAME': 'portal_simulados',                # Nome do banco que criamos
-        'USER': 'postgres',                        # Usuário padrão do PostgreSQL
-        'PASSWORD': os.getenv('DB_PASSWORD'),      # Lê a senha do banco do .env para segurança
-        'HOST': 'localhost',                       # Banco rodando na própria máquina
-        'PORT': '5432',                            # Porta padrão do PostgreSQL
-    }
+    'default': dj_database_url.config(
+        # Lê a DATABASE_URL do ambiente (Railway em produção)
+        # Se não existir, usa o banco local configurado no .env
+        default=f"postgresql://postgres:{os.getenv('DB_PASSWORD')}@localhost:5432/portal_simulados"
+    )
 }
 
 # Diz ao Django para usar nosso modelo User customizado
