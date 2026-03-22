@@ -129,6 +129,12 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True  # Ativa internacionalização
 USE_TZ = True    # Ativa suporte a timezone
 
+# Domínios confiáveis para CSRF — necessário para o Django Admin em produção
+CSRF_TRUSTED_ORIGINS = [
+    'https://portal-simulados-production.up.railway.app',
+    'https://portal-simulados.vercel.app',
+]
+
 STATIC_URL = 'static/'
 
 # Define que o campo ID padrão dos models é BigAutoField (inteiro grande)
