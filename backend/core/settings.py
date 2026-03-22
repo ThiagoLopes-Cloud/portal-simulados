@@ -1,42 +1,42 @@
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+import dj_database_url
 import os
 
-# Carrega as variáveis do arquivo .env
+# Carrega as variáveis do arquivo .env — só funciona em desenvolvimento local
+# Em produção (Railway) as variáveis são injetadas diretamente pelo servidor
 load_dotenv()
 
+# BASE_DIR aponta para a pasta raiz do projeto (backend/)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Lê a SECRET_KEY do .env
-# Lê a SECRET_KEY do ambiente — obrigatória em produção
+# Lê a SECRET_KEY do ambiente
+# Em desenvolvimento usa o valor do .env
+# Em produção usa a variável configurada no Railway
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-apenas-desenvolvimento')
 
-# False em produção, True em desenvolvimento
+# DEBUG False em produção, True em desenvolvimento
+# O Railway injeta DEBUG=False automaticamente
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-# Permite qualquer origem em produção
-# Em produção final coloque apenas o domínio do Vercel
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',        # desenvolvimento local
-]
-
-# Permite qualquer origem temporariamente para o deploy
-CORS_ALLOW_ALL_ORIGINS = True
+# Permite qualquer domínio acessar o backend
+# Em produção futura pode restringir para o domínio do Railway
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     # Apps padrão do Django
-    'django.contrib.admin',       # Painel administrativo /admin
-    'django.contrib.auth',        # Sistema de autenticação
-    'django.contrib.contenttypes',# Gerencia tipos de conteúdo
-    'django.contrib.sessions',    # Gerencia sessões de usuário
-    'django.contrib.messages',    # Sistema de mensagens flash
-    'django.contrib.staticfiles', # Gerencia arquivos estáticos (CSS, JS)
+    'django.contrib.admin',        # Painel administrativo /admin
+    'django.contrib.auth',         # Sistema de autenticação
+    'django.contrib.contenttypes', # Gerencia tipos de conteúdo
+    'django.contrib.sessions',     # Gerencia sessões de usuário
+    'django.contrib.messages',     # Sistema de mensagens flash
+    'django.contrib.staticfiles',  # Gerencia arquivos estáticos (CSS, JS)
 
     # Bibliotecas instaladas via pip
-    'rest_framework',             # Django REST Framework — cria a API REST
-    'rest_framework_simplejwt',   # Autenticação via JWT (tokens)
-    'corsheaders',                # Permite o Vue.js chamar a API (CORS)
+    'rest_framework',              # Django REST Framework — cria a API REST
+    'rest_framework_simplejwt',    # Autenticação via JWT (tokens)
+    'corsheaders',                 # Permite o Vue.js chamar a API (CORS)
 
     # Apps do nosso projeto
     'users',       # Cadastro, login e perfis de usuário
@@ -79,16 +79,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-import dj_database_url
-
 # Configuração do banco de dados
-# Em produção usa a DATABASE_URL do Railway
-# Em desenvolvimento usa o PostgreSQL local
+# Em produção o Railway injeta a variável DATABASE_URL automaticamente
+# Em desenvolvimento usa o PostgreSQL local configurado no .env
 DATABASES = {
     'default': dj_database_url.config(
-        # Lê a DATABASE_URL do ambiente (Railway em produção)
-        # Se não existir, usa o banco local configurado no .env
-        default=f"postgresql://postgres:{os.getenv('DB_PASSWORD')}@localhost:5432/portal_simulados"
+        default=f"postgresql://postgres:{os.getenv('DB_PASSWORD')}@localhost:5432/portal_simulados",
+        conn_max_age=600,   # Mantém conexões abertas por 600 segundos
+        ssl_require=False,  # SSL não obrigatório em desenvolvimento
     )
 }
 
@@ -99,7 +97,6 @@ AUTH_USER_MODEL = 'users.User'
 # Configurações globais da API REST
 REST_FRAMEWORK = {
     # Define JWT como método padrão de autenticação
-    # O aluno envia o token no header de cada requisição
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
@@ -116,11 +113,14 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token dura 7 dias
 }
 
-# Permite que o Vue.js (rodando na porta 5173) chame a API
-# Sem isso o browser bloquearia as requisições por segurança (CORS)
+# Permite que o Vue.js chame a API sem ser bloqueado pelo browser (CORS)
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',  # Endereço padrão do Vite (Vue.js)
+    'http://localhost:5173',  # Desenvolvimento local
 ]
+
+# Permite qualquer origem temporariamente para o deploy
+# Após configurar o domínio do Vercel, substituir por CORS_ALLOWED_ORIGINS
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Idioma e fuso horário do projeto
 LANGUAGE_CODE = 'pt-br'
