@@ -2,22 +2,19 @@
 import axios from 'axios'
 
 // Cria uma instância do axios com configurações padrão
-// baseURL — endereço base da API Django
-// Todas as requisições vão usar esse endereço como prefixo
+// Em produção usa a URL do Railway, em desenvolvimento usa localhost
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api',
 })
 
 // Interceptor de requisição — executado antes de cada chamada à API
 // Injeta o token JWT automaticamente em todas as requisições
-// O aluno não precisa se preocupar com isso — acontece de forma transparente
 api.interceptors.request.use((config) => {
 
   // Busca o token salvo no localStorage do browser
   const token = localStorage.getItem('access_token')
 
   // Se existir token, adiciona no header Authorization
-  // O Django vai ler esse header e identificar o usuário
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -25,8 +22,7 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Interceptor de resposta — executado após cada resposta da API
-// Trata erros de autenticação automaticamente
+// Interceptor de resposta — trata erros de autenticação automaticamente
 api.interceptors.response.use(
   // Se a resposta for bem sucedida, retorna normalmente
   (response) => response,
@@ -49,6 +45,16 @@ api.interceptors.response.use(
   }
 )
 
-// Exporta a instância do axios configurada
-// Todos os outros arquivos vão importar esse 'api' para fazer requisições
 export default api
+
+
+Salva com Ctrl+S. Agora cria o arquivo .env.production dentro da pasta frontend:
+
+powershell
+New-Item C:\Users\eshel\OneDrive\Documentos\PU\portal-simulados\frontend\.env.production -Type File
+
+
+Abre e cola:
+
+env
+VITE_API_URL=https://portal-simulados-production.up.railway.app/api
