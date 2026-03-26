@@ -34,6 +34,7 @@
 
       <!-- Questão atual -->
       <div class="card-questao" v-if="simulado.questoes[questaoAtual]">
+
         <p class="numero-questao">Questão {{ questaoAtual + 1 }}</p>
         <p class="enunciado">{{ simulado.questoes[questaoAtual].enunciado }}</p>
 
@@ -44,19 +45,21 @@
           class="imagem-questao"
         />
 
-        <!-- Alternativas -->
+        <!-- Alternativas — 5 opções no formato ENEM -->
+        <!-- opcoesDaQuestao filtra alternativas vazias automaticamente -->
         <div class="alternativas">
           <div
-            v-for="opcao in ['A', 'B', 'C', 'D']"
-            :key="opcao"
+            v-for="opcao in opcoesDaQuestao(simulado.questoes[questaoAtual])"
+            :key="opcao.letra"
             class="alternativa"
-            :class="{ selecionada: respostas[simulado.questoes[questaoAtual].id] === opcao }"
-            @click="selecionar(simulado.questoes[questaoAtual].id, opcao)"
+            :class="{ selecionada: respostas[simulado.questoes[questaoAtual].id] === opcao.letra }"
+            @click="selecionar(simulado.questoes[questaoAtual].id, opcao.letra)"
           >
-            <span class="letra">{{ opcao }}</span>
-            <span class="texto">{{ simulado.questoes[questaoAtual]['opcao_' + opcao.toLowerCase()] }}</span>
+            <span class="letra">{{ opcao.letra }}</span>
+            <span class="texto">{{ opcao.texto }}</span>
           </div>
         </div>
+
       </div>
 
       <!-- Botões de navegação -->
@@ -131,6 +134,21 @@ onMounted(async () => {
   }
 })
 
+// Retorna apenas as alternativas que têm conteúdo preenchido
+// Funciona tanto para questões de 4 quanto de 5 alternativas
+function opcoesDaQuestao(questao) {
+  const todasOpcoes = [
+    { letra: 'A', texto: questao.opcao_a },
+    { letra: 'B', texto: questao.opcao_b },
+    { letra: 'C', texto: questao.opcao_c },
+    { letra: 'D', texto: questao.opcao_d },
+    { letra: 'E', texto: questao.opcao_e },
+  ]
+
+  // Filtra apenas alternativas com texto preenchido
+  return todasOpcoes.filter(opcao => opcao.texto && opcao.texto.trim() !== '')
+}
+
 // Registra a resposta do aluno para uma questão
 function selecionar(questaoId, opcao) {
   respostas.value[questaoId] = opcao
@@ -168,8 +186,7 @@ async function enviar() {
       respostas: listaRespostas,
     })
 
-    // Redireciona para a tela de resultado
-    // Passa o resultado via query params
+    // Redireciona para a tela de resultado com os dados do score
     router.push({
       name: 'resultado',
       params: { id: route.params.id },

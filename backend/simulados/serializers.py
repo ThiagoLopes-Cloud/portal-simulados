@@ -12,6 +12,7 @@ class QuestaoSerializer(serializers.ModelSerializer):
     Serializer para exibir as questões de um simulado.
     Retorna todos os campos necessários para o aluno responder a prova.
     Inclui URLs de imagens do enunciado e das alternativas.
+    Atualizado para o formato ENEM com 5 alternativas (A, B, C, D, E).
     """
 
     class Meta:
@@ -28,10 +29,12 @@ class QuestaoSerializer(serializers.ModelSerializer):
             'opcao_b',
             'opcao_c',
             'opcao_d',
+            'opcao_e',           # Nova alternativa E — formato ENEM
             'imagem_opcao_a',    # URL da imagem da alternativa A
             'imagem_opcao_b',    # URL da imagem da alternativa B
             'imagem_opcao_c',    # URL da imagem da alternativa C
             'imagem_opcao_d',    # URL da imagem da alternativa D
+            'imagem_opcao_e',    # URL da imagem da alternativa E
         ]
 
 
