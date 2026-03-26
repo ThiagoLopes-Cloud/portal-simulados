@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'questoes',    # Perguntas e alternativas
     'respostas',   # Respostas dos alunos
     'resultados',  # Score e histórico de resultados
+    'conteudo',    # Matérias e temas do ENEM
 ]
 
 MIDDLEWARE = [

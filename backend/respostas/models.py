@@ -12,19 +12,22 @@ class Resposta(models.Model):
     """
     Representa a resposta de um aluno a uma questão específica.
     Cada vez que um aluno responde uma questão, uma Resposta é criada no banco.
+    Adaptada para o formato ENEM com 5 alternativas (A, B, C, D, E).
     """
 
-    # Opções de resposta disponíveis para o aluno escolher
+    # Opções de resposta disponíveis para o aluno escolher — padrão ENEM
     OPCAO_A = 'A'
     OPCAO_B = 'B'
     OPCAO_C = 'C'
     OPCAO_D = 'D'
+    OPCAO_E = 'E'  # Nova opção adicionada para o formato ENEM
 
     OPCOES_CHOICES = [
         (OPCAO_A, 'Alternativa A'),
         (OPCAO_B, 'Alternativa B'),
         (OPCAO_C, 'Alternativa C'),
         (OPCAO_D, 'Alternativa D'),
+        (OPCAO_E, 'Alternativa E'),  # Nova opção adicionada para o formato ENEM
     ]
 
     # ForeignKey para o usuário — saber qual aluno respondeu
@@ -47,7 +50,8 @@ class Resposta(models.Model):
         verbose_name='Questão'
     )
 
-    # Campo que armazena a alternativa escolhida pelo aluno (A, B, C ou D)
+    # Campo que armazena a alternativa escolhida pelo aluno (A, B, C, D ou E)
+    # choices=OPCOES_CHOICES limita os valores aceitos às opções definidas acima
     opcao_escolhida = models.CharField(
         max_length=1,
         choices=OPCOES_CHOICES,
@@ -79,4 +83,3 @@ class Resposta(models.Model):
 
         # Garante que um aluno não pode responder a mesma questão duas vezes
         unique_together = ['aluno', 'questao']
-        
