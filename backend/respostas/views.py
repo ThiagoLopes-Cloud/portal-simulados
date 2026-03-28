@@ -1,124 +1,115 @@
-# Importa o módulo de views do Django REST Framework
+# respostas/views.py
+# View de envio de respostas ajustada para o novo relacionamento M2M.
+# A validação agora verifica se a questão está vinculada ao simulado
+# via tabela intermediária SimuladoQuestao — não mais por ForeignKey direto.
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-# Importa os serializers de resposta
 from .serializers import ResponderSerializer
-
-# Importa os models necessários
 from .models import Resposta
 from questoes.models import Questao
-from simulados.models import Simulado
+from simulados.models import Simulado, SimuladoQuestao
 from resultados.models import Resultado
+
 
 class ResponderView(APIView):
     """
-    View para o aluno enviar as respostas de um simulado.
-    Rota: POST /api/responder
-    Requer autenticação — só alunos logados podem responder.
-
+    View para o aluno enviar todas as respostas de um simulado de uma vez.
+    Rota: POST /api/responder/
+    
     Fluxo:
-    1. Recebe o id do simulado e a lista de respostas
-    2. Valida os dados
-    3. Salva cada resposta no banco
-    4. Calcula o score automaticamente
-    5. Salva o resultado
-    6. Retorna o resultado para o Vue.js
+    1. Valida payload (simulado_id + lista de respostas)
+    2. Verifica se o simulado existe e está ativo
+    3. Bloqueia reenvio (aluno já respondeu esse simulado)
+    4. Para cada resposta: valida se a questão pertence ao simulado
+    5. Salva a resposta e verifica se está correta
+    6. Calcula score e salva Resultado
+    7. Retorna resultado ao Vue.js
     """
 
     def post(self, request):
-        """
-        Recebe as respostas do aluno e calcula o score automaticamente.
-        """
-
-        # Passa os dados recebidos para o serializer validar
         serializer = ResponderSerializer(data=request.data)
 
-        # Verifica se os dados são válidos
         if not serializer.is_valid():
-            # Retorna os erros de validação com status 400 (Bad Request)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Extrai os dados validados
         simulado_id = serializer.validated_data['simulado_id']
         respostas_data = serializer.validated_data['respostas']
 
+        # Busca o simulado ativo
         try:
-            # Busca o simulado pelo ID
             simulado = Simulado.objects.get(pk=simulado_id, ativo=True)
-
         except Simulado.DoesNotExist:
-            # Retorna erro 404 se o simulado não existir
             return Response(
                 {'error': 'Simulado não encontrado.'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Verifica se o aluno já respondeu esse simulado anteriormente
+        # Bloqueia reenvio — cada aluno responde cada simulado uma vez
         if Resultado.objects.filter(aluno=request.user, simulado=simulado).exists():
             return Response(
                 {'error': 'Você já respondeu esse simulado.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Inicializa o contador de acertos
+        # Carrega todas as questões do simulado em memória (1 query) —
+        # evita N queries dentro do loop de validação.
+        # O dict mapeia questao_id → SimuladoQuestao para acesso O(1).
+        questoes_do_simulado = {
+            sq.questao_id: sq.questao
+            for sq in SimuladoQuestao.objects.filter(simulado=simulado)
+                                             .select_related('questao')
+        }
+
         acertos = 0
+        respostas_para_criar = []   # Acumula para bulk_create no final
 
-        # Lista para armazenar as respostas salvas
-        respostas_salvas = []
-
-        # Percorre cada resposta enviada pelo aluno
         for resposta_item in respostas_data:
-            try:
-                # Busca a questão pelo ID — verifica se pertence ao simulado
-                questao = Questao.objects.get(
-                    pk=resposta_item['questao_id'],
-                    simulado=simulado
-                )
+            questao_id = resposta_item['questao_id']
 
-            except Questao.DoesNotExist:
-                # Retorna erro se a questão não pertencer ao simulado
+            # Valida se a questão pertence a este simulado
+            if questao_id not in questoes_do_simulado:
                 return Response(
-                    {'error': f'Questão {resposta_item["questao_id"]} não encontrada.'},
+                    {'error': f'Questão {questao_id} não pertence a este simulado.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Verifica se a resposta do aluno está correta
-            # Compara a opção escolhida com a resposta correta da questão
-            correta = resposta_item['opcao_escolhida'] == questao.resposta_correta
+            questao = questoes_do_simulado[questao_id]
+            opcao_escolhida = resposta_item['opcao_escolhida']
+            correta = opcao_escolhida == questao.resposta_correta
 
-            # Incrementa o contador de acertos se a resposta estiver correta
             if correta:
                 acertos += 1
 
-            # Salva a resposta no banco de dados
-            resposta = Resposta.objects.create(
-                aluno=request.user,       # Usuário autenticado via JWT
-                questao=questao,          # Questão respondida
-                opcao_escolhida=resposta_item['opcao_escolhida'],  # Opção escolhida
-                correta=correta           # True se correta, False se errada
+            # Acumula para inserção em lote — muito mais eficiente que
+            # criar uma por uma dentro do loop (evita N inserts individuais)
+            respostas_para_criar.append(
+                Resposta(
+                    aluno=request.user,
+                    questao=questao,
+                    opcao_escolhida=opcao_escolhida,
+                    correta=correta,
+                )
             )
 
-            respostas_salvas.append(resposta)
+        # Insere todas as respostas em uma única query SQL — performance crítica
+        Resposta.objects.bulk_create(respostas_para_criar)
 
-        # Calcula o total de questões do simulado
-        total_questoes = simulado.questoes.count()
+        # Calcula score
+        total_questoes = len(questoes_do_simulado)
+        score = round((acertos / total_questoes * 100), 2) if total_questoes > 0 else 0
 
-        # Calcula o score em percentual
-        # ex: 8 acertos em 10 questões = 80.00%
-        score = (acertos / total_questoes * 100) if total_questoes > 0 else 0
-
-        # Salva o resultado final no banco de dados
-        resultado = Resultado.objects.create(
-            aluno=request.user,           # Usuário autenticado
-            simulado=simulado,            # Simulado respondido
-            acertos=acertos,              # Total de acertos
-            total_questoes=total_questoes,# Total de questões
-            score=round(score, 2)         # Score arredondado para 2 casas decimais
+        # Salva o resultado final
+        Resultado.objects.create(
+            aluno=request.user,
+            simulado=simulado,
+            acertos=acertos,
+            total_questoes=total_questoes,
+            score=score,
         )
 
-        # Retorna o resultado para o Vue.js com status 201 (Created)
         return Response({
             'message': 'Simulado respondido com sucesso!',
             'resultado': {

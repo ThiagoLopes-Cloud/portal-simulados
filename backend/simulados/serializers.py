@@ -1,92 +1,128 @@
-# Importa o módulo serializers do Django REST Framework
-from rest_framework import serializers
+# simulados/serializers.py
+# Serializers atualizados para o novo relacionamento M2M via SimuladoQuestao.
+# As questões agora são obtidas ordenadas pelo campo 'ordem' da tabela intermediária.
 
-# Importa os models Simulado e Questao
-from .models import Simulado
+from rest_framework import serializers
+from .models import Simulado, SimuladoQuestao
 from questoes.models import Questao
 
 
-# Serializer de Questao — usado dentro do SimuladoDetalheSerializer
 class QuestaoSerializer(serializers.ModelSerializer):
     """
-    Serializer para exibir as questões de um simulado.
-    Retorna todos os campos necessários para o aluno responder a prova.
-    Inclui URLs de imagens do enunciado e das alternativas.
-    Atualizado para o formato ENEM com 5 alternativas (A, B, C, D, E).
+    Serializer para exibir os dados de uma questão ao aluno durante a prova.
+    NÃO inclui 'resposta_correta' nem 'explicacao' — entregues só após responder.
+    Inclui o campo 'ordem' injetado manualmente via SerializerMethodField.
     """
+
+    # Campo 'ordem' não existe na Questao, mas sim em SimuladoQuestao.
+    # Precisamos injetá-lo no contexto para exibir ao aluno.
+    # O serializer recebe 'ordem' via source='simulado_questoes' no método do pai.
+    ordem = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Questao
-
-        # Campos retornados no JSON — inclui todas as alternativas e imagens
-        # Não inclui 'resposta_correta' para não entregar a resposta ao aluno!
         fields = [
             'id',
-            'ordem',
+            'ordem',             # Posição da questão neste simulado
             'enunciado',
-            'imagem_enunciado',  # URL da imagem do enunciado
+            'imagem_enunciado',
             'opcao_a',
             'opcao_b',
             'opcao_c',
             'opcao_d',
-            'opcao_e',           # Nova alternativa E — formato ENEM
-            'imagem_opcao_a',    # URL da imagem da alternativa A
-            'imagem_opcao_b',    # URL da imagem da alternativa B
-            'imagem_opcao_c',    # URL da imagem da alternativa C
-            'imagem_opcao_d',    # URL da imagem da alternativa D
-            'imagem_opcao_e',    # URL da imagem da alternativa E
+            'opcao_e',
+            'imagem_opcao_a',
+            'imagem_opcao_b',
+            'imagem_opcao_c',
+            'imagem_opcao_d',
+            'imagem_opcao_e',
+            'dificuldade',       # Exibido ao aluno para contexto (opcional no front)
         ]
+        # Segurança: resposta_correta e explicacao nunca saem neste serializer
 
 
-# Serializer de listagem — usado em GET /api/simulados
-# Retorna apenas informações básicas do simulado (sem questões)
 class SimuladoListSerializer(serializers.ModelSerializer):
     """
-    Serializer simplificado para listar simulados disponíveis.
-    Usado na tela de lista de simulados do Vue.js.
+    Serializer simplificado para a listagem de simulados disponíveis.
+    Retorna apenas dados resumidos — sem a lista de questões.
+    Usado em GET /api/simulados/
     """
 
-    # Campo calculado — conta quantas questões o simulado tem
+    # Conta as questões via tabela intermediária
     total_questoes = serializers.SerializerMethodField()
 
     class Meta:
         model = Simulado
-
-        # Campos retornados no JSON de listagem
-        fields = ['id', 'titulo', 'descricao', 'criado_em', 'total_questoes']
+        fields = [
+            'id',
+            'titulo',
+            'descricao',
+            'criado_em',
+            'data_inicio',
+            'data_fim',
+            'total_questoes',
+        ]
 
     def get_total_questoes(self, obj):
-        """
-        Método que calcula o total de questões do simulado.
-        O 'obj' é a instância do Simulado sendo serializado.
-        """
-        return obj.questoes.count()
+        # Conta pelos registros da tabela intermediária, não pelo M2M direto.
+        # É mais eficiente pois evita JOIN desnecessário com a tabela de questões.
+        return obj.simulado_questoes.count()
 
 
-# Serializer de detalhe — usado em GET /api/simulados/{id}
-# Retorna todas as questões do simulado para o aluno responder
 class SimuladoDetalheSerializer(serializers.ModelSerializer):
     """
-    Serializer completo com todas as questões do simulado.
-    Usado na tela de prova do Vue.js.
+    Serializer completo com todas as questões ordenadas.
+    Usado em GET /api/simulados/{id}/ — tela de prova do Vue.js.
+    
+    A ordem das questões é definida pela tabela SimuladoQuestao.
+    Usamos SerializerMethodField para injetar o campo 'ordem' em cada questão.
     """
 
-    # Aninha o QuestaoSerializer — retorna a lista completa de questões
-    # many=True indica que são múltiplas questões
-    # read_only=True indica que as questões não podem ser editadas por aqui
-    questoes = QuestaoSerializer(many=True, read_only=True)
-
-    # Campo calculado — conta quantas questões o simulado tem
+    questoes = serializers.SerializerMethodField()
     total_questoes = serializers.SerializerMethodField()
 
     class Meta:
         model = Simulado
+        fields = [
+            'id',
+            'titulo',
+            'descricao',
+            'criado_em',
+            'data_inicio',
+            'data_fim',
+            'total_questoes',
+            'questoes',
+        ]
 
-        # Campos retornados no JSON de detalhe — inclui a lista de questões
-        fields = ['id', 'titulo', 'descricao', 'criado_em', 'total_questoes', 'questoes']
+    def get_questoes(self, obj):
+        """
+        Retorna as questões ordenadas pelo campo 'ordem' da tabela intermediária.
+        
+        Estratégia: percorrer os SimuladoQuestao ordenados e injetar
+        o campo 'ordem' em cada objeto Questao antes de serializar.
+        Evita N+1 queries com select_related.
+        """
+
+        # Busca os vínculos ordenados, com a questão em join — 1 query só
+        simulado_questoes = (
+            obj.simulado_questoes
+            .select_related('questao', 'questao__tema')
+            .order_by('ordem')
+        )
+
+        questoes_serializadas = []
+        for sq in simulado_questoes:
+            questao = sq.questao
+
+            # Injeta o campo 'ordem' diretamente no objeto questão.
+            # Isso é necessário porque 'ordem' vive na tabela intermediária,
+            # não no model Questao — o serializer precisa encontrá-lo.
+            questao.ordem = sq.ordem
+
+            serializer = QuestaoSerializer(questao)
+            questoes_serializadas.append(serializer.data)
+
+        return questoes_serializadas
 
     def get_total_questoes(self, obj):
-        """
-        Método que calcula o total de questões do simulado.
-        """
-        return obj.questoes.count()
+        return obj.simulado_questoes.count()

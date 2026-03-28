@@ -1,49 +1,76 @@
-# Importa o módulo admin do Django — responsável pelo painel administrativo
-from django.contrib import admin
+# questoes/admin.py
+# Admin do banco de questões — agora as questões são recursos independentes.
+# O vínculo com simulados acontece via SimuladoAdmin (inline de SimuladoQuestao).
 
-# Importa o model Questao para registrá-lo no Admin
+from django.contrib import admin
 from .models import Questao
 
-# TabularInline permite adicionar questões diretamente na tela do Simulado
-# Em vez de cadastrar questão por questão separadamente
-class QuestaoInline(admin.TabularInline):
-    """
-    Exibe as questões dentro da tela de edição do Simulado.
-    O professor consegue criar várias questões na mesma tela.
-    """
 
-    # Model que será exibido inline
-    model = Questao
-
-    # Quantidade de formulários vazios extras exibidos para adicionar novas questões
-    extra = 3
-
-    # Campos exibidos no formulário inline
-    fields = ['ordem', 'enunciado', 'opcao_a', 'opcao_b', 'opcao_c', 'opcao_d', 'resposta_correta']
-
-# O decorator @admin.register substitui o admin.site.register()
 @admin.register(Questao)
 class QuestaoAdmin(admin.ModelAdmin):
     """
-    Configuração do model Questao no Django Admin.
+    Interface administrativa para o banco de questões.
+    Questões são gerenciadas de forma independente de simulados.
+    O professor cria questões aqui e as vincula a simulados pelo SimuladoAdmin.
     """
 
-    # Colunas que aparecem na listagem de questões no Admin
-    list_display = ['simulado', 'ordem', 'enunciado_resumido', 'resposta_correta']
+    # Colunas exibidas na listagem
+    list_display = [
+        'id',
+        'tema',
+        'dificuldade',
+        'enunciado_resumido',
+        'resposta_correta',
+        'fonte',
+        'ano_origem',
+        'criado_em',
+    ]
 
-    # Filtros disponíveis na barra lateral direita do Admin
-    list_filter = ['simulado', 'resposta_correta']
+    # Filtros laterais para navegação rápida
+    list_filter = [
+        'dificuldade',
+        'resposta_correta',
+        'tema__materia',   # Filtra por matéria pai do tema
+        'tema',
+        'ano_origem',
+    ]
 
-    # Campos em que o Admin permite busca por texto
-    search_fields = ['enunciado']
+    # Campos pesquisáveis por texto
+    search_fields = [
+        'enunciado',
+        'fonte',
+        'tema__nome',
+        'tema__materia__nome',
+    ]
 
-    # Ordena a listagem por simulado e ordem
-    ordering = ['simulado', 'ordem']
+    # Ordena pelo mais recente primeiro
+    ordering = ['-criado_em']
 
-    # Método que retorna os primeiros 60 caracteres do enunciado
-    # Evita que enunciados longos quebrem o layout da listagem
+    # Organiza os campos do formulário em seções visuais
+    fieldsets = (
+        ('Conteúdo', {
+            'fields': ('tema', 'dificuldade', 'enunciado', 'imagem_enunciado')
+        }),
+        ('Alternativas', {
+            'fields': (
+                ('opcao_a', 'imagem_opcao_a'),
+                ('opcao_b', 'imagem_opcao_b'),
+                ('opcao_c', 'imagem_opcao_c'),
+                ('opcao_d', 'imagem_opcao_d'),
+                ('opcao_e', 'imagem_opcao_e'),
+            )
+        }),
+        ('Gabarito', {
+            'fields': ('resposta_correta', 'explicacao')
+        }),
+        ('Metadados', {
+            'fields': ('fonte', 'ano_origem'),
+            'classes': ('collapse',),   # Recolhido por padrão — não polui o form
+        }),
+    )
+
     def enunciado_resumido(self, obj):
-        return f'{obj.enunciado[:60]}...'
+        """Exibe os primeiros 80 caracteres do enunciado na listagem."""
+        return f'{obj.enunciado[:80]}...' if len(obj.enunciado) > 80 else obj.enunciado
 
-    # Nome da coluna no Admin
     enunciado_resumido.short_description = 'Enunciado'

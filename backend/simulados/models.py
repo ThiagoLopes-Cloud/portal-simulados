@@ -1,36 +1,28 @@
-# Importa o módulo models do Django — contém todos os tipos de campos do banco
-from django.db import models
+# simulados/models.py
+# Model de Simulado com relacionamento M2M explícito via SimuladoQuestao.
+# A tabela intermediária guarda metadados do vínculo (ordem, peso futuro).
 
-# Importa nosso User customizado para criar o relacionamento
+from django.db import models
 from users.models import User
 
-# Define a classe Simulado que representa uma tabela no banco de dados
-# Toda classe que herda de models.Model vira uma tabela no PostgreSQL
+
 class Simulado(models.Model):
     """
-    Representa uma prova/simulado no sistema.
-    Criado pelo admin/professor e disponível para os estudantes responderem.
+    Representa uma prova/simulado disponível para os alunos.
+    Criado pelo professor e composto por questões do banco via SimuladoQuestao.
     """
 
-    # Campo de texto curto — armazena o título do simulado
-    # max_length=200 define o limite máximo de caracteres
     titulo = models.CharField(
         max_length=200,
-        verbose_name='Título'  # Nome exibido no Django Admin
+        verbose_name='Título'
     )
 
-    # Campo de texto longo — armazena a descrição do simulado
-    # blank=True significa que o campo não é obrigatório
     descricao = models.TextField(
         blank=True,
         verbose_name='Descrição'
     )
 
-    # ForeignKey cria um relacionamento "muitos para um"
-    # Muitos simulados podem pertencer a um único professor
-    # on_delete=SET_NULL — se o professor for deletado, o simulado permanece
-    # null=True — permite que o campo fique vazio no banco
-    # related_name — permite acessar os simulados de um user com user.simulados_criados.all()
+    # Quem criou o simulado (professor/admin)
     criado_por = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -39,28 +31,99 @@ class Simulado(models.Model):
         verbose_name='Criado por'
     )
 
-    # Campo de data e hora — preenchido automaticamente quando o simulado é criado
-    # auto_now_add=True significa que o Django preenche sozinho na criação
+    # M2M explícito via tabela intermediária — preserva ordem e metadados
+    questoes = models.ManyToManyField(
+        'questoes.Questao',
+        through='SimuladoQuestao',      # Tabela intermediária com metadados
+        through_fields=('simulado', 'questao'),
+        related_name='simulados',
+        verbose_name='Questões'
+    )
+
     criado_em = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Criado em'
     )
 
-    # Campo booleano (True/False) — permite ocultar simulados sem deletar do banco
-    # default=True significa que todo simulado novo começa como ativo
+    # Controla publicação sem deletar do banco
     ativo = models.BooleanField(
         default=True,
         verbose_name='Ativo'
     )
 
-    # Método __str__ define como o objeto aparece como texto
-    # Ex: no Django Admin vai mostrar o título em vez de "Simulado object (1)"
+    # Data de início e fim opcionais — abre caminho para simulados com prazo
+    data_inicio = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Data de Início'
+    )
+
+    data_fim = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Data de Término'
+    )
+
     def __str__(self):
         return self.titulo
 
-    # Classe Meta define configurações extras do model
     class Meta:
-        verbose_name = 'Simulado'           # Nome singular no Admin
-        verbose_name_plural = 'Simulados'   # Nome plural no Admin
-        ordering = ['-criado_em']           # Ordena pelos mais recentes primeiro
-                                            # O sinal '-' significa ordem decrescente
+        verbose_name = 'Simulado'
+        verbose_name_plural = 'Simulados'
+        ordering = ['-criado_em']
+
+
+class SimuladoQuestao(models.Model):
+    """
+    Tabela intermediária entre Simulado e Questao.
+    Guarda metadados do vínculo: ordem da questão no simulado
+    e peso futuro (útil para Teoria de Resposta ao Item — TRI).
+    
+    Esta abordagem é superior ao M2M simples porque:
+    - Preserva a ordem das questões por simulado
+    - Permite pesos diferentes por questão (pontuação variável)
+    - Mantém histórico de qual questão estava em qual posição
+    - Facilita relatórios de dificuldade por simulado
+    """
+
+    simulado = models.ForeignKey(
+        Simulado,
+        on_delete=models.CASCADE,
+        related_name='simulado_questoes',
+        verbose_name='Simulado'
+    )
+
+    questao = models.ForeignKey(
+        'questoes.Questao',
+        on_delete=models.CASCADE,
+        related_name='simulado_questoes',
+        verbose_name='Questão'
+    )
+
+    # Posição da questão dentro deste simulado específico
+    ordem = models.PositiveIntegerField(
+        default=1,
+        verbose_name='Ordem'
+    )
+
+    # Peso da questão — base para pontuação ponderada futura (TRI)
+    # Por ora mantém 1.0 como padrão (todas valem igual)
+    peso = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=1.00,
+        verbose_name='Peso'
+    )
+
+    class Meta:
+        verbose_name = 'Questão do Simulado'
+        verbose_name_plural = 'Questões do Simulado'
+
+        # Garante que a mesma questão não aparece duas vezes no mesmo simulado
+        unique_together = ['simulado', 'questao']
+
+        # Ordenação padrão pela posição da questão
+        ordering = ['ordem']
+
+    def __str__(self):
+        return f'{self.simulado.titulo} — Q{self.ordem}: {self.questao.enunciado[:40]}...'

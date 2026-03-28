@@ -1,37 +1,40 @@
+# questoes/models.py
+# Model de Questao desacoplado de qualquer simulado específico.
+# Uma questão agora é um recurso reutilizável do banco de questões,
+# podendo aparecer em múltiplos simulados via SimuladoQuestao.
+
 from django.db import models
 from conteudo.models import Tema
 
+
 class Questao(models.Model):
     """
-    Representa uma questão de múltipla escolha vinculada a um simulado.
-    Adaptada para o formato ENEM com 5 alternativas (A, B, C, D, E).
+    Representa uma questão de múltipla escolha do banco de questões.
+    Desacoplada do Simulado — o vínculo agora ocorre via SimuladoQuestao.
+    Suporta o formato ENEM com 5 alternativas (A–E).
     """
 
-    # Opções de resposta disponíveis — 5 alternativas padrão ENEM
     OPCAO_A = 'A'
     OPCAO_B = 'B'
     OPCAO_C = 'C'
     OPCAO_D = 'D'
-    OPCAO_E = 'E'  # ← nova opção
+    OPCAO_E = 'E'
 
     OPCOES_CHOICES = [
         (OPCAO_A, 'Alternativa A'),
         (OPCAO_B, 'Alternativa B'),
         (OPCAO_C, 'Alternativa C'),
         (OPCAO_D, 'Alternativa D'),
-        (OPCAO_E, 'Alternativa E'),  # ← nova opção
+        (OPCAO_E, 'Alternativa E'),
     ]
 
-    # ForeignKey com o simulado
-    simulado = models.ForeignKey(
-        'simulados.Simulado',
-        on_delete=models.CASCADE,
-        related_name='questoes',
-        verbose_name='Simulado'
-    )
+    DIFICULDADE_CHOICES = [
+        ('F', 'Fácil'),
+        ('M', 'Médio'),
+        ('D', 'Difícil'),
+    ]
 
-    # NOVO — Relacionamento com o tema da questão
-    # null=True e blank=True — campo totalmente opcional
+    # Tema ao qual a questão pertence — usado para diagnóstico de desempenho
     tema = models.ForeignKey(
         Tema,
         on_delete=models.SET_NULL,
@@ -41,12 +44,10 @@ class Questao(models.Model):
         verbose_name='Tema'
     )
 
-    # Campo de texto longo — armazena o enunciado da questão
-    enunciado = models.TextField(
-        verbose_name='Enunciado'
-    )
+    # Enunciado principal da questão
+    enunciado = models.TextField(verbose_name='Enunciado')
 
-    # URL da imagem do enunciado — opcional
+    # URL de imagem opcional para ilustrar o enunciado
     imagem_enunciado = models.URLField(
         blank=True,
         null=True,
@@ -54,34 +55,33 @@ class Questao(models.Model):
         help_text='Cole a URL de uma imagem para ilustrar o enunciado (opcional)'
     )
 
-    # Campos das 5 alternativas
+    # Alternativas de A a E — E é opcional (questões de 4 alternativas deixam vazio)
     opcao_a = models.CharField(max_length=500, verbose_name='Alternativa A')
     opcao_b = models.CharField(max_length=500, verbose_name='Alternativa B')
     opcao_c = models.CharField(max_length=500, verbose_name='Alternativa C')
     opcao_d = models.CharField(max_length=500, verbose_name='Alternativa D')
-    opcao_e = models.CharField(max_length=500, verbose_name='Alternativa E',
-                                blank=True, default='')  # ← nova alternativa
+    opcao_e = models.CharField(
+        max_length=500,
+        blank=True,
+        default='',
+        verbose_name='Alternativa E'
+    )
 
-    # URLs das imagens das alternativas — todas opcionais
+    # URLs de imagens opcionais para cada alternativa
     imagem_opcao_a = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa A (URL)')
     imagem_opcao_b = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa B (URL)')
     imagem_opcao_c = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa C (URL)')
     imagem_opcao_d = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa D (URL)')
-    imagem_opcao_e = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa E (URL)')  # ← nova
+    imagem_opcao_e = models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa E (URL)')
 
-    # Campo que armazena qual alternativa é a correta (A, B, C, D ou E)
+    # Gabarito — qual alternativa é a correta
     resposta_correta = models.CharField(
         max_length=1,
         choices=OPCOES_CHOICES,
         verbose_name='Resposta Correta'
     )
 
-    # NOVO — Nível de dificuldade
-    DIFICULDADE_CHOICES = [
-        ('F', 'Fácil'),
-        ('M', 'Médio'),
-        ('D', 'Difícil'),
-    ]
+    # Nível de dificuldade — usado para análise de desempenho e recomendação
     dificuldade = models.CharField(
         max_length=1,
         choices=DIFICULDADE_CHOICES,
@@ -89,22 +89,35 @@ class Questao(models.Model):
         verbose_name='Dificuldade'
     )
 
-    # NOVO — Explicação do gabarito
+    # Explicação do gabarito — exibida após o aluno responder
     explicacao = models.TextField(
         blank=True,
         verbose_name='Explicação do gabarito'
     )
 
-    # Campo de ordem
-    ordem = models.PositiveIntegerField(
-        default=1,
-        verbose_name='Ordem'
+    # Ano de origem da questão (ex: ENEM 2023) — útil para filtros futuros
+    ano_origem = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Ano de Origem'
     )
 
+    # Fonte da questão (ex: "ENEM 2023 — Caderno Amarelo")
+    fonte = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name='Fonte'
+    )
+
+    # Timestamps automáticos
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+
     def __str__(self):
-        return f'Questão {self.ordem}: {self.enunciado[:50]}...'
+        tema_nome = self.tema.nome if self.tema else 'Sem tema'
+        return f'[{self.get_dificuldade_display()}] {tema_nome} — {self.enunciado[:60]}...'
 
     class Meta:
         verbose_name = 'Questão'
         verbose_name_plural = 'Questões'
-        ordering = ['simulado', 'ordem']
+        ordering = ['-criado_em']
