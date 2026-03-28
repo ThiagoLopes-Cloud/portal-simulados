@@ -90,6 +90,10 @@ async function login() {
     localStorage.setItem('access_token', response.data.access)
     localStorage.setItem('refresh_token', response.data.refresh)
 
+    // Após salvar access_token e refresh_token, busca o perfil para obter o role
+    const perfil = await api.get('/profile/')
+    localStorage.setItem('user_role', perfil.data.role)
+
     // Redireciona para o dashboard após o login
     router.push({ name: 'dashboard' })
 

@@ -3,23 +3,23 @@
     <nav class="navbar">
       <h1>Portal de Simulados</h1>
       <div class="nav-links">
-        <router-link to="/simulados">Simulados</router-link>
-        <router-link to="/ranking">Ranking</router-link>
-        <!-- Link visível só para admin -->
-        <router-link v-if="isAdmin" to="/admin/alunos" class="link-admin">
-          👥 Alunos
-        </router-link>
+        <router-link to="/admin/alunos">← Voltar para alunos</router-link>
         <button @click="logout" class="btn-logout">Sair</button>
       </div>
     </nav>
 
-    <div v-if="carregando" class="loading">Carregando dashboard...</div>
+    <div v-if="carregando" class="loading">Carregando...</div>
     <div v-else-if="erro" class="erro">{{ erro }}</div>
 
     <div v-else class="container">
-      <div class="welcome">
-        <h2>Olá, {{ username }}! 👋</h2>
-        <p>Veja como está seu desempenho</p>
+
+      <!-- Cabeçalho com dados do aluno -->
+      <div class="aluno-header">
+        <div class="aluno-avatar">{{ dados.aluno.username[0].toUpperCase() }}</div>
+        <div>
+          <h2>{{ dados.aluno.username }}</h2>
+          <p>{{ dados.aluno.email }}</p>
+        </div>
       </div>
 
       <!-- Cards de resumo -->
@@ -38,18 +38,19 @@
           <span class="resumo-valor roxo">{{ dados.por_materia.length }}</span>
           <span class="resumo-label">Matérias avaliadas</span>
         </div>
-        <div class="card-resumo acao" @click="$router.push('/simulados')">
-          <span class="resumo-valor">📝</span>
-          <span class="resumo-label">Fazer simulado</span>
+        <div class="card-resumo">
+          <span class="resumo-valor" :class="pontoFracoColor">
+            {{ pontoFraco }}
+          </span>
+          <span class="resumo-label">Ponto mais fraco</span>
         </div>
       </div>
 
       <!-- Desempenho por matéria -->
       <section class="secao">
         <h3>Desempenho por matéria</h3>
-
         <div v-if="dados.por_materia.length === 0" class="vazio">
-          Faça um simulado com questões vinculadas a temas para ver seu desempenho.
+          Este aluno ainda não respondeu questões com tema vinculado.
         </div>
 
         <div
@@ -76,9 +77,8 @@
               <span class="materia-percentual" :class="corScore(materia.percentual)">
                 {{ materia.percentual }}%
               </span>
-              <!-- Comparação com média da plataforma -->
               <span class="diferenca" :class="materia.diferenca_media >= 0 ? 'positivo' : 'negativo'">
-                {{ materia.diferenca_media >= 0 ? '+' : '' }}{{ materia.diferenca_media }}%
+                {{ materia.diferenca_media >= 0 ? '+' : '' }}{{ materia.diferenca_media }}% vs média
               </span>
               <span class="toggle-icon">
                 {{ materiasAbertas.includes(materia.codigo) ? '▲' : '▼' }}
@@ -86,15 +86,11 @@
             </div>
           </div>
 
-          <!-- Temas colapsáveis -->
           <div v-if="materiasAbertas.includes(materia.codigo)" class="temas-lista">
-
-            <!-- Legenda da média -->
             <div class="temas-legenda">
-              <span>Seu desempenho</span>
+              <span>Desempenho do aluno</span>
               <span>Média da plataforma</span>
             </div>
-
             <div
               v-for="tema in materia.temas"
               :key="tema.tema"
@@ -105,9 +101,8 @@
                 <span class="tema-detalhe">{{ tema.acertos }}/{{ tema.total }} questões</span>
               </div>
               <div class="tema-direita">
-                <!-- Barra do aluno -->
                 <div class="barra-dupla">
-                  <div class="barra-label">Você</div>
+                  <div class="barra-label">Aluno</div>
                   <div class="barra-mini pequena">
                     <div
                       class="barra-fill"
@@ -119,7 +114,6 @@
                     {{ tema.percentual }}%
                   </span>
                 </div>
-                <!-- Barra da média da plataforma -->
                 <div class="barra-dupla">
                   <div class="barra-label cinza">Média</div>
                   <div class="barra-mini pequena">
@@ -128,9 +122,7 @@
                       :style="{ width: tema.media_plataforma + '%' }"
                     ></div>
                   </div>
-                  <span class="tema-percentual cinza">
-                    {{ tema.media_plataforma }}%
-                  </span>
+                  <span class="tema-percentual cinza">{{ tema.media_plataforma }}%</span>
                 </div>
               </div>
             </div>
@@ -142,7 +134,7 @@
       <section class="secao">
         <h3>Histórico de simulados</h3>
         <div v-if="dados.historico.length === 0" class="vazio">
-          Você ainda não realizou nenhum simulado.
+          Este aluno ainda não realizou nenhum simulado.
         </div>
         <div class="tabela-container" v-else>
           <table class="tabela">
@@ -170,39 +162,45 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api.js'
 
 const router = useRouter()
-const username = ref('')
+const route = useRoute()
 const carregando = ref(true)
 const erro = ref('')
 const materiasAbertas = ref([])
-const isAdmin = ref(localStorage.getItem('user_role') === 'admin')
 
 const dados = ref({
+  aluno: { username: '', email: '' },
   score_geral: 0,
   total_simulados: 0,
   por_materia: [],
   historico: [],
 })
 
+// Ponto mais fraco — primeira matéria da lista (já ordenada do pior para melhor)
+const pontoFraco = computed(() => {
+  if (dados.value.por_materia.length === 0) return '—'
+  return dados.value.por_materia[0].codigo
+})
+
+const pontoFracoColor = computed(() => {
+  if (dados.value.por_materia.length === 0) return ''
+  return corScore(dados.value.por_materia[0].percentual)
+})
+
 onMounted(async () => {
   try {
-    const [perfil, dashboard] = await Promise.all([
-      api.get('/profile/'),
-      api.get('/resultados/dashboard/'),
-    ])
-    username.value = perfil.data.username
-    dados.value = dashboard.data
+    const response = await api.get(`/resultados/admin/alunos/${route.params.id}/`)
+    dados.value = response.data
 
-    // Abre automaticamente a matéria com pior desempenho
     if (dados.value.por_materia.length > 0) {
       materiasAbertas.value = [dados.value.por_materia[0].codigo]
     }
   } catch (error) {
-    erro.value = 'Erro ao carregar o dashboard.'
+    erro.value = 'Erro ao carregar o dashboard do aluno.'
   } finally {
     carregando.value = false
   }
@@ -233,100 +231,74 @@ function logout() {
 
 <style scoped>
 .dashboard { min-height: 100vh; background: #f5f5f5; }
-
 .navbar {
-  background: #667eea;
-  color: white;
-  padding: 16px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background: #667eea; color: white; padding: 16px 32px;
+  display: flex; justify-content: space-between; align-items: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .navbar h1 { font-size: 20px; font-weight: 600; }
 .nav-links { display: flex; align-items: center; gap: 24px; }
 .nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
-.link-admin { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 6px; }
 .btn-logout {
-  background: rgba(255,255,255,0.2);
-  color: white;
+  background: rgba(255,255,255,0.2); color: white;
   border: 1px solid rgba(255,255,255,0.4);
-  padding: 6px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
+  padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;
 }
-
-.loading, .vazio { color: #999; padding: 40px 0; text-align: center; }
+.loading, .vazio { color: #999; padding: 40px; text-align: center; }
 .erro { color: #c00; text-align: center; padding: 40px; }
-
 .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
-.welcome { margin-bottom: 32px; }
-.welcome h2 { font-size: 26px; color: #333; margin-bottom: 4px; }
-.welcome p { color: #666; }
+
+.aluno-header {
+  display: flex; align-items: center; gap: 20px; margin-bottom: 32px;
+}
+.aluno-avatar {
+  width: 56px; height: 56px; background: #667eea; color: white;
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 24px; font-weight: 700;
+}
+.aluno-header h2 { font-size: 22px; color: #333; margin-bottom: 4px; }
+.aluno-header p { color: #666; font-size: 14px; }
 
 .resumo {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 40px;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-bottom: 40px;
 }
 .card-resumo {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background: white; border-radius: 12px; padding: 24px;
+  text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  display: flex; flex-direction: column; gap: 8px;
 }
-.card-resumo.acao { cursor: pointer; transition: transform 0.2s; }
-.card-resumo.acao:hover { transform: translateY(-3px); }
-.resumo-valor { font-size: 32px; font-weight: 700; }
+.resumo-valor { font-size: 28px; font-weight: 700; }
 .resumo-label { font-size: 13px; color: #999; }
 
 .secao { margin-bottom: 40px; }
 .secao h3 { font-size: 18px; color: #333; margin-bottom: 16px; }
 
 .card-materia {
-  background: white;
-  border-radius: 12px;
+  background: white; border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  margin-bottom: 12px;
-  overflow: hidden;
+  margin-bottom: 12px; overflow: hidden;
 }
 .materia-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: background 0.15s;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; cursor: pointer; transition: background 0.15s;
 }
 .materia-header:hover { background: #f8f9ff; }
 .materia-info { display: flex; align-items: center; gap: 12px; }
 .materia-badge {
-  background: #667eea;
-  color: white;
-  padding: 3px 10px;
-  border-radius: 99px;
-  font-size: 12px;
-  font-weight: 600;
+  background: #667eea; color: white;
+  padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600;
 }
 .materia-nome { font-weight: 600; color: #333; }
 .materia-detalhe { font-size: 13px; color: #999; }
 .materia-direita { display: flex; align-items: center; gap: 12px; }
 .materia-percentual { font-weight: 700; font-size: 16px; min-width: 48px; text-align: right; }
-.diferenca { font-size: 12px; font-weight: 600; min-width: 40px; text-align: right; }
+.diferenca { font-size: 11px; font-weight: 600; }
 .diferenca.positivo { color: #22c55e; }
 .diferenca.negativo { color: #ef4444; }
 .toggle-icon { color: #999; font-size: 12px; }
 
-.barra-mini {
-  width: 120px; height: 8px;
-  background: #eee; border-radius: 99px; overflow: hidden;
-}
+.barra-mini { width: 120px; height: 8px; background: #eee; border-radius: 99px; overflow: hidden; }
 .barra-mini.pequena { width: 80px; height: 6px; }
 .barra-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
 .barra-fill.verde { background: #22c55e; }
@@ -336,20 +308,13 @@ function logout() {
 
 .temas-lista { border-top: 1px solid #f0f0f0; }
 .temas-legenda {
-  display: flex;
-  justify-content: flex-end;
-  gap: 40px;
-  padding: 8px 20px;
-  font-size: 11px;
-  color: #bbb;
+  display: flex; justify-content: flex-end; gap: 40px;
+  padding: 8px 20px; font-size: 11px; color: #bbb;
   border-bottom: 1px solid #f5f5f5;
 }
 .tema-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px 12px 44px;
-  border-bottom: 1px solid #f8f8f8;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px 12px 44px; border-bottom: 1px solid #f8f8f8;
 }
 .tema-item:last-child { border-bottom: none; }
 .tema-info { display: flex; flex-direction: column; gap: 2px; }
