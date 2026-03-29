@@ -102,6 +102,15 @@ class Questao(models.Model):
         verbose_name='Ano de Origem'
     )
 
+    # Identificador único de origem para importações via API (impede duplicatas)
+    id_origem = models.CharField(
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name='ID de Origem'
+    )
+
     # Fonte da questão (ex: "ENEM 2023 — Caderno Amarelo")
     fonte = models.CharField(
         max_length=200,
