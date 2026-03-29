@@ -1,38 +1,26 @@
-# Importa o módulo models do Django — contém todos os tipos de campos do banco
+# respostas/models.py
 from django.db import models
-
-# Importa o User para saber qual aluno respondeu
 from users.models import User
-
-# Importa a Questao para saber qual questão foi respondida
 from questoes.models import Questao
+from simulados.models import Simulado
 
-# Define a classe Resposta que representa uma tabela no banco de dados
+
 class Resposta(models.Model):
     """
-    Representa a resposta de um aluno a uma questão específica.
-    Cada vez que um aluno responde uma questão, uma Resposta é criada no banco.
-    Adaptada para o formato ENEM com 5 alternativas (A, B, C, D, E).
+    Resposta de um aluno a uma questão em um simulado específico.
+    
+    unique_together inclui 'simulado' — permite que a mesma questão
+    seja respondida pelo mesmo aluno em simulados diferentes.
     """
 
-    # Opções de resposta disponíveis para o aluno escolher — padrão ENEM
-    OPCAO_A = 'A'
-    OPCAO_B = 'B'
-    OPCAO_C = 'C'
-    OPCAO_D = 'D'
-    OPCAO_E = 'E'  # Nova opção adicionada para o formato ENEM
-
     OPCOES_CHOICES = [
-        (OPCAO_A, 'Alternativa A'),
-        (OPCAO_B, 'Alternativa B'),
-        (OPCAO_C, 'Alternativa C'),
-        (OPCAO_D, 'Alternativa D'),
-        (OPCAO_E, 'Alternativa E'),  # Nova opção adicionada para o formato ENEM
+        ('A', 'Alternativa A'),
+        ('B', 'Alternativa B'),
+        ('C', 'Alternativa C'),
+        ('D', 'Alternativa D'),
+        ('E', 'Alternativa E'),
     ]
 
-    # ForeignKey para o usuário — saber qual aluno respondeu
-    # on_delete=CASCADE — se o aluno for deletado, suas respostas também são
-    # related_name — permite acessar as respostas de um aluno com user.respostas.all()
     aluno = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -40,9 +28,6 @@ class Resposta(models.Model):
         verbose_name='Aluno'
     )
 
-    # ForeignKey para a questão — saber qual questão foi respondida
-    # on_delete=CASCADE — se a questão for deletada, as respostas também são
-    # related_name — permite acessar as respostas de uma questão com questao.respostas.all()
     questao = models.ForeignKey(
         Questao,
         on_delete=models.CASCADE,
@@ -50,36 +35,37 @@ class Resposta(models.Model):
         verbose_name='Questão'
     )
 
-    # Campo que armazena a alternativa escolhida pelo aluno (A, B, C, D ou E)
-    # choices=OPCOES_CHOICES limita os valores aceitos às opções definidas acima
+    # Registra em qual simulado esta resposta foi dada
+    simulado = models.ForeignKey(
+        Simulado,
+        on_delete=models.CASCADE,
+        related_name='respostas',
+        null=True,
+        blank=True,
+        verbose_name='Simulado'
+    )
+
     opcao_escolhida = models.CharField(
         max_length=1,
         choices=OPCOES_CHOICES,
         verbose_name='Opção Escolhida'
     )
 
-    # Campo calculado — True se a resposta estiver correta, False se errada
-    # Será preenchido automaticamente ao comparar com questao.resposta_correta
     correta = models.BooleanField(
         default=False,
         verbose_name='Correta'
     )
 
-    # Campo de data e hora — preenchido automaticamente quando a resposta é criada
     respondido_em = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Respondido em'
     )
 
-    # Método __str__ define como o objeto aparece como texto no Django Admin
     def __str__(self):
-        return f'{self.aluno.username} → Questão {self.questao.id} → {self.opcao_escolhida}'
+        return f'{self.aluno.username} → Q{self.questao.id} ({self.simulado}) → {self.opcao_escolhida}'
 
-    # Classe Meta define configurações extras do model
     class Meta:
         verbose_name = 'Resposta'
         verbose_name_plural = 'Respostas'
-        ordering = ['-respondido_em']   # Mais recentes primeiro
-
-        # Garante que um aluno não pode responder a mesma questão duas vezes
-        unique_together = ['aluno', 'questao']
+        ordering = ['-respondido_em']
+        unique_together = ['aluno', 'questao', 'simulado']

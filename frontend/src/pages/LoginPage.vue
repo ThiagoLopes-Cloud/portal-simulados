@@ -77,34 +77,25 @@ async function login() {
   // Ativa o estado de carregamento
   carregando.value = true
 
-  try {
-    // Faz a requisição POST para a API de login
-    // Envia username e password para o Django
-    const response = await api.post('/login/', {
-      username: username.value,
-      password: password.value,
-    })
+ try {
+  const response = await api.post('/login/', {
+    username: username.value,
+    password: password.value,
+  })
 
-    // Salva os tokens no localStorage do browser
-    // O interceptor do axios vai usar esses tokens automaticamente
-    localStorage.setItem('access_token', response.data.access)
-    localStorage.setItem('refresh_token', response.data.refresh)
+  localStorage.setItem('access_token', response.data.access)
+  localStorage.setItem('refresh_token', response.data.refresh)
 
-    // Após salvar access_token e refresh_token, busca o perfil para obter o role
-    const perfil = await api.get('/profile/')
-    localStorage.setItem('user_role', perfil.data.role)
+  // Busca o perfil para salvar o role — necessário para o guard de rotas
+  const perfil = await api.get('/profile/')
+  localStorage.setItem('user_role', perfil.data.role)
 
-    // Redireciona para o dashboard após o login
-    router.push({ name: 'dashboard' })
+  router.push({ name: 'dashboard' })
 
-  } catch (error) {
-    // Se o login falhar, exibe a mensagem de erro
-    erro.value = 'Usuário ou senha incorretos.'
-
-  } finally {
-    // Desativa o estado de carregamento independente do resultado
-    carregando.value = false
-  }
+} catch (error) {
+  erro.value = 'Usuário ou senha incorretos.'
+} finally {
+  carregando.value = false
 }
 </script>
 

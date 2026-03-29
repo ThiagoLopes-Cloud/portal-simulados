@@ -1,4 +1,4 @@
-// frontend/src/router/index.js
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 
 import LoginPage from '../pages/LoginPage.vue'
@@ -20,8 +20,6 @@ const routes = [
   { path: '/simulado/:id', name: 'prova', component: ProvaPage, meta: { requiresAuth: true } },
   { path: '/resultado/:id', name: 'resultado', component: ResultadoPage, meta: { requiresAuth: true } },
   { path: '/ranking', name: 'ranking', component: RankingPage, meta: { requiresAuth: true } },
-
-  // Rotas do professor — requiresAdmin bloqueia alunos no guard
   {
     path: '/admin/alunos',
     name: 'admin-alunos',
@@ -43,14 +41,13 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('access_token')
-  const role = localStorage.getItem('user_role') // salvo no login
+  const role = localStorage.getItem('user_role')
 
   if (to.meta.requiresAuth && !token) {
     next({ name: 'login' })
   } else if (to.meta.guest && token) {
     next({ name: 'dashboard' })
   } else if (to.meta.requiresAdmin && role !== 'admin') {
-    // Aluno tentando acessar rota de professor — redireciona para dashboard
     next({ name: 'dashboard' })
   } else {
     next()
