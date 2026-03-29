@@ -50,52 +50,40 @@
 </template>
 
 <script setup>
-// Importa as funções reativas do Vue
 import { ref } from 'vue'
-
-// Importa o router para redirecionar após o login
 import { useRouter } from 'vue-router'
-
-// Importa o serviço de API que configuramos
 import api from '../services/api.js'
 
-// useRouter — permite navegar entre páginas programaticamente
 const router = useRouter()
+const username = ref('')
+const password = ref('')
+const erro = ref('')
+const carregando = ref(false)
 
-// ref() — cria variáveis reativas
-// Quando o valor muda, o Vue atualiza a tela automaticamente
-const username = ref('')      // Valor do campo usuário
-const password = ref('')      // Valor do campo senha
-const erro = ref('')          // Mensagem de erro
-const carregando = ref(false) // Controla o estado do botão
-
-// Função de login — chamada ao clicar no botão
 async function login() {
-  // Limpa o erro anterior
   erro.value = ''
-
-  // Ativa o estado de carregamento
   carregando.value = true
 
- try {
-  const response = await api.post('/login/', {
-    username: username.value,
-    password: password.value,
-  })
+  try {
+    const response = await api.post('/login/', {
+      username: username.value,
+      password: password.value,
+    })
 
-  localStorage.setItem('access_token', response.data.access)
-  localStorage.setItem('refresh_token', response.data.refresh)
+    localStorage.setItem('access_token', response.data.access)
+    localStorage.setItem('refresh_token', response.data.refresh)
 
-  // Busca o perfil para salvar o role — necessário para o guard de rotas
-  const perfil = await api.get('/profile/')
-  localStorage.setItem('user_role', perfil.data.role)
+    // Busca o perfil para salvar o role — necessário para o guard de rotas
+    const perfil = await api.get('/profile/')
+    localStorage.setItem('user_role', perfil.data.role)
 
-  router.push({ name: 'dashboard' })
+    router.push({ name: 'dashboard' })
 
-} catch (error) {
-  erro.value = 'Usuário ou senha incorretos.'
-} finally {
-  carregando.value = false
+  } catch (error) {
+    erro.value = 'Usuário ou senha incorretos.'
+  } finally {
+    carregando.value = false
+  }
 }
 </script>
 

@@ -134,6 +134,7 @@ function formatarData(data) {
 function logout() {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
+  localStorage.removeItem('user_role')  
   router.push({ name: 'login' })
 }
 </script>
