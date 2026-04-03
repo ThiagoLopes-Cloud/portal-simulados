@@ -44,9 +44,8 @@
                 <a href="https://chat.openai.com" target="_blank" class="btn-ia">
                   ChatGPT ↗
                 </a>
-                <!-- Link para o Claude -->
-                <a href="https://claude.ai" target="_blank" class="btn-ia">
-                  Claude ↗
+                <!-- Link para o Gemini -->
+                 <a href="https://gemini.google.com" target="_blank" class="btn-ia">    
                 </a>
               </div>
             </div>
@@ -62,8 +61,8 @@
 
               <!-- Prévia do prompt — mostra as primeiras linhas para o professor saber o que é -->
               <div class="prompt-preview">
-                Você é um especialista em elaboração de questões para o ENEM.
-                Gere [NÚMERO] questões sobre [TEMA/DISCIPLINA]...
+                Você é um especialista em elaboração de questões no padrão ENEM...
+                Gere [QUANTIDADE_DE_QUESTOES] questões da disciplina [MATERIA_NOME]...
               </div>
 
               <!-- Botão que copia o prompt completo para o clipboard -->
@@ -273,24 +272,62 @@ const promptCopiado = ref(false)   // Controla feedback do botão "Copiar prompt
 // Prompt completo para copiar
 // O professor cola isso no ChatGPT/Claude e preenche os campos
 // ==========================================
-const PROMPT_COMPLETO = `Você é um especialista em elaboração de questões para o ENEM.
-Gere [NÚMERO] questões sobre [TEMA/DISCIPLINA] no formato JSON abaixo.
+const PROMPT_COMPLETO = `Você é um especialista em elaboração de questões no padrão ENEM, com foco em avaliação de competências e habilidades.
+Gere [QUANTIDADE_DE_QUESTOES] questões da disciplina [MATERIA_NOME] com alto nível de qualidade pedagógica, seguindo rigorosamente o formato JSON especificado.
 
 IMPORTANTE:
-- Responda APENAS com o JSON, sem texto antes ou depois
-- Não use blocos de código markdown (sem \`\`\`json)
-- Siga o formato exatamente como mostrado
-- Todas as questões devem ter 5 alternativas (A, B, C, D, E)
-- A explicação deve justificar por que a alternativa correta está certa
-- Use os códigos de matéria: MAT (Matemática), PORT (Língua Portuguesa),
-  BIO (Biologia), QUI (Química), FIS (Física), GEO (Geografia),
-  HIS (História), ART (Artes), EDF (Ed. Física), INF (Inglês/Francês)
+* Responda APENAS com o JSON, sem qualquer texto antes ou depois
+* Não use blocos de código markdown
+* Siga EXATAMENTE a estrutura do JSON fornecido
+* Todas as questões devem ter 5 alternativas (A, B, C, D, E)
+* Não deixe nenhum campo obrigatório vazio
+* O JSON deve ser válido e pronto para inserção direta em banco de dados (sem erros de sintaxe)
+
+PADRÃO ENEM (OBRIGATÓRIO):
+* As questões devem ser contextualizadas, com situações reais, científicas ou do cotidiano
+* Sempre que possível, utilizar pequenos textos-base, dados, experimentos ou problematizações
+* Evitar perguntas diretas e puramente conceituais
+* Priorizar interpretação, análise e aplicação de conhecimento
+
+QUALIDADE DAS ALTERNATIVAS:
+* Apenas UMA alternativa deve estar correta
+* As alternativas incorretas devem ser plausíveis e próximas da correta
+* Evitar alternativas óbvias ou absurdas
+* Evitar padrões previsíveis de resposta (ex: sempre letra C)
+
+DIFICULDADE (OBRIGATÓRIO):
+* Distribuir entre F, M e D de forma equilibrada
+* F (Fácil): reconhecimento direto de conceito em contexto
+* M (Médio): exige interpretação ou aplicação
+* D (Difícil): exige análise, integração de conceitos ou raciocínio crítico
+
+DISTRIBUIÇÃO DE TEMAS:
+* Garantir variedade dentro da disciplina [MATERIA_NOME]
+* Cobrir diferentes tópicos relevantes da matéria
+* Evitar repetição excessiva de um mesmo tema
+
+EXPLICAÇÃO (MUITO IMPORTANTE):
+* Explicar claramente por que a alternativa correta está certa
+* Sempre que possível, explicar por que as outras estão incorretas
+* Linguagem didática, como um professor explicando
+
+PADRONIZAÇÃO:
+* O enunciado deve ser claro, completo e independente (sem depender de contexto externo)
+* Não repetir estruturas de questões
+* Não usar linguagem ambígua
+* Não usar termos vagos como "sempre" ou "nunca" sem justificativa científica
+
+CAMPOS:
+* Use corretamente o código da matéria em "materia": [CODIGO_MATERIA] (MAT, PORT, BIO, QUI, FIS, GEO, HIS, ART, EDF, INF)
+* Preencha o campo "tema" de forma específica (ex: "Funções do 2º grau", "Interpretação de texto", "Revolução Francesa")
+* "fonte" deve ser: "Questão gerada por IA"
+* "ano_origem" deve ser null
 
 FORMATO OBRIGATÓRIO:
 {
   "simulado": {
-    "titulo": "[TÍTULO DO SIMULADO]",
-    "descricao": "[BREVE DESCRIÇÃO]",
+    "titulo": "[TITULO_DO_SIMULADO]",
+    "descricao": "[DESCRICAO_DO_SIMULADO]",
     "data_inicio": null,
     "data_fim": null
   },
@@ -305,20 +342,17 @@ FORMATO OBRIGATÓRIO:
       "opcao_d": "Texto da alternativa D",
       "opcao_e": "Texto da alternativa E",
       "resposta_correta": "A",
-      "explicacao": "Explicação detalhada do porquê a alternativa A está correta.",
+      "explicacao": "Explicação detalhada do porquê a alternativa correta está certa.",
       "dificuldade": "M",
       "tema": "Nome do tema específico",
-      "materia": "MAT",
+      "materia": "[CODIGO_MATERIA]",
       "fonte": "Questão gerada por IA",
       "ano_origem": null
     }
   ]
 }
 
-Valores possíveis para "dificuldade": "F" (Fácil), "M" (Médio), "D" (Difícil)
-Valores possíveis para "resposta_correta": "A", "B", "C", "D" ou "E"
-
-Gere as [NÚMERO] questões agora:`
+Gere as questões agora.`
 
 // ==========================================
 // Computed: analisa o JSON em tempo real
