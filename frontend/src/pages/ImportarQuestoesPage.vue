@@ -19,7 +19,7 @@
       <div class="page-header">
         <h2>📥 Importar Questões via IA</h2>
         <p class="subtitulo">
-          Gere questões com o ChatGPT ou Claude e importe em segundos.
+          Gere questões com o ChatGPT ou Gemini e importe em segundos.
           Você poderá revisar e aprovar cada questão antes de publicar.
         </p>
       </div>
@@ -37,7 +37,7 @@
           <div class="passo">
             <div class="passo-numero">1</div>
             <div class="passo-conteudo">
-              <strong>Acesse o ChatGPT ou o Claude</strong>
+              <strong>Acesse o ChatGPT ou o Gemini</strong>
               <p>Use qualquer uma das IAs abaixo. As duas funcionam bem com o nosso prompt.</p>
               <div class="links-ia">
                 <!-- Link para o ChatGPT -->
@@ -45,7 +45,8 @@
                   ChatGPT ↗
                 </a>
                 <!-- Link para o Gemini -->
-                 <a href="https://gemini.google.com" target="_blank" class="btn-ia">    
+                 <a href="https://gemini.google.com" target="_blank" class="btn-ia">
+                  Gemini ↗    
                 </a>
               </div>
             </div>
