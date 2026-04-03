@@ -10,6 +10,7 @@ import ResultadoPage from '../pages/ResultadoPage.vue'
 import RankingPage from '../pages/RankingPage.vue'
 import AdminAlunosPage from '../pages/AdminAlunosPage.vue'
 import AdminAlunoDashboardPage from '../pages/AdminAlunoDashboardPage.vue'
+import ImportarQuestoesPage from '../pages/ImportarQuestoesPage.vue'
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
@@ -20,8 +21,10 @@ const routes = [
   { path: '/simulado/:id', name: 'prova', component: ProvaPage, meta: { requiresAuth: true } },
   { path: '/resultado/:id', name: 'resultado', component: ResultadoPage, meta: { requiresAuth: true } },
   { path: '/ranking', name: 'ranking', component: RankingPage, meta: { requiresAuth: true } },
+
+  // Rotas de admin
   {
-    path: '/admin/alunos',
+    path: '/admin/alunos',           // ← estava faltando esta
     name: 'admin-alunos',
     component: AdminAlunosPage,
     meta: { requiresAuth: true, requiresAdmin: true }
@@ -30,6 +33,12 @@ const routes = [
     path: '/admin/alunos/:id',
     name: 'admin-aluno-dashboard',
     component: AdminAlunoDashboardPage,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/importar',
+    name: 'importar',
+    component: ImportarQuestoesPage,
     meta: { requiresAuth: true, requiresAdmin: true }
   },
 ]

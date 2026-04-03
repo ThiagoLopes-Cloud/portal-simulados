@@ -3,11 +3,11 @@
     <nav class="navbar">
       <h1>Portal de Simulados</h1>
       <div class="nav-links">
-        <router-link to="/dashboard">Dashboard</router-link>
-        <router-link to="/simulados">Simulados</router-link>
+        <router-link to="/admin/alunos">Alunos</router-link>
+        <router-link to="/admin/importar">Importar Questões</router-link>
         <button @click="logout" class="btn-logout">Sair</button>
       </div>
-    </nav>
+  </nav>
 
     <div class="container">
       <div class="header">
