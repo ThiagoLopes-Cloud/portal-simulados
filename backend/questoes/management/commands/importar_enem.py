@@ -1,3 +1,6 @@
+import time
+import requests
+from django.core.management.base import BaseCommand
 # questoes/management/commands/importar_enem.py
 #
 # Management command para importar questões do ENEM via API pública.
