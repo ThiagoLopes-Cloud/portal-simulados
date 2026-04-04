@@ -1,55 +1,80 @@
-# questoes/admin.py
-# Admin do banco de questões — agora as questões são recursos independentes.
-# O vínculo com simulados acontece via SimuladoAdmin (inline de SimuladoQuestao).
-
+# Importa o módulo admin do Django
 from django.contrib import admin
+
+# Importa o model Questao
 from .models import Questao
+
+
+def aprovar_questoes(modeladmin, request, queryset):
+    """
+    Ação em lote: marca questões selecionadas como revisado=True.
+    Professor seleciona várias questões na listagem e clica nesta ação.
+    """
+    # update() faz uma única query SQL — muito mais eficiente que salvar um por um
+    total = queryset.update(revisado=True)
+    # Exibe mensagem de confirmação no topo do Admin
+    modeladmin.message_user(request, f'{total} questão(ões) aprovada(s) com sucesso.')
+
+# Texto que aparece no dropdown de ações do Admin
+aprovar_questoes.short_description = '✅ Aprovar questões selecionadas'
+
+
+def rejeitar_questoes(modeladmin, request, queryset):
+    """
+    Ação em lote: deleta as questões selecionadas permanentemente.
+    Use apenas para questões com problemas graves que não valem corrigir.
+    Ação irreversível.
+    """
+    total, _ = queryset.delete()
+    modeladmin.message_user(request, f'{total} questão(ões) rejeitada(s) e removida(s).')
+
+rejeitar_questoes.short_description = '❌ Rejeitar e deletar questões selecionadas'
 
 
 @admin.register(Questao)
 class QuestaoAdmin(admin.ModelAdmin):
     """
-    Interface administrativa para o banco de questões.
-    Questões são gerenciadas de forma independente de simulados.
-    O professor cria questões aqui e as vincula a simulados pelo SimuladoAdmin.
+    Admin do banco de questões.
+    Fluxo principal: professor filtra por revisado=False,
+    revisa cada questão, seleciona as aprovadas e usa a ação em lote.
     """
 
-    # Colunas exibidas na listagem
+    # Colunas visíveis na listagem
     list_display = [
-        'id',
+        'enunciado_resumido',
         'tema',
         'dificuldade',
-        'enunciado_resumido',
         'resposta_correta',
+        'revisado',         # Coluna mais importante — separa pendentes de aprovadas
         'fonte',
-        'ano_origem',
         'criado_em',
     ]
 
-    # Filtros laterais para navegação rápida
+    # Filtros na barra lateral direita
     list_filter = [
+        'revisado',           # Primeiro filtro — o mais usado no fluxo de revisão
         'dificuldade',
-        'resposta_correta',
-        'tema__materia',   # Filtra por matéria pai do tema
-        'tema',
-        'ano_origem',
-    ]
-
-    # Campos pesquisáveis por texto
-    search_fields = [
-        'enunciado',
+        'tema__materia',      # Filtra por matéria via relacionamento tema → materia
         'fonte',
-        'tema__nome',
-        'tema__materia__nome',
     ]
 
-    # Ordena pelo mais recente primeiro
-    ordering = ['-criado_em']
+    # Busca por texto
+    search_fields = ['enunciado', 'tema__nome', 'tema__materia__nome']
 
-    # Organiza os campos do formulário em seções visuais
+    # Permite editar 'revisado' direto na listagem sem abrir a questão
+    # Útil para aprovação rápida de questões uma a uma
+    list_editable = ['revisado']
+
+    # Ordena pendentes primeiro — revisado=False aparece antes de True
+    ordering = ['revisado', '-criado_em']
+
+    # Registra as ações em lote no dropdown
+    actions = [aprovar_questoes, rejeitar_questoes]
+
+    # Organiza os campos em seções lógicas no formulário de edição
     fieldsets = (
         ('Conteúdo', {
-            'fields': ('tema', 'dificuldade', 'enunciado', 'imagem_enunciado')
+            'fields': ('enunciado', 'imagem_enunciado', 'tema')
         }),
         ('Alternativas', {
             'fields': (
@@ -61,16 +86,15 @@ class QuestaoAdmin(admin.ModelAdmin):
             )
         }),
         ('Gabarito', {
-            'fields': ('resposta_correta', 'explicacao')
+            'fields': ('resposta_correta', 'explicacao', 'dificuldade')
         }),
-        ('Metadados', {
-            'fields': ('fonte', 'ano_origem'),
-            'classes': ('collapse',),   # Recolhido por padrão — não polui o form
+        ('Metadados e Revisão', {
+            'fields': ('fonte', 'ano_origem', 'revisado')
         }),
     )
 
     def enunciado_resumido(self, obj):
-        """Exibe os primeiros 80 caracteres do enunciado na listagem."""
+        # Exibe apenas os primeiros 80 caracteres para não quebrar o layout da listagem
         return f'{obj.enunciado[:80]}...' if len(obj.enunciado) > 80 else obj.enunciado
 
     enunciado_resumido.short_description = 'Enunciado'

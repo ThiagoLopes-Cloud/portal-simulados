@@ -23,4 +23,7 @@ urlpatterns = [
     # Rotas de resultados e ranking — ver resultados e ranking
     # GET /api/resultados/ e GET /api/ranking/
     path('api/resultados/', include('resultados.urls')),
+    
+    # Rota de importação de questões via JSON — apenas admins
+    path('api/importar/', include('importador.urls')),
 ]

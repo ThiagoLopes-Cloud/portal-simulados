@@ -7,10 +7,11 @@ from simulados.models import Simulado
 
 class Resposta(models.Model):
     """
-    Resposta de um aluno a uma questão em um simulado específico.
-    
-    unique_together inclui 'simulado' — permite que a mesma questão
-    seja respondida pelo mesmo aluno em simulados diferentes.
+    Resposta de um aluno a uma questão em uma tentativa específica de um simulado.
+
+    Mudança da Fase 6: unique_together agora inclui 'tentativa'.
+    Isso permite que o mesmo aluno responda a mesma questão do mesmo simulado
+    em tentativas diferentes — cada tentativa é um conjunto independente de respostas.
     """
 
     OPCOES_CHOICES = [
@@ -35,7 +36,6 @@ class Resposta(models.Model):
         verbose_name='Questão'
     )
 
-    # Registra em qual simulado esta resposta foi dada
     simulado = models.ForeignKey(
         Simulado,
         on_delete=models.CASCADE,
@@ -43,6 +43,13 @@ class Resposta(models.Model):
         null=True,
         blank=True,
         verbose_name='Simulado'
+    )
+
+    # Número da tentativa — sincronizado com o campo tentativa do Resultado
+    # Permite filtrar todas as respostas de uma tentativa específica
+    tentativa = models.PositiveIntegerField(
+        default=1,
+        verbose_name='Tentativa'
     )
 
     opcao_escolhida = models.CharField(
@@ -62,10 +69,14 @@ class Resposta(models.Model):
     )
 
     def __str__(self):
-        return f'{self.aluno.username} → Q{self.questao.id} ({self.simulado}) → {self.opcao_escolhida}'
+        return (
+            f'{self.aluno.username} → Q{self.questao.id} '
+            f'({self.simulado}) T{self.tentativa} → {self.opcao_escolhida}'
+        )
 
     class Meta:
         verbose_name = 'Resposta'
         verbose_name_plural = 'Respostas'
         ordering = ['-respondido_em']
-        unique_together = ['aluno', 'questao', 'simulado']
+        # tentativa incluída — permite múltiplas tentativas do mesmo simulado
+        unique_together = ['aluno', 'questao', 'simulado', 'tentativa']

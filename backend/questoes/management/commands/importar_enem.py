@@ -5,12 +5,12 @@ from django.core.management.base import BaseCommand
 #
 # Management command para importar questões do ENEM via API pública.
 # Uso: python manage.py importar_enem --ano 2023
-#      python manage.py importar_enem --ano 2023 --ano 2022 --ano 2021
+#      python manage.py importar_enem --ano 2023 --ano 2022
 #      python manage.py importar_enem --todos
 #
-# Fonte da API: https://api.enem.dev
-# Repositório: https://github.com/yunger7/enem-api
+# Fonte: https://api.enem.dev | https://github.com/yunger7/enem-api
 
+import re
 import time
 import requests
 
@@ -21,137 +21,15 @@ from questoes.models import Questao
 from conteudo.models import Materia, Tema
 
 
-class Command(BaseCommand):
-    help = 'Importa questões do ENEM da API yunger7/enem-api de forma gradual e segura'
-
-    def add_arguments(self, parser):
-        parser.add_argument('--ano', type=int, required=True, help='Ano da prova. Ex: 2023')
-        parser.add_argument('--disciplina', type=str, required=True, help='Ex: matematica, ciencias-natureza, ciencias-humanas, linguagens')
-        parser.add_argument('--limite', type=int, default=0, help='Limite de questões a processar. 0 para processar tudo.')
-        parser.add_argument('--delay', type=int, default=2, help='Atraso (em segundos) entre as requisições para evitar rate limit da API externa')
-
-    def handle(self, *args, **options):
-        ano = options['ano']
-        disciplina = options['disciplina']
-        limite = options['limite']
-        delay = options['delay']
-
-        # 1. Preparação da estrutura de relacionamentos (Tema e Matéria)
-        # Associa dinamicamente as disciplinas do ENEM com seu banco
-        materia_codigo = disciplina[:10].upper()
-        # Garante que a Matéria e o Tema existem, ou os cria genéricos
-        materia, _ = Materia.objects.get_or_create(
-            codigo=materia_codigo,
-            defaults={'nome': f"{disciplina.replace('-', ' ').title()} - teste29/03"}
-        )
-        tema, _ = Tema.objects.get_or_create(
-            materia=materia,
-            nome=f'Questões Importadas ENEM ({disciplina}) - teste29/03',
-            defaults={'descricao': 'Tema gerado automaticamente pela importação de teste.'}
-        )
-
-        self.stdout.write(self.style.NOTICE(f'Iniciando conexão com API enem.dev...'))
-        self.stdout.write(self.style.NOTICE(f'Ano: {ano} | Disciplina: {disciplina}'))
-
-        # 2. Conectando com a API
-        url_api = f'https://api.enem.dev/v1/exams/{ano}/{disciplina}/questions'
-        
-        try:
-            response = requests.get(url_api, timeout=15)
-            response.raise_for_status()
-            
-            data = response.json()
-            
-            # Formato paginado ou estático
-            questoes_api = data if isinstance(data, list) else data.get('questions', [])
-            
-            if not questoes_api:
-                self.stdout.write(self.style.WARNING('A API não retornou questões. Operação abortada.'))
-                return
-
-        except requests.exceptions.RequestException as e:
-            self.stdout.write(self.style.ERROR(f'Falha ao conectar com a API do ENEM: {e}'))
-            return
-
-        # 3. Processamento das questões (Lote)
-        importadas = 0
-        ignoradas = 0
-
-        total_questoes = len(questoes_api)
-        if limite > 0:
-            total_questoes = min(limite, total_questoes)
-
-        self.stdout.write(self.style.SUCCESS(f'{total_questoes} questões identificadas. Processo rodando...'))
-
-        for i, item in enumerate(questoes_api[:total_questoes], start=1):
-            
-            # Identificador Único
-            identificador_api = item.get('id', f'enem-{ano}-{disciplina}-q{i}')
-            
-            questao_texto = item.get('context', '') + "<br><br>" + item.get('question', '')
-            alternativas = item.get('alternatives', [{}, {}, {}, {}, {}])
-            
-            letras_api = ['A', 'B', 'C', 'D', 'E']
-            opcoes_dict = {
-                'A': '', 'B': '', 'C': '', 'D': '', 'E': ''
-            }
-            
-            for alt in alternativas:
-                letra = alt.get('letter', '').upper()
-                texto = alt.get('text', '')
-                if letra in opcoes_dict:
-                    opcoes_dict[letra] = texto
-                    
-            resp_corr = str(item.get('correctAlternative', 'A')).upper()
-
-            try:
-                # Importação com Idempotência
-                obj, created = Questao.objects.get_or_create(
-                    id_origem=identificador_api,
-                    defaults={
-                        'tema': tema,
-                        'enunciado': questao_texto,
-                        'opcao_a': opcoes_dict['A'],
-                        'opcao_b': opcoes_dict['B'],
-                        'opcao_c': opcoes_dict['C'],
-                        'opcao_d': opcoes_dict['D'],
-                        'opcao_e': opcoes_dict['E'] or '',  
-                        'resposta_correta': resp_corr,
-                        'dificuldade': 'M',
-                        'ano_origem': ano,
-                        'fonte': f'ENEM {ano} — {disciplina} - teste29/03',
-                    }
-                )
-
-                if created:
-                    importadas += 1
-                    self.stdout.write(self.style.SUCCESS(f'[OK] Questão cadastrada — {identificador_api}'))
-                else:
-                    ignoradas += 1
-                    self.stdout.write(self.style.WARNING(f'[EX] Questão já existia — {identificador_api}'))
-
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f'Erro ao salvar {identificador_api}: {str(e)}'))
-
-            time.sleep(delay)
-
-        # 4. Finalização
-        self.stdout.write(self.style.SUCCESS('\n==================================='))
-        self.stdout.write(self.style.SUCCESS('     IMPORTAÇÃO (TESTE) CONCLUÍDA! '))
-        self.stdout.write(self.style.SUCCESS(f' {importadas} inseridas | {ignoradas} ignoradas (duplicadas)'))
-        self.stdout.write(self.style.SUCCESS('===================================\n'))
-# URL base da API pública do ENEM
 API_BASE = 'https://api.enem.dev/v1'
 
-# Anos disponíveis na API (conforme documentação do repositório)
 ANOS_DISPONIVEIS = [
     2009, 2010, 2011, 2012, 2013, 2014,
     2015, 2016, 2017, 2018, 2019, 2020,
     2021, 2022, 2023
 ]
 
-# Mapeamento de discipline (API) → nome da Matéria no nosso banco
-# Usamos nomes em português para exibição no sistema
+# Mapeamento discipline da API → (nome, código) da nossa Materia
 MAPA_MATERIAS = {
     'linguagens':        ('Linguagens, Códigos e suas Tecnologias', 'LC'),
     'matematica':        ('Matemática e suas Tecnologias', 'MT'),
@@ -160,116 +38,94 @@ MAPA_MATERIAS = {
     'redacao':           ('Redação', 'RED'),
 }
 
+# URLs de imagens quebradas conhecidas — ignoradas no enunciado
+IMAGENS_QUEBRADAS = [
+    'broken-image.svg',
+    'enem.dev/broken-image',
+]
+
 
 class Command(BaseCommand):
-    """
-    Importa questões do ENEM para o banco de dados local.
-    Idempotente — pode ser rodado múltiplas vezes sem duplicar questões.
-    A unicidade é garantida pelo campo fonte (ex: "ENEM 2023 - Questão 1").
-    """
-
     help = 'Importa questões do ENEM via API pública (api.enem.dev)'
 
     def add_arguments(self, parser):
-        """
-        Define os argumentos aceitos pelo comando.
-        --ano pode ser passado múltiplas vezes: --ano 2023 --ano 2022
-        --todos importa todos os anos disponíveis de uma vez
-        """
         parser.add_argument(
             '--ano',
             type=int,
-            action='append',    # permite múltiplos --ano
+            action='append',
             dest='anos',
-            help='Ano da prova ENEM (ex: 2023). Pode ser repetido.',
+            help='Ano da prova (ex: 2023). Pode repetir: --ano 2023 --ano 2022',
         )
         parser.add_argument(
             '--todos',
             action='store_true',
-            help='Importa todos os anos disponíveis na API.',
+            help='Importa todos os anos disponíveis.',
         )
 
     def handle(self, *args, **options):
-        """
-        Ponto de entrada do comando.
-        Determina quais anos importar e inicia o processo.
-        """
         if options['todos']:
             anos = ANOS_DISPONIVEIS
         elif options['anos']:
             anos = options['anos']
         else:
-            self.stderr.write(
-                self.style.ERROR(
-                    'Informe pelo menos um ano com --ano 2023 ou use --todos'
-                )
-            )
+            self.stderr.write(self.style.ERROR(
+                'Informe --ano 2023 ou use --todos'
+            ))
             return
 
-        self.stdout.write(
-            self.style.SUCCESS(f'\n🚀 Iniciando importação para {len(anos)} ano(s): {anos}\n')
-        )
+        self.stdout.write(self.style.SUCCESS(
+            f'\n🚀 Importando {len(anos)} ano(s): {anos}\n'
+        ))
 
-        # Totalizadores para o resumo final
         total_importadas = 0
         total_puladas = 0
         total_erros = 0
 
         for ano in anos:
-            importadas, puladas, erros = self.importar_ano(ano)
-            total_importadas += importadas
-            total_puladas += puladas
-            total_erros += erros
+            i, p, e = self.importar_ano(ano)
+            total_importadas += i
+            total_puladas += p
+            total_erros += e
 
-        # Resumo final
         self.stdout.write('\n' + '─' * 50)
-        self.stdout.write(
-            self.style.SUCCESS(
-                f'✅ Concluído!\n'
-                f'   Importadas: {total_importadas}\n'
-                f'   Puladas (já existiam): {total_puladas}\n'
-                f'   Erros: {total_erros}'
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(
+            f'✅ Concluído!\n'
+            f'   Importadas : {total_importadas}\n'
+            f'   Puladas    : {total_puladas}\n'
+            f'   Erros      : {total_erros}'
+        ))
 
     def importar_ano(self, ano):
-        """
-        Importa todas as questões de um ano específico.
-        Faz paginação automática até buscar todas as questões.
-        Retorna (importadas, puladas, erros).
-        """
         self.stdout.write(f'\n📅 Importando ENEM {ano}...')
 
-        importadas = 0
-        puladas = 0
-        erros = 0
+        importadas = puladas = erros = 0
         offset = 0
-        limit = 50  # busca 50 questões por vez para não sobrecarregar a API
+        limit = 50
 
         while True:
-            # Monta a URL com paginação
-            url = f'{API_BASE}/exams/{ano}/questions'
-            params = {'limit': limit, 'offset': offset}
-
             try:
-                response = requests.get(url, params=params, timeout=30)
+                response = requests.get(
+                    f'{API_BASE}/exams/{ano}/questions',
+                    params={'limit': limit, 'offset': offset},
+                    timeout=30
+                )
                 response.raise_for_status()
                 data = response.json()
 
             except requests.exceptions.Timeout:
-                self.stderr.write(
-                    self.style.ERROR(f'  ⚠️  Timeout ao buscar {url} — pulando bloco')
-                )
+                self.stderr.write(self.style.ERROR(
+                    f'  ⚠️  Timeout no offset {offset} — abortando ano {ano}'
+                ))
                 erros += 1
                 break
 
             except requests.exceptions.HTTPError as e:
                 if response.status_code == 404:
-                    self.stderr.write(
-                        self.style.WARNING(f'  ⚠️  Ano {ano} não encontrado na API')
-                    )
+                    self.stderr.write(self.style.WARNING(
+                        f'  ⚠️  Ano {ano} não encontrado na API'
+                    ))
                 else:
-                    self.stderr.write(self.style.ERROR(f'  ❌ Erro HTTP: {e}'))
+                    self.stderr.write(self.style.ERROR(f'  ❌ HTTP Error: {e}'))
                     erros += 1
                 break
 
@@ -284,97 +140,98 @@ class Command(BaseCommand):
             if not questoes:
                 break
 
-            # Processa cada questão do bloco
-            for questao_data in questoes:
+            for q in questoes:
                 try:
-                    resultado = self.processar_questao(questao_data, ano)
+                    resultado = self.processar_questao(q, ano)
                     if resultado == 'importada':
                         importadas += 1
-                    elif resultado == 'pulada':
+                    else:
                         puladas += 1
                 except Exception as e:
-                    self.stderr.write(
-                        self.style.ERROR(
-                            f'  ❌ Erro ao processar questão {questao_data.get("index")}: {e}'
-                        )
-                    )
+                    self.stderr.write(self.style.ERROR(
+                        f'  ❌ Erro Q{q.get("index")}: {e}'
+                    ))
                     erros += 1
 
-            # Log de progresso a cada bloco
             self.stdout.write(
-                f'  → {offset + len(questoes)}/{metadata.get("total", "?")} questões processadas'
+                f'  → {offset + len(questoes)}/{metadata.get("total", "?")} processadas'
+                f' | ✅ {importadas} importadas | ⏭ {puladas} puladas'
             )
 
-            # Verifica se há mais páginas
             if not metadata.get('hasMore', False):
                 break
 
             offset += limit
-
-            # Pausa entre requisições para não sobrecarregar a API
-            # Comportamento respeitoso com a API pública
-            time.sleep(0.5)
+            time.sleep(0.5)  # respeita a API pública
 
         return importadas, puladas, erros
 
     @transaction.atomic
     def processar_questao(self, data, ano):
         """
-        Processa uma questão individual da API e salva no banco.
-        Usa transaction.atomic para garantir consistência.
-        Retorna 'importada' ou 'pulada'.
+        Processa uma questão e salva no banco.
+
+        Estrutura confirmada da API:
+        - context: Markdown com texto + imagens embutidas como ![](url)
+        - alternativesIntroduction: comando da questão ("Assinale...")
+        - alternatives[].text: texto puro das alternativas
+        - alternatives[].file: sempre null — imagens só existem no context
         """
         index = data.get('index', 0)
-        discipline = data.get('discipline', '')
-
-        # Gera a fonte no formato padronizado
-        # Usamos isso como chave de unicidade — evita duplicatas
         fonte = f'ENEM {ano} — Questão {index}'
 
-        # Verifica se a questão já existe no banco
+        # Idempotência — pula se já existe
         if Questao.objects.filter(fonte=fonte).exists():
             return 'pulada'
 
-        # Obtém ou cria a Matéria baseado na discipline da API
-        materia = self.obter_materia(discipline)
+        # ── Monta o enunciado completo ────────────────────────────────────
+        context = (data.get('context') or '').strip()
+        intro   = (data.get('alternativesIntroduction') or '').strip()
 
-        # Extrai o enunciado — a API usa 'context'
-        enunciado = data.get('context', '').strip()
-        if not enunciado:
-            # Algumas questões de redação não têm context
+        # Remove imagens quebradas do context antes de salvar
+        context = self.remover_imagens_quebradas(context)
+
+        # Enunciado = contexto + comando da questão
+        # Separados por linha em branco para o Markdown renderizar corretamente
+        if context and intro:
+            enunciado = f'{context}\n\n{intro}'
+        elif context:
+            enunciado = context
+        elif intro:
+            enunciado = intro
+        else:
+            # Fallback para questões sem texto (não deveria acontecer)
             enunciado = data.get('title', f'Questão {index} — ENEM {ano}')
 
-        # Extrai a imagem do enunciado — primeiro arquivo da lista
-        files = data.get('files', [])
-        imagem_enunciado = files[0] if files else None
-
-        # Extrai o gabarito
-        resposta_correta = data.get('correctAlternative', 'A').upper()
-
-        # Valida se a resposta correta é uma das opções válidas
-        if resposta_correta not in ['A', 'B', 'C', 'D', 'E']:
-            resposta_correta = 'A'  # fallback seguro
-
-        # Processa as alternativas
+        # ── Alternativas ──────────────────────────────────────────────────
+        # Confirmado: alternatives[].text é texto puro, file é sempre null
         alternativas = self.processar_alternativas(data.get('alternatives', []))
 
-        # Cria a questão no banco
+        # ── Gabarito ──────────────────────────────────────────────────────
+        resposta_correta = (data.get('correctAlternative') or 'A').upper()
+        if resposta_correta not in ['A', 'B', 'C', 'D', 'E']:
+            resposta_correta = 'A'
+
+        # ── Matéria e tema ────────────────────────────────────────────────
+        materia = self.obter_materia(data.get('discipline', ''))
+
+        # ── Salva no banco ────────────────────────────────────────────────
         Questao.objects.create(
             enunciado=enunciado,
-            imagem_enunciado=imagem_enunciado,
+            imagem_enunciado=None,      # imagens estão embutidas no Markdown
             opcao_a=alternativas.get('A', {}).get('texto', ''),
             opcao_b=alternativas.get('B', {}).get('texto', ''),
             opcao_c=alternativas.get('C', {}).get('texto', ''),
             opcao_d=alternativas.get('D', {}).get('texto', ''),
             opcao_e=alternativas.get('E', {}).get('texto', ''),
-            imagem_opcao_a=alternativas.get('A', {}).get('imagem'),
-            imagem_opcao_b=alternativas.get('B', {}).get('imagem'),
-            imagem_opcao_c=alternativas.get('C', {}).get('imagem'),
-            imagem_opcao_d=alternativas.get('D', {}).get('imagem'),
-            imagem_opcao_e=alternativas.get('E', {}).get('imagem'),
+            imagem_opcao_a=None,        # confirmado: sempre null na API
+            imagem_opcao_b=None,
+            imagem_opcao_c=None,
+            imagem_opcao_d=None,
+            imagem_opcao_e=None,
             resposta_correta=resposta_correta,
-            dificuldade='M',        # padrão Médio — API não fornece dificuldade
-            explicacao='',          # API não fornece explicação
+            dificuldade='M',            # API não fornece — padrão Médio
+            explicacao='',              # API não fornece
             tema=materia.temas.first() if materia else None,
             ano_origem=ano,
             fonte=fonte,
@@ -384,47 +241,66 @@ class Command(BaseCommand):
 
     def processar_alternativas(self, alternatives):
         """
-        Transforma a lista de alternativas da API em um dict indexado por letra.
-        Retorna: { 'A': { 'texto': '...', 'imagem': '...' }, ... }
+        Transforma a lista de alternativas em dict indexado por letra.
+        Confirmado na API: text é sempre texto puro, file é sempre null.
+        Retorna: { 'A': { 'texto': '...' }, 'B': {...}, ... }
         """
         resultado = {}
         for alt in alternatives:
-            letra = alt.get('letter', '').upper()
+            letra = (alt.get('letter') or '').upper()
             if letra in ['A', 'B', 'C', 'D', 'E']:
                 resultado[letra] = {
-                    'texto': alt.get('text', '').strip(),
-                    'imagem': alt.get('file'),  # None se não houver imagem
+                    'texto': (alt.get('text') or '').strip(),
                 }
         return resultado
 
+    def remover_imagens_quebradas(self, texto):
+        """
+        Remove referências a imagens quebradas do Markdown.
+        Ex: ![](https://enem.dev/broken-image.svg) → removido
+        Mantém todas as outras imagens intactas.
+        """
+        if not texto:
+            return texto
+
+        for padrao in IMAGENS_QUEBRADAS:
+            # Remove a tag Markdown completa que contenha o padrão
+            texto = re.sub(
+                r'!\[([^\]]*)\]\([^)]*' + re.escape(padrao) + r'[^)]*\)',
+                '',
+                texto
+            )
+
+        # Remove linhas em branco extras que possam ter sobrado
+        texto = re.sub(r'\n{3,}', '\n\n', texto)
+        return texto.strip()
+
     def obter_materia(self, discipline):
         """
-        Obtém ou cria a Matéria correspondente à discipline da API.
-        Também cria um Tema genérico se a matéria for nova —
-        as questões ficam vinculadas a esse tema padrão até o professor
-        classificar manualmente.
+        Obtém ou cria a Matéria e um Tema genérico.
+        O Tema genérico permite vincular questões ao diagnóstico
+        mesmo antes do professor classificar manualmente.
         """
         if not discipline or discipline not in MAPA_MATERIAS:
             return None
 
         nome, codigo = MAPA_MATERIAS[discipline]
 
-        # get_or_create — não duplica se já existir
         materia, criada = Materia.objects.get_or_create(
             codigo=codigo,
             defaults={'nome': nome}
         )
 
         if criada:
-            self.stdout.write(
-                self.style.SUCCESS(f'  ✨ Matéria criada: {nome} ({codigo})')
-            )
-            # Cria um tema genérico para a matéria recém-criada
-            # Permite vincular as questões sem deixar tema=NULL
-            Tema.objects.get_or_create(
-                materia=materia,
-                nome=f'Geral — {nome}',
-                defaults={'descricao': 'Tema padrão — classifique manualmente'}
-            )
+            self.stdout.write(self.style.SUCCESS(
+                f'  ✨ Matéria criada: {nome} ({codigo})'
+            ))
+
+        # Tema genérico — questões ficam vinculadas até classificação manual
+        Tema.objects.get_or_create(
+            materia=materia,
+            nome=f'Geral — {nome}',
+            defaults={'descricao': 'Tema padrão — classifique manualmente pelo Admin'}
+        )
 
         return materia
