@@ -31,8 +31,8 @@ class SimuladoAdmin(admin.ModelAdmin):
     Permite gerenciar metadados e questões do simulado em uma única tela.
     """
 
-    list_display = ['titulo', 'criado_por', 'total_questoes', 'criado_em', 'ativo']
-    list_filter = ['ativo', 'criado_em']
+    list_display = ['titulo', 'eh_simulado_original', 'criado_por', 'total_questoes', 'criado_em', 'ativo']
+    list_filter = ['ativo', 'eh_simulado_original', 'criado_em']
     list_editable = ['ativo']
     search_fields = ['titulo', 'descricao']
     ordering = ['-criado_em']
@@ -42,7 +42,7 @@ class SimuladoAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Informações do Simulado', {
-            'fields': ('titulo', 'descricao', 'criado_por', 'ativo')
+            'fields': ('titulo', 'descricao', 'criado_por', 'ativo', 'eh_simulado_original', 'prova_original')
         }),
         ('Período de Disponibilidade', {
             'fields': ('data_inicio', 'data_fim'),

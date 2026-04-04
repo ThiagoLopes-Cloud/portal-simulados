@@ -138,6 +138,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Define que o campo ID padrão dos models é BigAutoField (inteiro grande)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

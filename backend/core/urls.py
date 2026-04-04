@@ -1,4 +1,6 @@
 # Importa o módulo de URLs do Django
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
@@ -27,3 +29,6 @@ urlpatterns = [
     # Rota de importação de questões via JSON — apenas admins
     path('api/importar/', include('importador.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

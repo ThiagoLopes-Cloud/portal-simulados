@@ -56,6 +56,29 @@ class Simulado(models.Model):
         verbose_name='Data de Encerramento'
     )
 
+    importacao_origem = models.OneToOneField(
+        'importador.ImportacaoProva',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='simulado_original',
+        verbose_name='Importação de Origem'
+    )
+
+    prova_original = models.ForeignKey(
+        'importador.ProvaOriginal',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='simulados',
+        verbose_name='Prova Original'
+    )
+
+    eh_simulado_original = models.BooleanField(
+        default=False,
+        verbose_name='É Simulado Original'
+    )
+
     # ManyToMany via tabela intermediária SimuladoQuestao
     # through='SimuladoQuestao' diz ao Django para usar nossa tabela customizada
     # em vez de criar uma tabela automática

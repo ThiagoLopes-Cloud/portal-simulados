@@ -114,6 +114,30 @@ class Questao(models.Model):
         verbose_name='Ano de Origem'
     )
 
+    importacao_origem = models.ForeignKey(
+        'importador.ImportacaoProva',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='questoes_publicadas',
+        verbose_name='Importação de Origem'
+    )
+
+    prova_original = models.ForeignKey(
+        'importador.ProvaOriginal',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='questoes_publicadas',
+        verbose_name='Prova Original'
+    )
+
+    numero_na_prova = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Número na Prova'
+    )
+
     # CAMPO CRÍTICO — controla se a questão aparece para os alunos
     # False = pendente de revisão (default para questões importadas)
     # True  = aprovada pelo professor, visível na prova
