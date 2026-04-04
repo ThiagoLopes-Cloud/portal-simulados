@@ -1,89 +1,161 @@
 # Importa o módulo serializers do Django REST Framework
 from rest_framework import serializers
 
-# Importa o model Resultado
+# Importa os models necessários
 from .models import Resultado
+from respostas.models import Resposta
 
-# Importa o RespostaSerializer para exibir o gabarito junto com o resultado
-from respostas.serializers import RespostaSerializer
 
-# Serializer de resultado — usado em GET /api/resultados
+# ============================================================
+# Serializers existentes — não alterados
+# ============================================================
+
 class ResultadoSerializer(serializers.ModelSerializer):
     """
     Serializer para exibir o resultado final de um aluno em um simulado.
-    Retorna o score, acertos e total de questões.
-    Usado na tela de resultado do Vue.js.
+    Usado em GET /api/resultados/ e GET /api/resultados/{id}/
     """
 
-    # Campo calculado — retorna o nome do aluno em vez do ID
     aluno_username = serializers.SerializerMethodField()
-
-    # Campo calculado — retorna o título do simulado em vez do ID
     simulado_titulo = serializers.SerializerMethodField()
 
     class Meta:
         model = Resultado
-
-        # Campos retornados no JSON de resultado
         fields = [
             'id',
-            'aluno_username',    # Nome do aluno
-            'simulado_titulo',   # Título do simulado
-            'acertos',           # Quantidade de acertos
-            'total_questoes',    # Total de questões
-            'score',             # Percentual de acertos
-            'realizado_em',      # Data e hora da realização
+            'aluno_username',
+            'simulado_titulo',
+            'acertos',
+            'total_questoes',
+            'score',
+            'realizado_em',
         ]
 
     def get_aluno_username(self, obj):
-        """
-        Retorna o username do aluno em vez do ID.
-        O 'obj' é a instância do Resultado sendo serializado.
-        """
-        # obj.aluno acessa o objeto User relacionado
         return obj.aluno.username
 
     def get_simulado_titulo(self, obj):
-        """
-        Retorna o título do simulado em vez do ID.
-        """
-        # obj.simulado acessa o objeto Simulado relacionado
         return obj.simulado.titulo
 
-# Serializer de ranking — usado em GET /api/ranking
+
 class RankingSerializer(serializers.ModelSerializer):
     """
-    Serializer simplificado para exibir o ranking de alunos.
-    Retorna apenas os dados necessários para a tabela de ranking.
+    Serializer simplificado para o ranking de alunos.
+    Usado em GET /api/resultados/ranking/
     """
 
-    # Campo calculado — retorna o nome do aluno
     aluno_username = serializers.SerializerMethodField()
-
-    # Campo calculado — retorna o título do simulado
     simulado_titulo = serializers.SerializerMethodField()
 
     class Meta:
         model = Resultado
-
-        # Campos retornados no JSON de ranking
         fields = [
-            'aluno_username',   # Nome do aluno
-            'simulado_titulo',  # Título do simulado
-            'acertos',          # Quantidade de acertos
-            'total_questoes',   # Total de questões
-            'score',            # Percentual de acertos
-            'realizado_em',     # Data e hora da realização
+            'aluno_username',
+            'simulado_titulo',
+            'acertos',
+            'total_questoes',
+            'score',
+            'realizado_em',
         ]
 
     def get_aluno_username(self, obj):
-        """
-        Retorna o username do aluno.
-        """
         return obj.aluno.username
 
     def get_simulado_titulo(self, obj):
-        """
-        Retorna o título do simulado.
-        """
         return obj.simulado.titulo
+
+
+# ============================================================
+# NOVO — Fase 5: Gabarito comentado
+# ============================================================
+
+class QuestaoGabaritoSerializer(serializers.Serializer):
+    """
+    Serializer para uma questão dentro do gabarito.
+    Combina dados da Questao com a Resposta do aluno.
+
+    Diferente do QuestaoSerializer normal (usado na prova),
+    este expõe resposta_correta e explicacao — que são ocultados
+    durante a prova por segurança, mas liberados após o envio.
+
+    Também inclui opcao_escolhida e correta da Resposta do aluno,
+    permitindo o frontend mostrar o estado de cada questão.
+
+    Já inclui tema e materia — base para Fase 7 (recomendação).
+    """
+
+    # Dados da questão
+    ordem           = serializers.IntegerField()
+    enunciado       = serializers.CharField()
+    imagem_enunciado = serializers.URLField(allow_null=True)
+    opcao_a         = serializers.CharField()
+    opcao_b         = serializers.CharField()
+    opcao_c         = serializers.CharField()
+    opcao_d         = serializers.CharField()
+    opcao_e         = serializers.CharField(allow_blank=True)
+
+    # Gabarito — só exposto APÓS o envio das respostas
+    resposta_correta = serializers.CharField()
+    explicacao       = serializers.CharField(allow_blank=True)
+    dificuldade      = serializers.CharField()
+
+    # Taxonomia — base para recomendação (Fase 7)
+    tema    = serializers.SerializerMethodField()
+    materia = serializers.SerializerMethodField()
+
+    # Resposta do aluno — null se não respondeu (questão pulada)
+    opcao_escolhida = serializers.CharField(allow_null=True)
+    correta         = serializers.BooleanField(allow_null=True)
+
+    def get_tema(self, obj):
+        """
+        Retorna o nome do tema se existir, ou None.
+        obj é um dict montado na view — não um model diretamente.
+        """
+        return obj.get('tema')
+
+    def get_materia(self, obj):
+        """
+        Retorna o código da matéria se existir, ou None.
+        """
+        return obj.get('materia')
+
+
+class GabaritoSerializer(serializers.Serializer):
+    """
+    Serializer principal do gabarito.
+    Usado em GET /api/resultados/{id}/gabarito/
+
+    Retorna o resultado completo com todas as questões,
+    as respostas do aluno, o gabarito e as explicações.
+
+    Estrutura pensada para suportar:
+    - Fase 5: exibição do gabarito comentado
+    - Fase 6: histórico de evolução (score + data já incluídos)
+    - Fase 7: recomendação (tema + materia + correta por questão)
+    """
+
+    # Dados do resultado
+    simulado_id    = serializers.IntegerField()
+    simulado_titulo = serializers.CharField()
+    acertos        = serializers.IntegerField()
+    total_questoes = serializers.IntegerField()
+    score          = serializers.DecimalField(max_digits=5, decimal_places=2)
+    realizado_em   = serializers.DateTimeField()
+
+    # Lista completa de questões com gabarito e resposta do aluno
+    questoes = QuestaoGabaritoSerializer(many=True)
+
+    # Resumo por matéria — base para Fase 7
+    # Ex: [{"materia": "MAT", "acertos": 3, "total": 5, "percentual": 60.0}]
+    resumo_por_materia = serializers.ListField(
+        child=serializers.DictField(),
+        default=list
+    )
+
+    # Temas com erro — base para recomendação (Fase 7)
+    # Ex: [{"tema": "Funções", "materia": "MAT", "erros": 2}]
+    temas_com_erro = serializers.ListField(
+        child=serializers.DictField(),
+        default=list
+    )
