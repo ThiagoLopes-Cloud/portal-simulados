@@ -322,8 +322,8 @@ class QuestaoProvaOriginal(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
 
     class Meta:
-        verbose_name = 'Ocorrencia da Questao em Prova'
-        verbose_name_plural = 'Ocorrencias da Questao em Provas'
+        verbose_name = 'Vinculo de Questao Importada Duplicada'
+        verbose_name_plural = 'Vinculos de Questoes Importadas Duplicadas'
         ordering = ['prova_original__importacao__ano', 'prova_original__importacao__dia', 'numero_na_prova']
         unique_together = [
             ('questao', 'prova_original', 'idioma'),
