@@ -17,7 +17,6 @@ QUESTION_LINE_RE = re.compile(
     re.IGNORECASE,
 )
 ALT_LINE_RE = re.compile(r'^\s*([A-E])(?:[\)\].:\-\s]|$)\s*(.*)$')
-PAIR_RE = re.compile(r'\b(\d{1,3})\s*([A-E])\b')
 PDF_HEADER_RE = re.compile(r'.*\|\s*\d.{0,2}\s*DIA\s*\|\s*CADERNO\s*\d+\s*\|\s*[A-Z]+.*', re.IGNORECASE)
 BROKEN_WORD_RE = re.compile(r'^[a-zà-ÿ]{1,8}$', re.IGNORECASE)
 BROKEN_WORD_SUFFIX_RE = re.compile(r'^(.*\b)([a-zà-ÿ]{1,6})$', re.IGNORECASE)
@@ -32,6 +31,8 @@ JOIN_START_STOPWORDS = {
     'em', 'na', 'nas', 'no', 'nos', 'um', 'uma', 'uns', 'umas', 'para', 'por',
     'com', 'sem', 'sob', 'sobre',
 }
+QUESTION_RANGE_RE = re.compile(r'Quest[õo]es de \d+ a \d+', re.IGNORECASE)
+GABARITO_BILINGUAL_HEADER_RE = re.compile(r'INGL[ÊE]S\s+ESPANHOL', re.IGNORECASE)
 
 
 def is_pdf_noise_line(line):
@@ -135,35 +136,107 @@ def extract_pdf_text(file_field):
 
 def parse_gabarito(text):
     answers = OrderedDict()
-    for numero, alternativa in PAIR_RE.findall(text):
-        numero_int = int(numero)
-        if 1 <= numero_int <= 200 and numero_int not in answers:
-            answers[numero_int] = alternativa.upper()
+    flat_matches = re.findall(r'(\d{1,3})\s+([A-E])(?:\s+([A-E]))?', text)
+    if flat_matches and '\n' not in text:
+        for numero, primeira, segunda in flat_matches:
+            numero_int = int(numero)
+            if segunda and numero_int <= 5:
+                answers[(numero_int, QuestaoImportada.IDIOMA_INGLES)] = primeira
+                answers[(numero_int, QuestaoImportada.IDIOMA_ESPANHOL)] = segunda
+            else:
+                answers[(numero_int, None)] = primeira
+        return answers
+
+    bilingual_mode = False
+
+    for raw_line in text.splitlines():
+        line = re.sub(r'\s+', ' ', raw_line).strip()
+        if not line:
+            continue
+        if GABARITO_BILINGUAL_HEADER_RE.search(line):
+            bilingual_mode = True
+            continue
+
+        parts = line.split()
+        if not parts or not parts[0].isdigit():
+            continue
+
+        numero_int = int(parts[0])
+        if not 1 <= numero_int <= 200:
+            continue
+
+        alternativas = [token.upper() for token in parts[1:] if token.upper() in {'A', 'B', 'C', 'D', 'E'}]
+        if not alternativas:
+            continue
+
+        if bilingual_mode and numero_int <= 5 and len(alternativas) >= 2:
+            answers[(numero_int, QuestaoImportada.IDIOMA_INGLES)] = alternativas[0]
+            answers[(numero_int, QuestaoImportada.IDIOMA_ESPANHOL)] = alternativas[1]
+        else:
+            answers[(numero_int, None)] = alternativas[0]
     return answers
 
 
 def split_question_blocks(text):
-    blocks = OrderedDict()
+    blocks = []
     current_number = None
+    current_language = None
     current_lines = []
 
     for line in text.splitlines():
+        language = detect_language_section(line)
+        if language:
+            if current_number is not None and current_lines:
+                blocks.append({
+                    'numero': current_number,
+                    'idioma': current_language if current_number <= 5 else None,
+                    'texto': '\n'.join(current_lines).strip(),
+                })
+                current_number = None
+                current_lines = []
+            current_language = language
+            continue
+
+        if QUESTION_RANGE_RE.search(line) and current_number is None and current_language and '01 a 05' not in line:
+            current_language = None
+
         match = QUESTION_LINE_RE.search(line)
         if match:
             number = int(match.group(1))
             if 1 <= number <= 200:
                 if current_number is not None and current_lines:
-                    blocks[current_number] = '\n'.join(current_lines).strip()
+                    blocks.append({
+                        'numero': current_number,
+                        'idioma': current_language if current_number <= 5 else None,
+                        'texto': '\n'.join(current_lines).strip(),
+                    })
                 current_number = number
+                if number > 5:
+                    current_language = None
                 current_lines = []
                 continue
         if current_number is not None:
             current_lines.append(line)
 
     if current_number is not None and current_lines:
-        blocks[current_number] = '\n'.join(current_lines).strip()
+        blocks.append({
+            'numero': current_number,
+            'idioma': current_language if current_number <= 5 else None,
+            'texto': '\n'.join(current_lines).strip(),
+        })
 
     return blocks
+
+
+def detect_language_section(line):
+    normalized = line.lower()
+    if '01 a 05' not in normalized:
+        return None
+    if 'ingl' in normalized:
+        return QuestaoImportada.IDIOMA_INGLES
+    if 'espanhol' in normalized:
+        return QuestaoImportada.IDIOMA_ESPANHOL
+    return None
 
 
 def parse_question_block(block_text):
@@ -260,8 +333,8 @@ def classify_question(parsed, answer):
 
 def infer_expected_total(question_blocks, gabarito):
     return max(
-        max(question_blocks.keys(), default=0),
-        max(gabarito.keys(), default=0),
+        max((item['numero'] for item in question_blocks), default=0),
+        max((numero for numero, _idioma in gabarito.keys()), default=0),
     )
 
 
@@ -274,6 +347,7 @@ def canonicalize_question_text(text):
 def find_existing_question(questao_importada):
     candidatos = Questao.objects.filter(
         resposta_correta=questao_importada.gabarito_oficial,
+        idioma=questao_importada.idioma,
     )
     alvo = {
         'enunciado': canonicalize_question_text(questao_importada.enunciado),
@@ -324,13 +398,12 @@ def processar_importacao(importacao):
             'Nao foi possivel identificar o gabarito no PDF enviado.'
         )
 
-    max_gabarito = max(gabarito.keys(), default=0)
+    max_gabarito = max((numero for numero, _idioma in gabarito.keys()), default=0)
     if max_gabarito:
-        question_blocks = OrderedDict(
-            (numero, block)
-            for numero, block in question_blocks.items()
-            if numero <= max_gabarito
-        )
+        question_blocks = [
+            item for item in question_blocks
+            if item['numero'] <= max_gabarito
+        ]
 
     prova_original, _ = ProvaOriginal.objects.get_or_create(
         importacao=importacao,
@@ -370,15 +443,20 @@ def processar_importacao(importacao):
     importacao.questoes_importadas.all().delete()
 
     created = []
-    for numero, block in question_blocks.items():
-        parsed = parse_question_block(block)
-        answer = gabarito.get(numero, '')
+    for item in question_blocks:
+        numero = item['numero']
+        idioma = item['idioma']
+        parsed = parse_question_block(item['texto'])
+        answer = gabarito.get((numero, idioma), '')
+        if not answer and idioma is not None:
+            answer = gabarito.get((numero, None), '')
         status, reason = classify_question(parsed, answer)
         created.append(
             QuestaoImportada(
                 importacao=importacao,
                 prova_original=prova_original,
                 numero_na_prova=numero,
+                idioma=idioma,
                 texto_bruto=parsed['texto_bruto'],
                 enunciado=parsed['enunciado'],
                 opcao_a=parsed['opcao_a'],
@@ -434,6 +512,7 @@ def publicar_questao_importada(questao_importada):
             explicacao='',
             fonte='ENEM oficial - INEP',
             ano_origem=questao_importada.importacao.ano,
+            idioma=questao_importada.idioma,
             revisado=True,
             importacao_origem=questao_importada.importacao,
             prova_original=questao_importada.prova_original,
@@ -452,8 +531,10 @@ def publicar_questao_importada(questao_importada):
     QuestaoProvaOriginal.objects.update_or_create(
         questao=questao,
         prova_original=questao_importada.prova_original,
+        idioma=questao_importada.idioma,
         defaults={
             'numero_na_prova': questao_importada.numero_na_prova,
+            'idioma': questao_importada.idioma,
             'importacao': questao_importada.importacao,
         },
     )

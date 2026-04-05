@@ -21,7 +21,28 @@ class ImportadorParsingTests(TestCase):
         text = '1 A 2 B 3 C 10 E'
         self.assertEqual(
             parse_gabarito(text),
-            {1: 'A', 2: 'B', 3: 'C', 10: 'E'},
+            {(1, None): 'A', (2, None): 'B', (3, None): 'C', (10, None): 'E'},
+        )
+
+    def test_parse_gabarito_extracts_ingles_e_espanhol(self):
+        text = (
+            'QUESTAO GABARITO INGLES ESPANHOL\n'
+            '1 D B\n'
+            '2 D A\n'
+            '5 A C\n'
+            '6 E'
+        )
+        self.assertEqual(
+            parse_gabarito(text),
+            {
+                (1, QuestaoImportada.IDIOMA_INGLES): 'D',
+                (1, QuestaoImportada.IDIOMA_ESPANHOL): 'B',
+                (2, QuestaoImportada.IDIOMA_INGLES): 'D',
+                (2, QuestaoImportada.IDIOMA_ESPANHOL): 'A',
+                (5, QuestaoImportada.IDIOMA_INGLES): 'A',
+                (5, QuestaoImportada.IDIOMA_ESPANHOL): 'C',
+                (6, None): 'E',
+            },
         )
 
     def test_parse_question_block_splits_enunciado_and_alternatives(self):
@@ -94,8 +115,28 @@ class ImportadorParsingTests(TestCase):
             'QU EST ãO 61\nTexto da 61\nA opção A\nB opção B'
         )
         blocks = split_question_blocks(text)
-        self.assertIn(60, blocks)
-        self.assertIn(61, blocks)
+        self.assertEqual(
+            [item['numero'] for item in blocks],
+            [60, 61],
+        )
+
+    def test_split_question_blocks_tracks_bilingual_language_sections(self):
+        text = normalize_text(
+            'Questoes de 01 a 05 (opcao ingles)\n'
+            'QUESTAO 01\nTexto ingles\nA alt A\nB alt B\nC alt C\nD alt D\nE alt E\n'
+            'Questoes de 01 a 05 (opcao espanhol)\n'
+            'QUESTAO 01\nTexto espanhol\nA alt A\nB alt B\nC alt C\nD alt D\nE alt E\n'
+            'QUESTAO 06\nTexto geral\nA alt A\nB alt B\nC alt C\nD alt D\nE alt E'
+        )
+        blocks = split_question_blocks(text)
+        self.assertEqual(
+            [(item['numero'], item['idioma']) for item in blocks[:3]],
+            [
+                (1, QuestaoImportada.IDIOMA_INGLES),
+                (1, QuestaoImportada.IDIOMA_ESPANHOL),
+                (6, None),
+            ],
+        )
 
     def test_normalize_text_removes_known_pdf_noise(self):
         text = normalize_text(
@@ -252,3 +293,58 @@ class DedupeQuestaoEntreProvasTests(TestCase):
             provas,
             [(2009, ImportacaoProva.COR_AZUL, 1), (2025, ImportacaoProva.COR_BRANCO, 77)],
         )
+
+    def test_publicacao_nao_reaproveita_questao_quando_idioma_e_diferente(self):
+        user = User.objects.create_user(username='admin3', password='senha123', role='admin')
+
+        importacao = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova = ProvaOriginal.objects.create(importacao=importacao, descricao='ENEM 2025 - Azul')
+        Simulado.objects.create(
+            titulo='ENEM 2025 - Dia 1 - Azul',
+            descricao='Original',
+            criado_por=user,
+            ativo=False,
+            importacao_origem=importacao,
+            prova_original=prova,
+            eh_simulado_original=True,
+        )
+
+        ingles = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=1,
+            idioma=QuestaoImportada.IDIOMA_INGLES,
+            enunciado='Texto equivalente.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='A',
+        )
+        espanhol = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=1,
+            idioma=QuestaoImportada.IDIOMA_ESPANHOL,
+            enunciado='Texto equivalente.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='A',
+        )
+
+        q_ingles = publicar_questao_importada(ingles)
+        q_espanhol = publicar_questao_importada(espanhol)
+
+        self.assertNotEqual(q_ingles.id, q_espanhol.id)
+        self.assertEqual(Questao.objects.filter(enunciado='Texto equivalente.').count(), 2)

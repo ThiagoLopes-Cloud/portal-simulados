@@ -104,6 +104,14 @@ class ImportacaoProva(models.Model):
         return self.questoes_importadas.count()
 
     @property
+    def total_numeros_importados(self):
+        return self.questoes_importadas.values('numero_na_prova').distinct().count()
+
+    @property
+    def total_ocorrencias_com_idioma(self):
+        return self.questoes_importadas.exclude(idioma__isnull=True).count()
+
+    @property
     def total_pendentes(self):
         return self.questoes_importadas.filter(
             status=QuestaoImportada.PENDENTE_APROVACAO
@@ -196,6 +204,14 @@ class ProvaOriginal(models.Model):
 
 
 class QuestaoImportada(models.Model):
+    IDIOMA_INGLES = 'ingles'
+    IDIOMA_ESPANHOL = 'espanhol'
+
+    IDIOMA_CHOICES = [
+        (IDIOMA_INGLES, 'Ingles'),
+        (IDIOMA_ESPANHOL, 'Espanhol'),
+    ]
+
     PENDENTE_APROVACAO = 'pendente_aprovacao'
     CORRECAO_NECESSARIA = 'correcao_necessaria'
     REJEITADA = 'rejeitada'
@@ -221,6 +237,13 @@ class QuestaoImportada(models.Model):
         verbose_name='Prova original',
     )
     numero_na_prova = models.PositiveIntegerField(verbose_name='Número na prova')
+    idioma = models.CharField(
+        max_length=20,
+        choices=IDIOMA_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name='Idioma',
+    )
     texto_bruto = models.TextField(blank=True, verbose_name='Texto bruto extraído')
     enunciado = models.TextField(blank=True, verbose_name='Enunciado')
     opcao_a = models.TextField(blank=True, verbose_name='Alternativa A')
@@ -254,11 +277,12 @@ class QuestaoImportada(models.Model):
     class Meta:
         verbose_name = 'Questão Importada'
         verbose_name_plural = 'Questões Importadas'
-        ordering = ['numero_na_prova']
-        unique_together = ['importacao', 'numero_na_prova']
+        ordering = ['numero_na_prova', 'idioma']
+        unique_together = ['importacao', 'numero_na_prova', 'idioma']
 
     def __str__(self):
-        return f'Q{self.numero_na_prova} - {self.importacao}'
+        idioma = f' ({self.get_idioma_display()})' if self.idioma else ''
+        return f'Q{self.numero_na_prova}{idioma} - {self.importacao}'
 
     def enunciado_resumido(self):
         if len(self.enunciado) <= 80:
@@ -282,6 +306,13 @@ class QuestaoProvaOriginal(models.Model):
         verbose_name='Prova original',
     )
     numero_na_prova = models.PositiveIntegerField(verbose_name='Numero na prova')
+    idioma = models.CharField(
+        max_length=20,
+        choices=QuestaoImportada.IDIOMA_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name='Idioma',
+    )
     importacao = models.ForeignKey(
         ImportacaoProva,
         on_delete=models.CASCADE,
@@ -295,9 +326,10 @@ class QuestaoProvaOriginal(models.Model):
         verbose_name_plural = 'Ocorrencias da Questao em Provas'
         ordering = ['prova_original__importacao__ano', 'prova_original__importacao__dia', 'numero_na_prova']
         unique_together = [
-            ('questao', 'prova_original'),
-            ('prova_original', 'numero_na_prova'),
+            ('questao', 'prova_original', 'idioma'),
+            ('prova_original', 'numero_na_prova', 'idioma'),
         ]
 
     def __str__(self):
-        return f'{self.questao_id} em {self.prova_original} (Q{self.numero_na_prova})'
+        idioma = f' / {self.get_idioma_display()}' if self.idioma else ''
+        return f'{self.questao_id} em {self.prova_original} (Q{self.numero_na_prova}{idioma})'

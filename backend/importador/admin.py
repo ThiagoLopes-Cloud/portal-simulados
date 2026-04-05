@@ -64,6 +64,7 @@ class ImportacaoProvaAdmin(admin.ModelAdmin):
         'descricao_importacao',
         'status',
         'total_importadas_admin',
+        'total_numeros_admin',
         'total_publicadas_admin',
         'total_correcao_admin',
         'criado_por',
@@ -112,10 +113,19 @@ class ImportacaoProvaAdmin(admin.ModelAdmin):
             return
         try:
             processar_importacao(obj)
+            resumo_ocorrencias = (
+                f'{obj.total_importadas} ocorrencias importadas '
+                f'({obj.total_numeros_importados} numeros de questao'
+            )
+            if obj.total_ocorrencias_com_idioma:
+                resumo_ocorrencias += (
+                    f', incluindo {obj.total_ocorrencias_com_idioma} ocorrencias com idioma'
+                )
+            resumo_ocorrencias += ')'
             if obj.total_correcao_necessaria:
                 request._importacao_feedback = {
                     'message': (
-                        f'Importacao processada com sucesso: {obj.total_importadas} questoes importadas, '
+                        f'Importacao processada com sucesso: {resumo_ocorrencias}, '
                         f'{obj.total_pendentes} prontas para revisao e '
                         f'{obj.total_correcao_necessaria} com correcao necessaria.'
                     ),
@@ -124,7 +134,7 @@ class ImportacaoProvaAdmin(admin.ModelAdmin):
             else:
                 request._importacao_feedback = {
                     'message': (
-                        f'Importacao processada com sucesso: {obj.total_importadas} questoes importadas '
+                        f'Importacao processada com sucesso: {resumo_ocorrencias} '
                         'e todas prontas para revisao.'
                     ),
                     'level': messages.SUCCESS,
@@ -243,7 +253,12 @@ class ImportacaoProvaAdmin(admin.ModelAdmin):
     def total_importadas_admin(self, obj):
         return obj.total_importadas
 
-    total_importadas_admin.short_description = 'Questões importadas'
+    total_importadas_admin.short_description = 'Ocorrencias importadas'
+
+    def total_numeros_admin(self, obj):
+        return obj.total_numeros_importados
+
+    total_numeros_admin.short_description = 'Numeros da prova'
 
     def total_publicadas_admin(self, obj):
         return obj.total_publicadas
@@ -268,21 +283,22 @@ class ProvaOriginalAdmin(admin.ModelAdmin):
 class QuestaoImportadaAdmin(admin.ModelAdmin):
     list_display = [
         'numero_na_prova',
+        'idioma',
         'importacao',
         'status',
         'gabarito_oficial',
         'questao_oficial',
         'enunciado_resumido',
     ]
-    list_filter = ['status', 'importacao__ano', 'importacao__cor', 'importacao']
+    list_filter = ['status', 'idioma', 'importacao__ano', 'importacao__cor', 'importacao']
     search_fields = ['enunciado', 'texto_bruto', 'motivo_status']
     readonly_fields = ['importacao', 'prova_original', 'texto_bruto', 'questao_oficial', 'criado_em', 'atualizado_em']
-    ordering = ['importacao', 'numero_na_prova']
+    ordering = ['importacao', 'numero_na_prova', 'idioma']
     actions = [aprovar_e_publicar, marcar_correcao_necessaria, rejeitar_questoes_importadas]
 
     fieldsets = (
         ('Origem', {
-            'fields': ('importacao', 'prova_original', 'numero_na_prova', 'status', 'motivo_status', 'questao_oficial'),
+            'fields': ('importacao', 'prova_original', 'numero_na_prova', 'idioma', 'status', 'motivo_status', 'questao_oficial'),
         }),
         ('Texto extraído', {
             'fields': ('texto_bruto',),
@@ -298,7 +314,7 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
 
 @admin.register(QuestaoProvaOriginal)
 class QuestaoProvaOriginalAdmin(admin.ModelAdmin):
-    list_display = ['questao', 'prova_original', 'numero_na_prova', 'importacao', 'criado_em']
-    list_filter = ['prova_original__importacao__ano', 'prova_original__importacao__cor']
+    list_display = ['questao', 'prova_original', 'numero_na_prova', 'idioma', 'importacao', 'criado_em']
+    list_filter = ['idioma', 'prova_original__importacao__ano', 'prova_original__importacao__cor']
     search_fields = ['questao__enunciado', 'prova_original__descricao']
     readonly_fields = ['criado_em']

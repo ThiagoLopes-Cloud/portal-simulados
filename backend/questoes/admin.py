@@ -46,6 +46,7 @@ class QuestaoAdmin(admin.ModelAdmin):
         'dificuldade',
         'resposta_correta',
         'revisado',         # Coluna mais importante — separa pendentes de aprovadas
+        'idioma',
         'provas_oficiais_resumidas',
         'fonte',
         'criado_em',
@@ -54,6 +55,7 @@ class QuestaoAdmin(admin.ModelAdmin):
     # Filtros na barra lateral direita
     list_filter = [
         'revisado',           # Primeiro filtro — o mais usado no fluxo de revisão
+        'idioma',
         'dificuldade',
         'tema__materia',      # Filtra por matéria via relacionamento tema → materia
         'fonte',
@@ -92,7 +94,7 @@ class QuestaoAdmin(admin.ModelAdmin):
             'fields': ('resposta_correta', 'explicacao', 'dificuldade')
         }),
         ('Metadados e Revisão', {
-            'fields': ('fonte', 'ano_origem', 'revisado', 'provas_oficiais_resumidas')
+            'fields': ('fonte', 'ano_origem', 'idioma', 'revisado', 'provas_oficiais_resumidas')
         }),
     )
 
@@ -115,7 +117,8 @@ class QuestaoAdmin(admin.ModelAdmin):
         for ocorrencia in ocorrencias:
             importacao = ocorrencia.prova_original.importacao
             itens.append(
-                f'ENEM {importacao.ano} - Dia {importacao.dia} - {importacao.get_cor_display()} (Q{ocorrencia.numero_na_prova})'
+                f'ENEM {importacao.ano} - Dia {importacao.dia} - {importacao.get_cor_display()}'
+                f' ({(ocorrencia.idioma or "geral").title()}) (Q{ocorrencia.numero_na_prova})'
             )
         return ' | '.join(itens)
 

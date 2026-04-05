@@ -114,6 +114,17 @@ class Questao(models.Model):
         verbose_name='Ano de Origem'
     )
 
+    idioma = models.CharField(
+        max_length=20,
+        choices=[
+            ('ingles', 'Ingles'),
+            ('espanhol', 'Espanhol'),
+        ],
+        null=True,
+        blank=True,
+        verbose_name='Idioma'
+    )
+
     importacao_origem = models.ForeignKey(
         'importador.ImportacaoProva',
         on_delete=models.CASCADE,
