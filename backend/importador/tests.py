@@ -4,6 +4,7 @@ from django.test import TestCase
 from importador.models import ImportacaoProva, ProvaOriginal, QuestaoImportada
 from importador.services import (
     classify_question,
+    clean_extracted_field,
     normalize_text,
     parse_gabarito,
     parse_question_block,
@@ -51,6 +52,40 @@ class ImportadorParsingTests(TestCase):
         )
         self.assertTrue(parsed['enunciado'].startswith('A atmosfera terrestre'))
         self.assertEqual(parsed['opcao_a'], 'reduzir emissões.')
+
+    def test_clean_extracted_field_joins_word_broken_across_lines(self):
+        cleaned = clean_extracted_field('cri\nar a moeda propria.')
+        self.assertEqual(cleaned, 'criar a moeda propria.')
+
+    def test_clean_extracted_field_removes_pdf_header_noise(self):
+        cleaned = clean_extracted_field(
+            'des\nigualdade de genero acentuada pela baixa escolarizacao.\n'
+            'LINGUAGENS, CODIGOS E SUAS TECNOLOGIAS E REDACAO | 1o DIA | CADERNO 1 | AZUL18'
+        )
+        self.assertEqual(
+            cleaned,
+            'desigualdade de genero acentuada pela baixa escolarizacao.'
+        )
+
+    def test_clean_extracted_field_joins_broken_suffix_from_previous_line(self):
+        cleaned = clean_extracted_field('aura de mis\ntério sobre a identidade da jovem.')
+        self.assertEqual(cleaned, 'aura de mistério sobre a identidade da jovem.')
+
+    def test_clean_extracted_field_stops_at_next_section_intro(self):
+        cleaned = clean_extracted_field(
+            'indiferenca em relacao a fatos historicos.\n'
+            'Texto para as QUESTAO 06 a 10.\n'
+            'De proprio punho'
+        )
+        self.assertEqual(cleaned, 'indiferenca em relacao a fatos historicos.')
+
+    def test_clean_extracted_field_stops_at_redacao_intro(self):
+        cleaned = clean_extracted_field(
+            'apontar para a dificuldade de compreensao do termo.\n'
+            'PROPOSTA DE REDACAO\n'
+            'A partir da leitura dos textos motivadores'
+        )
+        self.assertEqual(cleaned, 'apontar para a dificuldade de compreensao do termo.')
 
     def test_split_question_blocks_accepts_broken_questao_marker(self):
         text = normalize_text(

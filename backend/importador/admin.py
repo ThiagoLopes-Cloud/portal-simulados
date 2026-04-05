@@ -1,5 +1,13 @@
+import json
+
 from django.contrib import admin, messages
+from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR, add_preserved_filters
+from django.contrib.admin.utils import quote
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import ImportacaoProva, ProvaOriginal, QuestaoImportada
 from .services import processar_importacao, publicar_questao_importada
@@ -104,25 +112,111 @@ class ImportacaoProvaAdmin(admin.ModelAdmin):
             return
         try:
             processar_importacao(obj)
-            self.message_user(
-                request,
-                'Importação processada com sucesso. Revise as questões importadas antes de publicar.',
-                level=messages.SUCCESS,
-            )
+            if obj.total_correcao_necessaria:
+                request._importacao_feedback = {
+                    'message': (
+                        f'Importacao processada com sucesso: {obj.total_importadas} questoes importadas, '
+                        f'{obj.total_pendentes} prontas para revisao e '
+                        f'{obj.total_correcao_necessaria} com correcao necessaria.'
+                    ),
+                    'level': messages.WARNING,
+                }
+            else:
+                request._importacao_feedback = {
+                    'message': (
+                        f'Importacao processada com sucesso: {obj.total_importadas} questoes importadas '
+                        'e todas prontas para revisao.'
+                    ),
+                    'level': messages.SUCCESS,
+                }
         except ValidationError as exc:
             obj.status = ImportacaoProva.FALHOU
             obj.mensagem_erro = str(exc)
             obj.save(update_fields=['status', 'mensagem_erro', 'atualizado_em'])
-            self.message_user(request, str(exc), level=messages.ERROR)
+            request._importacao_feedback = {
+                'message': f'Falha ao processar a importacao: {exc}',
+                'level': messages.ERROR,
+            }
         except Exception as exc:
             obj.status = ImportacaoProva.FALHOU
             obj.mensagem_erro = str(exc)
             obj.save(update_fields=['status', 'mensagem_erro', 'atualizado_em'])
-            self.message_user(
+            request._importacao_feedback = {
+                'message': f'Falha ao processar a importacao: {exc}',
+                'level': messages.ERROR,
+            }
+
+    def response_add(self, request, obj, post_url_continue=None):
+        feedback = getattr(request, '_importacao_feedback', None)
+        if feedback is None:
+            return super().response_add(request, obj, post_url_continue=post_url_continue)
+
+        opts = obj._meta
+        preserved_filters = self.get_preserved_filters(request)
+        preserved_qsl = self._get_preserved_qsl(request, preserved_filters)
+        obj_url = reverse(
+            f'admin:{opts.app_label}_{opts.model_name}_change',
+            args=(quote(obj.pk),),
+            current_app=self.admin_site.name,
+        )
+
+        if IS_POPUP_VAR in request.POST:
+            to_field = request.POST.get(TO_FIELD_VAR)
+            attr = str(to_field) if to_field else obj._meta.pk.attname
+            value = obj.serializable_value(attr)
+            popup_response_data = json.dumps({'value': str(value), 'obj': str(obj)})
+            return TemplateResponse(
                 request,
-                f'Falha ao processar a importação: {exc}',
-                level=messages.ERROR,
+                self.popup_response_template
+                or [
+                    f'admin/{opts.app_label}/{opts.model_name}/popup_response.html',
+                    f'admin/{opts.app_label}/popup_response.html',
+                    'admin/popup_response.html',
+                ],
+                {'popup_response_data': popup_response_data},
             )
+
+        self.message_user(request, feedback['message'], feedback['level'])
+
+        if '_continue' in request.POST or (
+            '_saveasnew' in request.POST
+            and self.save_as_continue
+            and self.has_change_permission(request, obj)
+        ):
+            if self.has_change_permission(request, obj):
+                self.message_user(
+                    request,
+                    format_html(
+                        'Voce pode revisar esta importacao abaixo: <a href="{}">{}</a>.',
+                        obj_url,
+                        obj,
+                    ),
+                    messages.INFO,
+                )
+            if post_url_continue is None:
+                post_url_continue = obj_url
+            post_url_continue = add_preserved_filters(
+                {
+                    'preserved_filters': preserved_filters,
+                    'preserved_qsl': preserved_qsl,
+                    'opts': opts,
+                },
+                post_url_continue,
+            )
+            return HttpResponseRedirect(post_url_continue)
+
+        if '_addanother' in request.POST:
+            redirect_url = add_preserved_filters(
+                {
+                    'preserved_filters': preserved_filters,
+                    'preserved_qsl': preserved_qsl,
+                    'opts': opts,
+                },
+                request.path,
+            )
+            return HttpResponseRedirect(redirect_url)
+
+        return self.response_post_save_add(request, obj)
 
     def delete_model(self, request, obj):
         try:

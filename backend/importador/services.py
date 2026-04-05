@@ -18,6 +18,35 @@ QUESTION_LINE_RE = re.compile(
 )
 ALT_LINE_RE = re.compile(r'^\s*([A-E])(?:[\)\].:\-\s]|$)\s*(.*)$')
 PAIR_RE = re.compile(r'\b(\d{1,3})\s*([A-E])\b')
+PDF_HEADER_RE = re.compile(r'.*\|\s*\d.{0,2}\s*DIA\s*\|\s*CADERNO\s*\d+\s*\|\s*[A-Z]+.*', re.IGNORECASE)
+BROKEN_WORD_RE = re.compile(r'^[a-zà-ÿ]{1,8}$', re.IGNORECASE)
+BROKEN_WORD_SUFFIX_RE = re.compile(r'^(.*\b)([a-zà-ÿ]{1,6})$', re.IGNORECASE)
+SECTION_BREAK_RE = re.compile(
+    r'^(?:Texto para as QUESTAO|QUESTAO \d+\s+a\s+\d+|DA REDA|PROPOSTA DE REDA|LINGUAGENS,|CIÊNCIAS |CIENCIAS |MATEMÁTICA |MATEMATICA )',
+    re.IGNORECASE,
+)
+WORD_ONLY_RE = re.compile(r'^[A-Za-zÀ-ÿ]+$')
+JOIN_START_EXCEPTIONS = {'que'}
+JOIN_START_STOPWORDS = {
+    'a', 'as', 'ao', 'aos', 'o', 'os', 'de', 'da', 'das', 'do', 'dos', 'e',
+    'em', 'na', 'nas', 'no', 'nos', 'um', 'uma', 'uns', 'umas', 'para', 'por',
+    'com', 'sem', 'sob', 'sobre',
+}
+
+
+def is_pdf_noise_line(line):
+    normalized = line.upper()
+    if re.fullmatch(r'\*?[A-Z0-9]{6,}\*?', line):
+        return True
+    if 'ENEM2025' in normalized or '.INDB' in normalized or '.INDD' in normalized:
+        return True
+    if re.fullmatch(r'\d{1,2}', line):
+        return True
+    if PDF_HEADER_RE.fullmatch(line):
+        return True
+    if '|' in line and 'DIA' in normalized and 'CADERNO' in normalized:
+        return True
+    return False
 
 
 def normalize_text(text):
@@ -30,16 +59,68 @@ def normalize_text(text):
         line = re.sub(r'\s+', ' ', raw_line).strip()
         if not line:
             continue
-        if re.fullmatch(r'\*?[A-Z0-9]{6,}\*?', line):
-            continue
-        if 'ENEM2025' in line or '.indb' in line:
-            continue
-        if re.fullmatch(r'\d{1,2}', line):
-            continue
-        if re.fullmatch(r'[A-ZÁ-ÚÇ ]+\|\s*\dº DIA\s*\|\s*CADERNO\s*\d+\s*\|\s*[A-Z]+.*', line):
+        if is_pdf_noise_line(line):
             continue
         lines.append(line)
     return '\n'.join(lines)
+
+
+def clean_extracted_field(text):
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    cleaned = []
+
+    for line in lines:
+        if is_pdf_noise_line(line):
+            continue
+        if SECTION_BREAK_RE.match(line):
+            break
+
+        if cleaned:
+            previous = cleaned[-1]
+            if (
+                BROKEN_WORD_RE.fullmatch(previous)
+                and re.match(r'^[a-zà-ÿ]', line, re.IGNORECASE)
+            ):
+                cleaned[-1] = f'{previous}{line}'
+                continue
+
+            previous_match = BROKEN_WORD_SUFFIX_RE.match(previous)
+            if previous_match and re.match(r'^[a-zà-ÿ]', line, re.IGNORECASE):
+                cleaned[-1] = f'{previous_match.group(1)}{previous_match.group(2)}{line}'
+                continue
+
+        cleaned.append(fix_fragmented_start(line))
+
+    return '\n'.join(cleaned).strip()
+
+
+def fix_fragmented_start(line):
+    parts = line.split()
+    if len(parts) < 2:
+        return line
+
+    def is_word(token):
+        return bool(WORD_ONLY_RE.fullmatch(token))
+
+    def first_token_can_merge(token):
+        return token.lower() not in JOIN_START_STOPWORDS or token.lower() in JOIN_START_EXCEPTIONS
+
+    if len(parts) >= 3 and all(is_word(token) for token in parts[:3]):
+        first, second, third = parts[:3]
+        if len(first) == 1 and 1 <= len(second) <= 3 and len(third) >= 4:
+            parts = [first + second + third, *parts[3:]]
+            return ' '.join(parts)
+
+    first, second = parts[:2]
+    if all(is_word(token) for token in (first, second)):
+        if len(first) <= 4 and len(second) >= 5 and first_token_can_merge(first):
+            parts = [first + second, *parts[2:]]
+            return ' '.join(parts)
+        if 2 <= len(first) <= 4 and len(second) == 1 and first_token_can_merge(first):
+            parts = [first + second, *parts[2:]]
+            return ' '.join(parts)
+
+    return line
 
 
 def extract_pdf_text(file_field):
@@ -142,12 +223,12 @@ def parse_question_block(block_text):
 
     parsed = {
         'texto_bruto': block_text.strip(),
-        'enunciado': '\n'.join(enunciado_lines).strip(),
-        'opcao_a': '\n'.join(alternatives['A']).strip(),
-        'opcao_b': '\n'.join(alternatives['B']).strip(),
-        'opcao_c': '\n'.join(alternatives['C']).strip(),
-        'opcao_d': '\n'.join(alternatives['D']).strip(),
-        'opcao_e': '\n'.join(alternatives['E']).strip(),
+        'enunciado': clean_extracted_field('\n'.join(enunciado_lines)),
+        'opcao_a': clean_extracted_field('\n'.join(alternatives['A'])),
+        'opcao_b': clean_extracted_field('\n'.join(alternatives['B'])),
+        'opcao_c': clean_extracted_field('\n'.join(alternatives['C'])),
+        'opcao_d': clean_extracted_field('\n'.join(alternatives['D'])),
+        'opcao_e': clean_extracted_field('\n'.join(alternatives['E'])),
     }
     return parsed
 
