@@ -9,7 +9,7 @@ from pypdf import PdfReader
 from questoes.models import Questao
 from simulados.models import Simulado, SimuladoQuestao
 
-from .models import ImportacaoProva, ProvaOriginal, QuestaoImportada
+from .models import ImportacaoProva, ProvaOriginal, QuestaoImportada, QuestaoProvaOriginal
 
 
 QUESTION_LINE_RE = re.compile(
@@ -265,6 +265,40 @@ def infer_expected_total(question_blocks, gabarito):
     )
 
 
+def canonicalize_question_text(text):
+    cleaned = clean_extracted_field(text)
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip().lower()
+    return cleaned
+
+
+def find_existing_question(questao_importada):
+    candidatos = Questao.objects.filter(
+        resposta_correta=questao_importada.gabarito_oficial,
+    )
+    alvo = {
+        'enunciado': canonicalize_question_text(questao_importada.enunciado),
+        'opcao_a': canonicalize_question_text(questao_importada.opcao_a),
+        'opcao_b': canonicalize_question_text(questao_importada.opcao_b),
+        'opcao_c': canonicalize_question_text(questao_importada.opcao_c),
+        'opcao_d': canonicalize_question_text(questao_importada.opcao_d),
+        'opcao_e': canonicalize_question_text(questao_importada.opcao_e),
+    }
+
+    for candidato in candidatos:
+        candidato_normalizado = {
+            'enunciado': canonicalize_question_text(candidato.enunciado),
+            'opcao_a': canonicalize_question_text(candidato.opcao_a),
+            'opcao_b': canonicalize_question_text(candidato.opcao_b),
+            'opcao_c': canonicalize_question_text(candidato.opcao_c),
+            'opcao_d': canonicalize_question_text(candidato.opcao_d),
+            'opcao_e': canonicalize_question_text(candidato.opcao_e),
+        }
+        if candidato_normalizado == alvo:
+            return candidato
+
+    return None
+
+
 @transaction.atomic
 def processar_importacao(importacao):
     importacao.status = ImportacaoProva.PROCESSANDO
@@ -386,23 +420,25 @@ def publicar_questao_importada(questao_importada):
             'Preencha enunciado, alternativas A-E e gabarito oficial antes de publicar.'
         )
 
-    questao = Questao.objects.create(
-        enunciado=questao_importada.enunciado,
-        opcao_a=questao_importada.opcao_a,
-        opcao_b=questao_importada.opcao_b,
-        opcao_c=questao_importada.opcao_c,
-        opcao_d=questao_importada.opcao_d,
-        opcao_e=questao_importada.opcao_e,
-        resposta_correta=questao_importada.gabarito_oficial,
-        dificuldade='M',
-        explicacao='',
-        fonte='ENEM oficial - INEP',
-        ano_origem=questao_importada.importacao.ano,
-        revisado=True,
-        importacao_origem=questao_importada.importacao,
-        prova_original=questao_importada.prova_original,
-        numero_na_prova=questao_importada.numero_na_prova,
-    )
+    questao = find_existing_question(questao_importada)
+    if questao is None:
+        questao = Questao.objects.create(
+            enunciado=questao_importada.enunciado,
+            opcao_a=questao_importada.opcao_a,
+            opcao_b=questao_importada.opcao_b,
+            opcao_c=questao_importada.opcao_c,
+            opcao_d=questao_importada.opcao_d,
+            opcao_e=questao_importada.opcao_e,
+            resposta_correta=questao_importada.gabarito_oficial,
+            dificuldade='M',
+            explicacao='',
+            fonte='ENEM oficial - INEP',
+            ano_origem=questao_importada.importacao.ano,
+            revisado=True,
+            importacao_origem=questao_importada.importacao,
+            prova_original=questao_importada.prova_original,
+            numero_na_prova=questao_importada.numero_na_prova,
+        )
 
     SimuladoQuestao.objects.update_or_create(
         simulado=questao_importada.importacao.simulado_original,
@@ -410,6 +446,15 @@ def publicar_questao_importada(questao_importada):
         defaults={
             'ordem': questao_importada.numero_na_prova,
             'peso': 1.00,
+        },
+    )
+
+    QuestaoProvaOriginal.objects.update_or_create(
+        questao=questao,
+        prova_original=questao_importada.prova_original,
+        defaults={
+            'numero_na_prova': questao_importada.numero_na_prova,
+            'importacao': questao_importada.importacao,
         },
     )
 

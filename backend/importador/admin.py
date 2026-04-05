@@ -9,7 +9,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.html import format_html
 
-from .models import ImportacaoProva, ProvaOriginal, QuestaoImportada
+from .models import ImportacaoProva, ProvaOriginal, QuestaoImportada, QuestaoProvaOriginal
 from .services import processar_importacao, publicar_questao_importada
 
 
@@ -294,3 +294,11 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
             'fields': ('criado_em', 'atualizado_em'),
         }),
     )
+
+
+@admin.register(QuestaoProvaOriginal)
+class QuestaoProvaOriginalAdmin(admin.ModelAdmin):
+    list_display = ['questao', 'prova_original', 'numero_na_prova', 'importacao', 'criado_em']
+    list_filter = ['prova_original__importacao__ano', 'prova_original__importacao__cor']
+    search_fields = ['questao__enunciado', 'prova_original__descricao']
+    readonly_fields = ['criado_em']

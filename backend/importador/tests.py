@@ -1,13 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from importador.models import ImportacaoProva, ProvaOriginal, QuestaoImportada
+from importador.models import ImportacaoProva, ProvaOriginal, QuestaoImportada, QuestaoProvaOriginal
 from importador.services import (
     classify_question,
     clean_extracted_field,
     normalize_text,
     parse_gabarito,
     parse_question_block,
+    publicar_questao_importada,
     split_question_blocks,
 )
 from questoes.models import Questao
@@ -164,3 +165,90 @@ class ImportacaoDeleteProtectionTests(TestCase):
 
         with self.assertRaises(ValidationError):
             importacao.delete()
+
+
+class DedupeQuestaoEntreProvasTests(TestCase):
+    def test_publicacao_reaproveita_questao_existente_em_outra_prova(self):
+        user = User.objects.create_user(username='admin2', password='senha123', role='admin')
+
+        importacao_2009 = ImportacaoProva.objects.create(
+            ano=2009,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2009.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2009.pdf',
+            criado_por=user,
+        )
+        prova_2009 = ProvaOriginal.objects.create(importacao=importacao_2009, descricao='ENEM 2009 - Azul')
+        Simulado.objects.create(
+            titulo='ENEM 2009 - Dia 1 - Azul',
+            descricao='Original',
+            criado_por=user,
+            ativo=False,
+            importacao_origem=importacao_2009,
+            prova_original=prova_2009,
+            eh_simulado_original=True,
+        )
+        importada_2009 = QuestaoImportada.objects.create(
+            importacao=importacao_2009,
+            prova_original=prova_2009,
+            numero_na_prova=1,
+            enunciado='Enunciado igual nas duas provas.',
+            opcao_a='Alternativa A',
+            opcao_b='Alternativa B',
+            opcao_c='Alternativa C',
+            opcao_d='Alternativa D',
+            opcao_e='Alternativa E',
+            gabarito_oficial='A',
+        )
+
+        questao_base = publicar_questao_importada(importada_2009)
+
+        importacao_2025 = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_BRANCO,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova_2025 = ProvaOriginal.objects.create(importacao=importacao_2025, descricao='ENEM 2025 - Branco')
+        Simulado.objects.create(
+            titulo='ENEM 2025 - Dia 1 - Branco',
+            descricao='Original',
+            criado_por=user,
+            ativo=False,
+            importacao_origem=importacao_2025,
+            prova_original=prova_2025,
+            eh_simulado_original=True,
+        )
+        importada_2025 = QuestaoImportada.objects.create(
+            importacao=importacao_2025,
+            prova_original=prova_2025,
+            numero_na_prova=77,
+            enunciado='Enunciado igual nas duas provas.',
+            opcao_a='Alternativa A',
+            opcao_b='Alternativa B',
+            opcao_c='Alternativa C',
+            opcao_d='Alternativa D',
+            opcao_e='Alternativa E',
+            gabarito_oficial='A',
+        )
+
+        questao_reutilizada = publicar_questao_importada(importada_2025)
+
+        self.assertEqual(questao_base.id, questao_reutilizada.id)
+        self.assertEqual(Questao.objects.count(), 1)
+        self.assertEqual(
+            QuestaoProvaOriginal.objects.filter(questao=questao_base).count(),
+            2,
+        )
+        provas = list(
+            QuestaoProvaOriginal.objects.filter(questao=questao_base)
+            .values_list('prova_original__importacao__ano', 'prova_original__importacao__cor', 'numero_na_prova')
+            .order_by('prova_original__importacao__ano')
+        )
+        self.assertEqual(
+            provas,
+            [(2009, ImportacaoProva.COR_AZUL, 1), (2025, ImportacaoProva.COR_BRANCO, 77)],
+        )

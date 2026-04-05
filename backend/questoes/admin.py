@@ -46,6 +46,7 @@ class QuestaoAdmin(admin.ModelAdmin):
         'dificuldade',
         'resposta_correta',
         'revisado',         # Coluna mais importante — separa pendentes de aprovadas
+        'provas_oficiais_resumidas',
         'fonte',
         'criado_em',
     ]
@@ -71,6 +72,8 @@ class QuestaoAdmin(admin.ModelAdmin):
     # Registra as ações em lote no dropdown
     actions = [aprovar_questoes, rejeitar_questoes]
 
+    readonly_fields = ['provas_oficiais_resumidas']
+
     # Organiza os campos em seções lógicas no formulário de edição
     fieldsets = (
         ('Conteúdo', {
@@ -89,7 +92,7 @@ class QuestaoAdmin(admin.ModelAdmin):
             'fields': ('resposta_correta', 'explicacao', 'dificuldade')
         }),
         ('Metadados e Revisão', {
-            'fields': ('fonte', 'ano_origem', 'revisado')
+            'fields': ('fonte', 'ano_origem', 'revisado', 'provas_oficiais_resumidas')
         }),
     )
 
@@ -98,3 +101,22 @@ class QuestaoAdmin(admin.ModelAdmin):
         return f'{obj.enunciado[:80]}...' if len(obj.enunciado) > 80 else obj.enunciado
 
     enunciado_resumido.short_description = 'Enunciado'
+
+    def provas_oficiais_resumidas(self, obj):
+        ocorrencias = obj.ocorrencias_prova.select_related('prova_original__importacao').order_by(
+            'prova_original__importacao__ano',
+            'prova_original__importacao__dia',
+            'prova_original__importacao__cor',
+        )
+        if not ocorrencias.exists():
+            return 'Sem vinculo com prova oficial'
+
+        itens = []
+        for ocorrencia in ocorrencias:
+            importacao = ocorrencia.prova_original.importacao
+            itens.append(
+                f'ENEM {importacao.ano} - Dia {importacao.dia} - {importacao.get_cor_display()} (Q{ocorrencia.numero_na_prova})'
+            )
+        return ' | '.join(itens)
+
+    provas_oficiais_resumidas.short_description = 'Provas oficiais'

@@ -233,12 +233,12 @@ class QuestaoImportada(models.Model):
         blank=True,
         verbose_name='Gabarito oficial',
     )
-    questao_oficial = models.OneToOneField(
+    questao_oficial = models.ForeignKey(
         'questoes.Questao',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='importacao_publicada',
+        related_name='importacoes_publicadas',
         verbose_name='Questão oficial publicada',
     )
     status = models.CharField(
@@ -266,3 +266,38 @@ class QuestaoImportada(models.Model):
         return f'{self.enunciado[:80]}...'
 
     enunciado_resumido.short_description = 'Enunciado'
+
+
+class QuestaoProvaOriginal(models.Model):
+    questao = models.ForeignKey(
+        'questoes.Questao',
+        on_delete=models.CASCADE,
+        related_name='ocorrencias_prova',
+        verbose_name='Questao',
+    )
+    prova_original = models.ForeignKey(
+        ProvaOriginal,
+        on_delete=models.CASCADE,
+        related_name='ocorrencias_questao',
+        verbose_name='Prova original',
+    )
+    numero_na_prova = models.PositiveIntegerField(verbose_name='Numero na prova')
+    importacao = models.ForeignKey(
+        ImportacaoProva,
+        on_delete=models.CASCADE,
+        related_name='ocorrencias_questao',
+        verbose_name='Importacao',
+    )
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+
+    class Meta:
+        verbose_name = 'Ocorrencia da Questao em Prova'
+        verbose_name_plural = 'Ocorrencias da Questao em Provas'
+        ordering = ['prova_original__importacao__ano', 'prova_original__importacao__dia', 'numero_na_prova']
+        unique_together = [
+            ('questao', 'prova_original'),
+            ('prova_original', 'numero_na_prova'),
+        ]
+
+    def __str__(self):
+        return f'{self.questao_id} em {self.prova_original} (Q{self.numero_na_prova})'
