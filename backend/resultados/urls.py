@@ -7,12 +7,12 @@ from .views import (
     RankingView,
     GabaritoView,
     DashboardView,
-    AdminAlunosListView,       # nome correto — com List
+    AdminAlunosListView,
     AdminAlunoDashboardView,
+    EvolucaoSimuladoView,  # ← Adicionado aqui no topo!
 )
 
 urlpatterns = [
-
     # GET /api/resultados/
     path('', ResultadoListView.as_view(), name='resultado-list'),
 
@@ -27,6 +27,10 @@ urlpatterns = [
 
     # GET /api/resultados/admin/alunos/{id}/
     path('admin/alunos/<int:pk>/', AdminAlunoDashboardView.as_view(), name='admin-aluno-dashboard'),
+    
+    # GET /api/resultados/evolucao/{simulado_id}/
+    # É uma boa prática colocar rotas específicas ANTES das rotas dinâmicas como <int:pk>
+    path('evolucao/<int:simulado_id>/', EvolucaoSimuladoView.as_view(), name='resultado-evolucao'),
 
     # GET /api/resultados/{id}/
     path('<int:pk>/', ResultadoDetalheView.as_view(), name='resultado-detalhe'),

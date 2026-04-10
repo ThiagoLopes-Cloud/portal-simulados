@@ -1,7 +1,6 @@
 <template>
   <div class="resultado-page">
 
-    <!-- Navbar -->
     <nav class="navbar">
       <h1>Portal de Simulados</h1>
       <div class="nav-links">
@@ -11,13 +10,11 @@
       </div>
     </nav>
 
-    <!-- Estado de carregamento -->
     <div v-if="carregando" class="loading-container">
       <div class="loading-spinner"></div>
       <p>Carregando resultado...</p>
     </div>
 
-    <!-- Estado de erro -->
     <div v-else-if="erro" class="erro-container">
       <p>{{ erro }}</p>
       <button @click="$router.push('/simulados')" class="btn-primario">
@@ -25,15 +22,10 @@
       </button>
     </div>
 
-    <!-- Conteúdo principal -->
     <div v-else class="container">
 
-      <!-- ================================================
-           SEÇÃO 1: Score hero — visão imediata do resultado
-           ================================================ -->
       <div class="score-hero">
 
-        <!-- Ícone e mensagem motivacional -->
         <div class="hero-icone">
           {{ parseFloat(gabarito.score) >= 70 ? '🎉' : parseFloat(gabarito.score) >= 50 ? '📈' : '📚' }}
         </div>
@@ -42,7 +34,6 @@
         </h2>
         <p class="hero-subtitulo">{{ gabarito.simulado_titulo }}</p>
 
-        <!-- Cards de métricas principais -->
         <div class="metricas">
           <div class="metrica-card">
             <span class="metrica-valor" :class="corScore(parseFloat(gabarito.score))">
@@ -67,10 +58,6 @@
         </div>
       </div>
 
-      <!-- ================================================
-           SEÇÃO 2: Resumo por matéria (base Fase 7)
-           Só aparece se houver questões com tema vinculado
-           ================================================ -->
       <div
         v-if="gabarito.resumo_por_materia && gabarito.resumo_por_materia.length > 0"
         class="secao"
@@ -101,10 +88,6 @@
         </div>
       </div>
 
-      <!-- ================================================
-           SEÇÃO 3: Temas para revisar (base Fase 7)
-           Só aparece se houver erros com tema vinculado
-           ================================================ -->
       <div
         v-if="gabarito.temas_com_erro && gabarito.temas_com_erro.length > 0"
         class="secao secao-revisao"
@@ -128,20 +111,20 @@
           </div>
         </div>
 
-        <!-- Placeholder para Fase 7 — recomendação de conteúdo -->
         <div class="fase7-placeholder">
           🚀 Em breve: materiais de estudo personalizados para cada tema
         </div>
       </div>
 
-      <!-- ================================================
-           SEÇÃO 4: Gabarito comentado — questão a questão
-           ================================================ -->
+      <EvolucaoGrafico 
+        v-if="evolucaoData && evolucaoData.length > 1" 
+        :evolucao="evolucaoData" 
+      />
+
       <div class="secao">
         <div class="gabarito-header">
           <h3 class="secao-titulo">Gabarito comentado</h3>
 
-          <!-- Filtros de visualização -->
           <div class="filtros">
             <button
               v-for="f in filtros"
@@ -156,7 +139,6 @@
           </div>
         </div>
 
-        <!-- Lista de questões filtrada -->
         <div class="questoes-lista">
           <div
             v-for="questao in questoesFiltradas"
@@ -168,11 +150,9 @@
               'card-nao-respondida': questao.correta === null,
             }"
           >
-            <!-- Cabeçalho da questão -->
             <div class="questao-header" @click="toggleQuestao(questao.ordem)">
               <div class="questao-meta">
 
-                <!-- Indicador visual de acerto/erro -->
                 <div class="questao-status">
                   <span v-if="questao.correta === true"  class="status-icon certa">✓</span>
                   <span v-else-if="questao.correta === false" class="status-icon errada">✗</span>
@@ -181,17 +161,14 @@
 
                 <span class="questao-numero">Questão {{ questao.ordem }}</span>
 
-                <!-- Tags de matéria e tema -->
                 <span v-if="questao.materia" class="tag-materia">{{ questao.materia }}</span>
                 <span v-if="questao.tema" class="tag-tema">{{ questao.tema }}</span>
 
-                <!-- Badge de dificuldade -->
                 <span class="tag-dificuldade" :class="'dif-' + questao.dificuldade">
                   {{ labelDificuldade(questao.dificuldade) }}
                 </span>
               </div>
 
-              <!-- Resumo compacto da resposta (visível quando fechado) -->
               <div class="questao-resumo-compacto" v-if="!questoesAbertas.includes(questao.ordem)">
                 <span v-if="questao.correta === true" class="texto-certa">
                   Você acertou · {{ questao.opcao_escolhida }}
@@ -207,13 +184,10 @@
               </span>
             </div>
 
-            <!-- Corpo expandido da questão -->
             <div v-if="questoesAbertas.includes(questao.ordem)" class="questao-corpo">
 
-              <!-- Enunciado -->
               <p class="enunciado">{{ questao.enunciado }}</p>
 
-              <!-- Imagem do enunciado se existir -->
               <img
                 v-if="questao.imagem_enunciado"
                 :src="questao.imagem_enunciado"
@@ -221,7 +195,6 @@
                 alt="Imagem da questão"
               />
 
-              <!-- Alternativas com marcação visual -->
               <div class="alternativas">
                 <div
                   v-for="opcao in opcoesDaQuestao(questao)"
@@ -232,7 +205,6 @@
                   <span class="alternativa-letra">{{ opcao.letra }}</span>
                   <span class="alternativa-texto">{{ opcao.texto }}</span>
 
-                  <!-- Indicadores à direita da alternativa -->
                   <div class="alternativa-indicadores">
                     <span
                       v-if="opcao.letra === questao.resposta_correta"
@@ -250,13 +222,11 @@
                 </div>
               </div>
 
-              <!-- Explicação do gabarito -->
               <div v-if="questao.explicacao" class="explicacao">
                 <div class="explicacao-titulo">💡 Explicação</div>
                 <p class="explicacao-texto">{{ questao.explicacao }}</p>
               </div>
 
-              <!-- Mensagem se não respondeu -->
               <div v-if="questao.correta === null" class="nao-respondida-aviso">
                 Você não respondeu esta questão.
               </div>
@@ -264,16 +234,12 @@
             </div>
           </div>
 
-          <!-- Mensagem quando nenhuma questão corresponde ao filtro -->
           <div v-if="questoesFiltradas.length === 0" class="filtro-vazio">
             Nenhuma questão nesta categoria.
           </div>
         </div>
       </div>
 
-      <!-- ================================================
-           SEÇÃO 5: Ações finais
-           ================================================ -->
       <div class="acoes-finais">
         <button @click="$router.push('/simulados')" class="btn-secundario">
           Ver outros simulados
@@ -297,6 +263,9 @@ import { useRouter, useRoute } from 'vue-router'
 // Importa o serviço de API
 import api from '../services/api.js'
 
+// Importa o NOVO componente de gráfico (Fase 6)
+import EvolucaoGrafico from '../components/EvolucaoGrafico.vue'
+
 const router = useRouter()
 const route  = useRoute()
 
@@ -319,6 +288,9 @@ const gabarito = ref({
   resumo_por_materia: [],
   temas_com_erro:     [],
 })
+
+// Novo estado para o gráfico de evolução (Fase 6)
+const evolucaoData = ref([])
 
 // Questões com o corpo expandido
 // Por padrão abre as questões erradas automaticamente
@@ -423,28 +395,34 @@ onMounted(async () => {
     // Pega o ID do resultado da URL (/resultado/:id)
     const id = route.params.id
 
-    // Busca o gabarito completo via nova API
+    // Busca o gabarito completo via API
     const response = await api.get(`/resultados/${id}/gabarito/`)
     gabarito.value = response.data
 
     // Abre automaticamente as questões erradas
-    // O aluno vai querer ver primeiro onde errou
     gabarito.value.questoes.forEach(q => {
       if (q.correta === false) {
         questoesAbertas.value.push(q.ordem)
       }
     })
 
+    // NOVO (Fase 6): Busca os dados de evolução usando o simulado_id retornado
+    if (gabarito.value.simulado_id) {
+      try {
+        const responseEvolucao = await api.get(`/resultados/evolucao/${gabarito.value.simulado_id}/`)
+        evolucaoData.value = responseEvolucao.data
+      } catch (err) {
+        console.error("Erro ao carregar evolução do gráfico:", err)
+      }
+    }
+
   } catch (error) {
-    // Se o gabarito não carregar, tenta usar os query params como fallback
-    // (compatibilidade com a ProvaPage atual que ainda envia query params)
+    // Fallback caso a API falhe (via query params)
     const acertos = parseInt(route.query.acertos)
     const total   = parseInt(route.query.total)
     const score   = route.query.score?.replace('%', '') || '0'
 
     if (acertos !== undefined && total !== undefined) {
-      // Monta um gabarito mínimo com os dados dos query params
-      // Não tem as questões — só o score
       gabarito.value = {
         simulado_titulo:    'Resultado do simulado',
         acertos:            acertos || 0,
