@@ -7,7 +7,7 @@ from .models import Resposta
 # Importa o model Questao para validar se a questão pertence ao simulado
 from questoes.models import Questao
 
-# Serializer de uma resposta individual — usado dentro do ResponderSerializer
+
 class RespostaItemSerializer(serializers.Serializer):
     """
     Serializer para uma resposta individual de uma questão.
@@ -19,13 +19,14 @@ class RespostaItemSerializer(serializers.Serializer):
         label='ID da Questão'
     )
 
-    # Opção escolhida pelo aluno (A, B, C ou D)
+    # Opção escolhida pelo aluno — 5 alternativas padrão ENEM (A, B, C, D ou E)
+    # CORRIGIDO: 'E' estava ausente — causava erro 400 em questões com 5 alternativas
     opcao_escolhida = serializers.ChoiceField(
-        choices=['A', 'B', 'C', 'D'],
+        choices=['A', 'B', 'C', 'D', 'E'],
         label='Opção Escolhida'
     )
 
-# Serializer principal — usado em POST /api/responder
+
 class ResponderSerializer(serializers.Serializer):
     """
     Serializer para receber todas as respostas de um simulado de uma vez.
@@ -36,7 +37,7 @@ class ResponderSerializer(serializers.Serializer):
         "simulado_id": 1,
         "respostas": [
             {"questao_id": 1, "opcao_escolhida": "B"},
-            {"questao_id": 2, "opcao_escolhida": "A"},
+            {"questao_id": 2, "opcao_escolhida": "E"},
             {"questao_id": 3, "opcao_escolhida": "D"}
         ]
     }
@@ -54,7 +55,7 @@ class ResponderSerializer(serializers.Serializer):
         label='Respostas'
     )
 
-# Serializer de exibição — usado para retornar o resultado após responder
+
 class RespostaSerializer(serializers.ModelSerializer):
     """
     Serializer para exibir uma resposta salva no banco.
@@ -63,9 +64,5 @@ class RespostaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Resposta
-
-        # Campos retornados no JSON de resposta
         fields = ['id', 'questao', 'opcao_escolhida', 'correta', 'respondido_em']
-
-        # Todos os campos são somente leitura
         read_only_fields = ['id', 'questao', 'opcao_escolhida', 'correta', 'respondido_em']

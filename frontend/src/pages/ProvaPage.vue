@@ -76,7 +76,7 @@
 
       </div>
 
-      <!-- Contador de respondidas -->
+      <!-- Contador de questões respondidas -->
       <div class="contador">
         {{ totalRespondidas }} de {{ simulado.questoes.length }} questões respondidas
       </div>
@@ -154,6 +154,8 @@ onMounted(async () => {
   }
 })
 
+// Retorna apenas as alternativas com texto preenchido
+// Suporta questões de 4 ou 5 alternativas automaticamente
 function opcoesDaQuestao(questao) {
   return [
     { letra: 'A', texto: questao.opcao_a },
@@ -164,16 +166,19 @@ function opcoesDaQuestao(questao) {
   ].filter(opcao => opcao.texto && opcao.texto.trim() !== '')
 }
 
+// Registra a resposta do aluno para uma questão
 function selecionar(questaoId, opcao) {
   respostas.value[questaoId] = opcao
 }
 
+// Avança para a próxima questão
 function proxima() {
   if (questaoAtual.value < simulado.value.questoes.length - 1) {
     questaoAtual.value++
   }
 }
 
+// Volta para a questão anterior
 function anterior() {
   if (questaoAtual.value > 0) {
     questaoAtual.value--
@@ -185,29 +190,30 @@ function confirmarSaida() {
   router.push({ name: 'simulados' })
 }
 
+// Envia as respostas para a API
 async function enviar() {
   erroEnvio.value = ''
   enviando.value = true
 
   try {
+    // Monta a lista de respostas no formato que a API espera
     const listaRespostas = Object.entries(respostas.value).map(([questaoId, opcao]) => ({
       questao_id: parseInt(questaoId),
       opcao_escolhida: opcao,
     }))
 
+    // Envia para a API
     const response = await api.post('/responder/', {
       simulado_id: parseInt(route.params.id),
       respostas: listaRespostas,
     })
 
+    // CORRIGIDO: usa resultado_id retornado pela API em vez do ID do simulado
+    // Antes estava usando route.params.id (ID do simulado) — causava 404 no gabarito
+    // O backend retorna response.data.resultado.resultado_id após salvar o Resultado
     router.push({
       name: 'resultado',
-      params: { id: route.params.id },
-      query: {
-        acertos: response.data.resultado.acertos,
-        total: response.data.resultado.total_questoes,
-        score: response.data.resultado.score,
-      }
+      params: { id: response.data.resultado.resultado_id },
     })
 
   } catch (error) {
