@@ -12,24 +12,19 @@ from respostas.models import Resposta
 from simulados.models import SimuladoQuestao
 from users.models import User
 
+# Import da Fase 7: Precisamos consultar os materiais no GabaritoView
+from conteudo.models import MaterialEstudo 
+
 from collections import defaultdict
 
 
 def calcular_dashboard(aluno):
     """
-    Calcula o dashboard completo de um aluno.
-    Reutilizada pelo DashboardView (aluno) e AdminAlunoDashboardView (professor).
-
-    Com múltiplas tentativas (Fase 6):
-    - historico lista TODAS as tentativas de todos os simulados
-    - score_geral é calculado sobre todas as tentativas
-    - por_materia agrega respostas de todas as tentativas
-      (reflete o nível atual de conhecimento acumulado)
-
-    Queries: 3 independente do volume de dados.
+    Função auxiliar que calcula todo o dashboard de um aluno.
+    É reutilizada tanto na view do Aluno quanto na view do Admin (Professor).
     """
 
-    # ── Histórico — todas as tentativas, mais recentes primeiro ──────────
+    # 1. Busca todo o histórico ordenado da mais recente para a mais antiga
     resultados = (
         Resultado.objects
         .filter(aluno=aluno)
@@ -42,7 +37,7 @@ def calcular_dashboard(aluno):
             'resultado_id': r.id,
             'simulado':     r.simulado.titulo,
             'simulado_id':  r.simulado.id,
-            'tentativa':    r.tentativa,          # ← Fase 6
+            'tentativa':    r.tentativa,          # Fase 6: Exibe a tentativa
             'score':        float(r.score),
             'acertos':      r.acertos,
             'total':        r.total_questoes,
@@ -52,14 +47,12 @@ def calcular_dashboard(aluno):
     ]
 
     total_simulados = len(historico)
-
-    # Score geral = média de todas as tentativas
     score_geral = (
         round(sum(r['score'] for r in historico) / total_simulados, 1)
         if total_simulados > 0 else 0
     )
 
-    # ── Benchmark da plataforma ───────────────────────────────────────────
+    # 2. Calcula a média geral da plataforma (Benchmark)
     todas_respostas = (
         Resposta.objects
         .filter(questao__tema__isnull=False)
@@ -86,8 +79,7 @@ def calcular_dashboard(aluno):
         if r.correta:
             benchmark_tema[tid]['acertos'] += 1
 
-    # ── Respostas do aluno — agrega TODAS as tentativas ───────────────────
-    # Isso reflete o conhecimento acumulado ao longo do tempo
+    # 3. Calcula o conhecimento consolidado do aluno atual
     respostas_aluno = (
         Resposta.objects
         .filter(aluno=aluno, questao__tema__isnull=False)
@@ -119,7 +111,7 @@ def calcular_dashboard(aluno):
         if resposta.correta:
             dados[mid]['temas'][tid]['acertos'] += 1
 
-    # ── Formata estrutura final ───────────────────────────────────────────
+    # 4. Formata a estrutura final comparando o aluno com a plataforma
     por_materia = []
     for mid, materia_data in dados.items():
         temas_lista     = []
@@ -184,11 +176,13 @@ def calcular_dashboard(aluno):
 
 
 # ============================================================
-# Views de resultado e ranking
+# Views de Resultado, Ranking e Dashboard
 # ============================================================
 
 class ResultadoListView(APIView):
-    """GET /api/resultados/ — todas as tentativas do aluno autenticado."""
+    """Retorna todas as tentativas do aluno autenticado."""
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         resultados = Resultado.objects.filter(aluno=request.user)
         serializer = ResultadoSerializer(resultados, many=True)
@@ -196,33 +190,26 @@ class ResultadoListView(APIView):
 
 
 class ResultadoDetalheView(APIView):
-    """GET /api/resultados/{id}/ — detalhe de um resultado específico."""
+    """Retorna dados de uma tentativa específica."""
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request, pk):
         try:
             resultado = Resultado.objects.get(pk=pk, aluno=request.user)
         except Resultado.DoesNotExist:
-            return Response(
-                {'error': 'Resultado não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({'error': 'Resultado não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            
         serializer = ResultadoSerializer(resultado)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class RankingView(APIView):
     """
-    GET /api/resultados/ranking/
-
-    Com múltiplas tentativas, o ranking usa o MELHOR score de cada aluno
-    por simulado — não faz sentido punir quem tentou mais vezes.
-
-    Estratégia: para cada par (aluno, simulado), pega o Resultado
-    com o maior score. Ordena esse conjunto pelo score decrescente.
+    Retorna o ranking geral baseado no MELHOR score de cada aluno por simulado.
+    Evita penalizar alunos que refazem o simulado para estudar.
     """
     def get(self, request):
-
-        # Subconsulta: para cada (aluno, simulado), pega o id do
-        # resultado com maior score (melhor tentativa)
+        # Subconsulta: pega o ID do melhor resultado de cada par (aluno, simulado)
         melhores_ids = (
             Resultado.objects
             .values('aluno', 'simulado')
@@ -230,7 +217,7 @@ class RankingView(APIView):
             .values_list('melhor_id', flat=True)
         )
 
-        # Busca os resultados correspondentes ordenados pelo score
+        # Busca os objetos completos baseados na subconsulta
         resultados = (
             Resultado.objects
             .filter(id__in=melhores_ids)
@@ -243,59 +230,59 @@ class RankingView(APIView):
 
 
 # ============================================================
-# Fase 5: Gabarito comentado
+# HUB DE REVISÃO: GABARITO & SISTEMA DE RECOMENDAÇÃO (FASES 5 E 7)
 # ============================================================
 
 class GabaritoView(APIView):
     """
     GET /api/resultados/{id}/gabarito/
-
-    Retorna o gabarito completo de uma tentativa específica.
-    Busca as respostas filtrando por aluno + simulado + tentativa —
-    garante que mostra exatamente as respostas daquela tentativa.
+    
+    Esta é a view mais importante do pós-prova. Ela consolida:
+    1. O gabarito comentado questão a questão.
+    2. O diagnóstico de erros por matéria.
+    3. Fase 7: A trilha de recomendação de materiais de estudo baseada nos erros.
     """
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-
+        # 1. Recupera o resultado específico que o aluno está consultando
         try:
             resultado = Resultado.objects.select_related(
                 'simulado', 'aluno'
             ).get(pk=pk, aluno=request.user)
         except Resultado.DoesNotExist:
-            return Response(
-                {'error': 'Resultado não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({'error': 'Resultado não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         simulado = resultado.simulado
 
-        # Questões do simulado ordenadas pela tabela intermediária
+        # 2. Busca todas as questões daquele simulado mantendo a ordem correta
         simulado_questoes = (
             SimuladoQuestao.objects
-            .select_related(
-                'questao',
-                'questao__tema',
-                'questao__tema__materia'
-            )
+            .select_related('questao', 'questao__tema', 'questao__tema__materia')
             .filter(simulado=simulado)
             .order_by('ordem')
         )
 
-        # Respostas desta tentativa específica
-        # Filtra por tentativa para não misturar respostas de tentativas diferentes
+        # 3. Busca APENAS as respostas desta tentativa específica (Fase 6)
         respostas_dict = {
             r.questao_id: r
             for r in Resposta.objects.filter(
                 aluno=request.user,
                 simulado=simulado,
-                tentativa=resultado.tentativa    # ← filtra pela tentativa correta
+                tentativa=resultado.tentativa
             )
         }
 
+        # Variáveis para armazenar o diagnóstico
         questoes_gabarito = []
         por_materia       = defaultdict(lambda: {'nome': '', 'acertos': 0, 'total': 0})
+        
+        # Fase 7: Dicionário para guardar a instância completa do Tema (nome, id, materia)
+        temas_objetos     = {} 
+        # Fase 7: Dicionário para contar erros por ID do Tema (Chave=ID_Tema, Valor=Qtd Erros)
         temas_erros       = defaultdict(int)
 
+        # 4. Loop principal: cruza a questão do simulado com a resposta do aluno
         for sq in simulado_questoes:
             questao = sq.questao
 
@@ -307,6 +294,7 @@ class GabaritoView(APIView):
             opcao_escolhida = resposta.opcao_escolhida if resposta else None
             correta         = resposta.correta         if resposta else None
 
+            # Constrói o corpo do gabarito para enviar ao frontend
             questoes_gabarito.append({
                 'ordem':            sq.ordem,
                 'enunciado':        questao.enunciado,
@@ -325,15 +313,19 @@ class GabaritoView(APIView):
                 'correta':          correta,
             })
 
+            # Alimenta estatísticas por matéria
             if materia_codigo:
                 por_materia[materia_codigo]['nome']  = materia_nome or materia_codigo
                 por_materia[materia_codigo]['total'] += 1
                 if correta:
                     por_materia[materia_codigo]['acertos'] += 1
 
-            if correta is False and tema_nome and materia_codigo:
-                temas_erros[(tema_nome, materia_codigo)] += 1
+            # Fase 7: Coleta os temas exatos em que o aluno errou (correta is False, e não None)
+            if correta is False and questao.tema:
+                temas_erros[questao.tema.id] += 1
+                temas_objetos[questao.tema.id] = questao.tema
 
+        # Transforma o dict de matérias em uma lista ordenada
         resumo_por_materia = []
         for codigo, d in por_materia.items():
             total   = d['total']
@@ -348,13 +340,40 @@ class GabaritoView(APIView):
             })
         resumo_por_materia.sort(key=lambda x: x['percentual'])
 
-        temas_com_erro = [
-            {'tema': tema, 'materia': materia, 'erros': erros}
-            for (tema, materia), erros in sorted(
-                temas_erros.items(), key=lambda x: x[1], reverse=True
-            )
-        ]
+        # ============================================================
+        # FASE 7: ESTRATÉGIA DE RECOMENDAÇÃO O(1)
+        # Em vez de fazer uma query no banco para cada tema que o aluno errou,
+        # pegamos todas as IDs dos temas com erro (temas_erros.keys()) e fazemos
+        # UMA ÚNICA query na tabela MaterialEstudo. Isso garante escalabilidade.
+        # ============================================================
+        
+        materiais_db = MaterialEstudo.objects.filter(
+            tema_id__in=temas_erros.keys()
+        ).order_by('tema_id', 'ordem')
 
+        # Agrupa os materiais encontrados por ID do tema
+        materiais_por_tema = defaultdict(list)
+        for m in materiais_db:
+            materiais_por_tema[m.tema_id].append({
+                'titulo': m.titulo,
+                'tipo':   m.tipo,
+                'url':    m.url,
+            })
+
+        # Monta o array final de recomendações para o Frontend
+        temas_com_erro = []
+        # Percorre os temas errados, ordenando por quem teve mais erros primeiro
+        for tema_id, erros in sorted(temas_erros.items(), key=lambda x: x[1], reverse=True):
+            tema_obj = temas_objetos[tema_id]
+            temas_com_erro.append({
+                'tema': tema_obj.nome,
+                'materia': tema_obj.materia.codigo if tema_obj.materia else '',
+                'erros': erros,
+                # Injeta os materiais se existirem, ou lista vazia se não houver material cadastrado
+                'materiais_recomendados': materiais_por_tema.get(tema_id, [])
+            })
+
+        # Prepara a carga de dados (Payload) final
         payload = {
             'simulado_id':        simulado.id,
             'simulado_titulo':    simulado.titulo,
@@ -364,7 +383,7 @@ class GabaritoView(APIView):
             'realizado_em':       resultado.realizado_em,
             'questoes':           questoes_gabarito,
             'resumo_por_materia': resumo_por_materia,
-            'temas_com_erro':     temas_com_erro,
+            'temas_com_erro':     temas_com_erro, # Agora enriquecido com os materiais (Fase 7)
         }
 
         serializer = GabaritoSerializer(payload)
@@ -372,36 +391,34 @@ class GabaritoView(APIView):
 
 
 # ============================================================
-# Views de dashboard e admin
+# Dashboards e Views de Administração
 # ============================================================
 
 class DashboardView(APIView):
-    """GET /api/resultados/dashboard/"""
+    """Painel do Aluno"""
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         dados = calcular_dashboard(request.user)
         return Response(dados, status=status.HTTP_200_OK)
 
 
 class AdminAlunosListView(APIView):
-    """GET /api/resultados/admin/alunos/ — apenas admins."""
+    """Lista todos os alunos para a equipe pedagógica."""
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         if request.user.role != 'admin':
-            return Response(
-                {'error': 'Acesso restrito a administradores.'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({'error': 'Acesso restrito.'}, status=status.HTTP_403_FORBIDDEN)
 
         alunos = User.objects.filter(role='student').order_by('username')
-
         lista = []
         for aluno in alunos:
             resultados  = Resultado.objects.filter(aluno=aluno)
             total       = resultados.count()
             score_medio = 0
             if total > 0:
-                score_medio = round(
-                    sum(float(r.score) for r in resultados) / total, 1
-                )
+                score_medio = round(sum(float(r.score) for r in resultados) / total, 1)
             lista.append({
                 'id':              aluno.id,
                 'username':        aluno.username,
@@ -415,21 +432,17 @@ class AdminAlunosListView(APIView):
 
 
 class AdminAlunoDashboardView(APIView):
-    """GET /api/resultados/admin/alunos/{id}/ — apenas admins."""
+    """Vê o painel de um aluno específico como se fosse ele."""
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request, pk):
         if request.user.role != 'admin':
-            return Response(
-                {'error': 'Acesso restrito a administradores.'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({'error': 'Acesso restrito.'}, status=status.HTTP_403_FORBIDDEN)
 
         try:
             aluno = User.objects.get(pk=pk, role='student')
         except User.DoesNotExist:
-            return Response(
-                {'error': 'Aluno não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({'error': 'Aluno não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         dados = calcular_dashboard(aluno)
         dados['aluno'] = {
@@ -437,39 +450,40 @@ class AdminAlunoDashboardView(APIView):
             'username': aluno.username,
             'email':    aluno.email,
         }
-
         return Response(dados, status=status.HTTP_200_OK)
 
 
+# ============================================================
+# Fase 6: Gráfico de Evolução
+# ============================================================
+
 class EvolucaoSimuladoView(APIView):
     """
-    Retorna o histórico de tentativas de um aluno em um simulado específico.
+    Retorna o histórico cronológico de tentativas de um aluno 
+    em um simulado específico para popular o gráfico.
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, simulado_id):
-        # Filtra os resultados do usuário logado para o simulado específico
-        # order_by('tentativa') garante a ordem cronológica correta
         resultados = Resultado.objects.filter(
             aluno=request.user,
             simulado_id=simulado_id
         ).order_by('tentativa')
 
-        # Se não houver histórico, retorna array vazio para o front não quebrar
+        # Se não fez o simulado ou só fez 1 vez, a API pode retornar array vazio,
+        # e o Frontend lida com a lógica de só exibir se length > 1
         if not resultados.exists():
             return Response([])
 
-        # Construção do payload simples e direto
         data = [
             {
                 "resultado_id": r.id,
                 "tentativa": r.tentativa,
-                "score": float(r.score), # Convertido de Decimal para facilitar no JS
+                "score": float(r.score),
                 "acertos": r.acertos,
                 "total": r.total_questoes,
                 "data": r.realizado_em
             }
             for r in resultados
         ]
-        
         return Response(data)
