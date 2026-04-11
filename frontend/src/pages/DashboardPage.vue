@@ -5,7 +5,6 @@
       <div class="nav-links">
         <router-link to="/simulados">Simulados</router-link>
         <router-link to="/ranking">Ranking</router-link>
-        <!-- Link visível só para admin -->
         <router-link v-if="isAdmin" to="/admin/alunos" class="link-admin">
           👥 Alunos
         </router-link>
@@ -22,7 +21,6 @@
         <p>Veja como está seu desempenho</p>
       </div>
 
-      <!-- Cards de resumo -->
       <div class="resumo">
         <div class="card-resumo">
           <span class="resumo-valor" :class="corScore(dados.score_geral)">
@@ -44,7 +42,6 @@
         </div>
       </div>
 
-      <!-- Desempenho por matéria -->
       <section class="secao">
         <h3>Desempenho por matéria</h3>
 
@@ -76,7 +73,6 @@
               <span class="materia-percentual" :class="corScore(materia.percentual)">
                 {{ materia.percentual }}%
               </span>
-              <!-- Comparação com média da plataforma -->
               <span class="diferenca" :class="materia.diferenca_media >= 0 ? 'positivo' : 'negativo'">
                 {{ materia.diferenca_media >= 0 ? '+' : '' }}{{ materia.diferenca_media }}%
               </span>
@@ -86,10 +82,8 @@
             </div>
           </div>
 
-          <!-- Temas colapsáveis -->
           <div v-if="materiasAbertas.includes(materia.codigo)" class="temas-lista">
 
-            <!-- Legenda da média -->
             <div class="temas-legenda">
               <span>Seu desempenho</span>
               <span>Média da plataforma</span>
@@ -105,7 +99,6 @@
                 <span class="tema-detalhe">{{ tema.acertos }}/{{ tema.total }} questões</span>
               </div>
               <div class="tema-direita">
-                <!-- Barra do aluno -->
                 <div class="barra-dupla">
                   <div class="barra-label">Você</div>
                   <div class="barra-mini pequena">
@@ -119,7 +112,6 @@
                     {{ tema.percentual }}%
                   </span>
                 </div>
-                <!-- Barra da média da plataforma -->
                 <div class="barra-dupla">
                   <div class="barra-label cinza">Média</div>
                   <div class="barra-mini pequena">
@@ -138,7 +130,6 @@
         </div>
       </section>
 
-      <!-- Histórico -->
       <section class="secao">
         <h3>Histórico de simulados</h3>
         <div v-if="dados.historico.length === 0" class="vazio">
@@ -155,10 +146,15 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in dados.historico" :key="item.simulado_id">
-                <td>{{ item.simulado }}</td>
+              <tr v-for="item in historicoComTendencia" :key="item.resultado_id">
+                <td>{{ item.simulado }} (T{{ item.tentativa }})</td>
                 <td>{{ item.acertos }}/{{ item.total }}</td>
-                <td :class="corScore(item.score)">{{ item.score }}%</td>
+                <td :class="corScore(item.score)">
+                  {{ item.score }}%
+                  <span v-if="item.trend === 'up'" class="diferenca positivo ml-2">▲ +{{ item.diff }}%</span>
+                  <span v-else-if="item.trend === 'down'" class="diferenca negativo ml-2">▼ {{ item.diff }}%</span>
+                  <span v-else-if="item.trend === 'same'" class="diferenca ml-2">—</span>
+                </td>
                 <td class="data">{{ item.data }}</td>
               </tr>
             </tbody>
@@ -170,7 +166,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+// Adicionada a importação do computed
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
 
@@ -187,6 +184,34 @@ const dados = ref({
   por_materia: [],
   historico: [],
 })
+
+// Nova lógica da Fase 6: Calcula a tendência comparando tentativas do mesmo simulado
+const historicoComTendencia = computed(() => {
+  const mapPorSimulado = {};
+  
+  // Clona e inverte para ordem cronológica (do mais antigo para o mais recente)
+  const historicoCronologico = [...dados.value.historico].reverse();
+
+  const historicoEnriquecido = historicoCronologico.map(item => {
+    let trend = null;
+    let diff = 0;
+    
+    if (mapPorSimulado[item.simulado_id] !== undefined) {
+      const scoreAnterior = mapPorSimulado[item.simulado_id];
+      diff = parseFloat((item.score - scoreAnterior).toFixed(1));
+      
+      if (diff > 0) trend = 'up';
+      else if (diff < 0) trend = 'down';
+      else trend = 'same';
+    }
+    
+    mapPorSimulado[item.simulado_id] = item.score;
+    return { ...item, trend, diff };
+  });
+
+  // Retorna invertido (mais recentes primeiro)
+  return historicoEnriquecido.reverse();
+});
 
 onMounted(async () => {
   try {
@@ -379,6 +404,9 @@ function logout() {
 .vermelho { color: #ef4444; }
 .azul { color: #667eea; }
 .roxo { color: #a855f7; }
+
+/* Nova classe de margem para as tendências na tabela */
+.ml-2 { margin-left: 8px; }
 
 @media (max-width: 700px) {
   .resumo { grid-template-columns: repeat(2, 1fr); }

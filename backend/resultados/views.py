@@ -2,6 +2,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 from django.db.models import Max
 
@@ -172,7 +173,7 @@ def calcular_dashboard(aluno):
             'temas':            temas_lista,
         })
 
-    por_materia.sort(key=lambda x: x['percentual'])
+        por_materia.sort(key=lambda x: x['percentual'])
 
     return {
         'score_geral':     score_geral,
@@ -438,3 +439,37 @@ class AdminAlunoDashboardView(APIView):
         }
 
         return Response(dados, status=status.HTTP_200_OK)
+
+
+class EvolucaoSimuladoView(APIView):
+    """
+    Retorna o histórico de tentativas de um aluno em um simulado específico.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, simulado_id):
+        # Filtra os resultados do usuário logado para o simulado específico
+        # order_by('tentativa') garante a ordem cronológica correta
+        resultados = Resultado.objects.filter(
+            aluno=request.user,
+            simulado_id=simulado_id
+        ).order_by('tentativa')
+
+        # Se não houver histórico, retorna array vazio para o front não quebrar
+        if not resultados.exists():
+            return Response([])
+
+        # Construção do payload simples e direto
+        data = [
+            {
+                "resultado_id": r.id,
+                "tentativa": r.tentativa,
+                "score": float(r.score), # Convertido de Decimal para facilitar no JS
+                "acertos": r.acertos,
+                "total": r.total_questoes,
+                "data": r.realizado_em
+            }
+            for r in resultados
+        ]
+        
+        return Response(data)
