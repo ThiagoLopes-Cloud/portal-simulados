@@ -28,6 +28,9 @@ urlpatterns = [
     
     # Rota de importação de questões via JSON — apenas admins
     path('api/importar/', include('importador.urls')),
+    
+    # Rotas de gerenciamento de turmas e convites
+    path('api/escolas/', include('escolas.urls')),
 ]
 
 if settings.DEBUG:

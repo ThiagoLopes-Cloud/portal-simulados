@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'resultados',  # Score e histórico de resultados
     'conteudo',    # Matérias e temas do ENEM
     'importador',  # Importação de questões via JSON gerado por IA
+    'escolas',     # Gerenciamento de turmas e convites
 ]
 
 MIDDLEWARE = [

@@ -1,70 +1,45 @@
-# Importa o módulo de views do Django REST Framework
-from rest_framework import status
-from rest_framework.response import Response
+# simulados/views.py
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
-# Importa a permissão que permite acesso sem autenticação
-from rest_framework.permissions import AllowAny
-
-# Importa os serializers de simulado
+from .models import Simulado
+# AQUI ESTÁ A CORREÇÃO: Importamos os nomes exatos que estão no seu arquivo
 from .serializers import SimuladoListSerializer, SimuladoDetalheSerializer
 
-# Importa o model Simulado
-from .models import Simulado
-
 class SimuladoListView(APIView):
-    """
-    View de listagem de simulados disponíveis.
-    Rota: GET /api/simulados
-    Requer autenticação — só alunos logados podem ver os simulados.
-    """
+    """Retorna a lista de simulados dividida entre globais e exclusivos da turma."""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """
-        Retorna a lista de todos os simulados ativos.
-        Usado na tela de lista de simulados do Vue.js.
-        """
+        # 1. Pega os simulados abertos para todos (que não estão em nenhuma turma)
+        globais = Simulado.objects.filter(turmas__isnull=True).order_by('-criado_em')
+        
+        # 2. Pega os simulados exclusivos (vinculados às turmas que o aluno faz parte)
+        exclusivos = Simulado.objects.filter(turmas__alunos=request.user).order_by('-criado_em').distinct()
 
-        # Busca todos os simulados ativos no banco de dados
-        # filter(ativo=True) — retorna apenas os simulados ativos
-        simulados = Simulado.objects.filter(ativo=True)
+        # Transforma em JSON usando o serializer correto de Listagem
+        serializer_globais = SimuladoListSerializer(globais, many=True)
+        serializer_exclusivos = SimuladoListSerializer(exclusivos, many=True)
 
-        # Serializa a lista de simulados
-        # many=True indica que são múltiplos objetos
-        serializer = SimuladoListSerializer(simulados, many=True)
-
-        # Retorna a lista de simulados com status 200 (OK)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Devolve as duas listas separadas para o Frontend
+        return Response({
+            'globais': serializer_globais.data,
+            'exclusivos': serializer_exclusivos.data
+        }, status=status.HTTP_200_OK)
 
 
 class SimuladoDetalheView(APIView):
-    """
-    View de detalhe de um simulado específico com suas questões.
-    Rota: GET /api/simulados/{id}
-    Requer autenticação — só alunos logados podem ver o simulado.
-    """
+    """Retorna os detalhes de um simulado específico (tela de prova)."""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        """
-        Retorna os dados completos de um simulado com todas as questões.
-        O 'pk' é o ID do simulado passado na URL.
-        Usado na tela de prova do Vue.js.
-        """
-
         try:
-            # Busca o simulado pelo ID — retorna erro se não encontrar
-            # pk vem da URL ex: /api/simulados/1
-            simulado = Simulado.objects.get(pk=pk, ativo=True)
-
+            # Busca o simulado pelo ID
+            simulado = Simulado.objects.get(pk=pk)
+            # Usa o serializer de Detalhe para puxar todas as questões junto
+            serializer = SimuladoDetalheSerializer(simulado)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Simulado.DoesNotExist:
-            # Retorna erro 404 se o simulado não existir ou não estiver ativo
-            return Response(
-                {'error': 'Simulado não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Serializa o simulado com todas as questões
-        serializer = SimuladoDetalheSerializer(simulado)
-
-        # Retorna os dados do simulado com status 200 (OK)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({'error': 'Simulado não encontrado.'}, status=status.HTTP_404_NOT_FOUND)

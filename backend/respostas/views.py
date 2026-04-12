@@ -55,8 +55,6 @@ class ResponderView(APIView):
         # ── Calcula o número da próxima tentativa ─────────────────────────
         # Conta quantas tentativas este aluno já fez neste simulado
         # e soma 1 para obter o número da próxima
-        # Ex: 0 tentativas anteriores → tentativa 1
-        #     1 tentativa anterior    → tentativa 2
         tentativas_anteriores = Resultado.objects.filter(
             aluno=request.user,
             simulado=simulado
@@ -73,7 +71,6 @@ class ResponderView(APIView):
         }
 
         # Valida todas as questões antes de salvar qualquer coisa
-        # Evita respostas parciais se uma questão for inválida
         for item in respostas_data:
             if item['questao_id'] not in questoes_do_simulado:
                 return Response(
@@ -122,6 +119,20 @@ class ResponderView(APIView):
                 total_questoes=total_questoes,
                 score=score,
             )
+
+        # ==========================================
+        # FASE 9: SISTEMA DE GAMIFICAÇÃO (XP E OFENSIVA)
+        # ==========================================
+        try:
+            # Regra de pontuação: 10 XP por acerto + 50 XP bônus por entregar a prova
+            xp_ganho = (acertos * 10) + 50
+            
+            if hasattr(request.user, 'perfil'):
+                request.user.perfil.registrar_atividade(xp_ganho)
+        except Exception as e:
+            # Se der erro na gamificação, printa no terminal mas não quebra a tela do aluno
+            print(f"Erro ao gamificar o aluno {request.user.username}: {e}")
+        # ==========================================
 
         # Monta mensagem personalizada para tentativas repetidas
         if proxima_tentativa == 1:
