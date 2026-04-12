@@ -16,11 +16,41 @@
     <div v-else-if="erro" class="erro">{{ erro }}</div>
 
     <div v-else class="container">
-      <div class="welcome">
-        <h2>Olá, {{ username }}! 👋</h2>
-        <p>Veja como está seu desempenho</p>
-      </div>
+      
+      <div class="header-section">
+        <div class="welcome">
+          <h2>Olá, {{ username }}! 👋</h2>
+          <p>Veja como está seu desempenho hoje</p>
+        </div>
 
+        <div class="gamificacao-card" v-if="dados.gamificacao">
+          <div class="streak-box" :class="{ 'fogo-ativo': dados.gamificacao.ofensiva > 0 }">
+            <div class="icone-fogo">
+              {{ dados.gamificacao.ofensiva > 0 ? '🔥' : '🧊' }}
+            </div>
+            <div class="streak-info">
+              <span class="streak-valor">{{ dados.gamificacao.ofensiva }}</span>
+              <span class="streak-label">Dias seguidos</span>
+            </div>
+          </div>
+
+          <div class="xp-box">
+            <div class="xp-header">
+              <span class="nivel-badge">🌟 Nível {{ nivelAtual }}</span>
+              <span class="xp-total">{{ dados.gamificacao.xp }} XP Total</span>
+            </div>
+            <div class="xp-barra-fundo">
+              <div 
+                class="xp-barra-preenchimento" 
+                :style="{ width: progressoNivel + '%' }"
+              ></div>
+            </div>
+            <div class="xp-footer">
+              Faltam <strong>{{ xpFaltante }} XP</strong> para o Nível {{ nivelAtual + 1 }}
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="resumo">
         <div class="card-resumo">
           <span class="resumo-valor" :class="corScore(dados.score_geral)">
@@ -83,12 +113,10 @@
           </div>
 
           <div v-if="materiasAbertas.includes(materia.codigo)" class="temas-lista">
-
             <div class="temas-legenda">
               <span>Seu desempenho</span>
               <span>Média da plataforma</span>
             </div>
-
             <div
               v-for="tema in materia.temas"
               :key="tema.tema"
@@ -166,7 +194,6 @@
 </template>
 
 <script setup>
-// Adicionada a importação do computed
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
@@ -183,13 +210,35 @@ const dados = ref({
   total_simulados: 0,
   por_materia: [],
   historico: [],
+  gamificacao: { xp: 0, ofensiva: 0 } // Preparado para a Fase 9
 })
 
-// Nova lógica da Fase 6: Calcula a tendência comparando tentativas do mesmo simulado
+// ==========================================
+// LÓGICA DE GAMIFICAÇÃO (FASE 9)
+// ==========================================
+const XP_POR_NIVEL = 500 // O aluno sobe de nível a cada 500 XP
+
+const nivelAtual = computed(() => {
+  const xp = dados.value.gamificacao?.xp || 0
+  return Math.floor(xp / XP_POR_NIVEL) + 1
+})
+
+const xpProgresso = computed(() => {
+  const xp = dados.value.gamificacao?.xp || 0
+  return xp % XP_POR_NIVEL
+})
+
+const progressoNivel = computed(() => {
+  return (xpProgresso.value / XP_POR_NIVEL) * 100
+})
+
+const xpFaltante = computed(() => {
+  return XP_POR_NIVEL - xpProgresso.value
+})
+// ==========================================
+
 const historicoComTendencia = computed(() => {
   const mapPorSimulado = {};
-  
-  // Clona e inverte para ordem cronológica (do mais antigo para o mais recente)
   const historicoCronologico = [...dados.value.historico].reverse();
 
   const historicoEnriquecido = historicoCronologico.map(item => {
@@ -209,7 +258,6 @@ const historicoComTendencia = computed(() => {
     return { ...item, trend, diff };
   });
 
-  // Retorna invertido (mais recentes primeiro)
   return historicoEnriquecido.reverse();
 });
 
@@ -222,7 +270,6 @@ onMounted(async () => {
     username.value = perfil.data.username
     dados.value = dashboard.data
 
-    // Abre automaticamente a matéria com pior desempenho
     if (dados.value.por_materia.length > 0) {
       materiasAbertas.value = [dados.value.por_materia[0].codigo]
     }
@@ -257,55 +304,125 @@ function logout() {
 </script>
 
 <style scoped>
+/* Estilos Base e Navbar mantidos iguais */
 .dashboard { min-height: 100vh; background: #f5f5f5; }
 
 .navbar {
-  background: #667eea;
-  color: white;
-  padding: 16px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background: #667eea; color: white; padding: 16px 32px;
+  display: flex; justify-content: space-between; align-items: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .navbar h1 { font-size: 20px; font-weight: 600; }
 .nav-links { display: flex; align-items: center; gap: 24px; }
 .nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
 .link-admin { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 6px; }
-.btn-logout {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.4);
-  padding: 6px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
+.btn-logout { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
 
 .loading, .vazio { color: #999; padding: 40px 0; text-align: center; }
 .erro { color: #c00; text-align: center; padding: 40px; }
 
 .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
-.welcome { margin-bottom: 32px; }
+
+/* ==========================================
+   HEADER & GAMIFICAÇÃO (FASE 9)
+   ========================================== */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
 .welcome h2 { font-size: 26px; color: #333; margin-bottom: 4px; }
 .welcome p { color: #666; }
 
-.resumo {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.gamificacao-card {
+  display: flex;
   gap: 16px;
-  margin-bottom: 40px;
-}
-.card-resumo {
   background: white;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Foguinho */
+.streak-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f3f4f6;
   border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border: 1px solid #e5e7eb;
+}
+.streak-box.fogo-ativo {
+  background: #fff7ed;
+  border-color: #ffedd5;
+}
+.icone-fogo {
+  font-size: 28px;
+  filter: grayscale(1); /* Cinza quando ofensiva é 0 */
+  transition: all 0.3s;
+}
+.fogo-ativo .icone-fogo {
+  filter: grayscale(0); /* Colorido quando ativo */
+  animation: pulsar 2s infinite alternate;
+}
+@keyframes pulsar {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+.streak-info { display: flex; flex-direction: column; }
+.streak-valor { font-size: 20px; font-weight: 800; color: #1f2937; line-height: 1; }
+.fogo-ativo .streak-valor { color: #ea580c; }
+.streak-label { font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+
+/* XP e Progresso */
+.xp-box {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: center;
+  min-width: 200px;
+  padding: 0 8px;
 }
+.xp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.nivel-badge {
+  background: #8b5cf6;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.xp-total { font-size: 13px; font-weight: 600; color: #4b5563; }
+
+.xp-barra-fundo {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.xp-barra-preenchimento {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #c084fc);
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.xp-footer { font-size: 11px; color: #9ca3af; }
+.xp-footer strong { color: #6b7280; }
+
+/* ========================================== */
+
+.resumo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
+.card-resumo { background: white; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); display: flex; flex-direction: column; gap: 8px; }
 .card-resumo.acao { cursor: pointer; transition: transform 0.2s; }
 .card-resumo.acao:hover { transform: translateY(-3px); }
 .resumo-valor { font-size: 32px; font-weight: 700; }
@@ -314,31 +431,11 @@ function logout() {
 .secao { margin-bottom: 40px; }
 .secao h3 { font-size: 18px; color: #333; margin-bottom: 16px; }
 
-.card-materia {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-.materia-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
+.card-materia { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 12px; overflow: hidden; }
+.materia-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; transition: background 0.15s; }
 .materia-header:hover { background: #f8f9ff; }
 .materia-info { display: flex; align-items: center; gap: 12px; }
-.materia-badge {
-  background: #667eea;
-  color: white;
-  padding: 3px 10px;
-  border-radius: 99px;
-  font-size: 12px;
-  font-weight: 600;
-}
+.materia-badge { background: #667eea; color: white; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
 .materia-nome { font-weight: 600; color: #333; }
 .materia-detalhe { font-size: 13px; color: #999; }
 .materia-direita { display: flex; align-items: center; gap: 12px; }
@@ -348,10 +445,7 @@ function logout() {
 .diferenca.negativo { color: #ef4444; }
 .toggle-icon { color: #999; font-size: 12px; }
 
-.barra-mini {
-  width: 120px; height: 8px;
-  background: #eee; border-radius: 99px; overflow: hidden;
-}
+.barra-mini { width: 120px; height: 8px; background: #eee; border-radius: 99px; overflow: hidden; }
 .barra-mini.pequena { width: 80px; height: 6px; }
 .barra-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
 .barra-fill.verde { background: #22c55e; }
@@ -360,22 +454,8 @@ function logout() {
 .barra-fill.cinza-fill { background: #cbd5e1; }
 
 .temas-lista { border-top: 1px solid #f0f0f0; }
-.temas-legenda {
-  display: flex;
-  justify-content: flex-end;
-  gap: 40px;
-  padding: 8px 20px;
-  font-size: 11px;
-  color: #bbb;
-  border-bottom: 1px solid #f5f5f5;
-}
-.tema-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px 12px 44px;
-  border-bottom: 1px solid #f8f8f8;
-}
+.temas-legenda { display: flex; justify-content: flex-end; gap: 40px; padding: 8px 20px; font-size: 11px; color: #bbb; border-bottom: 1px solid #f5f5f5; }
+.tema-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px 12px 44px; border-bottom: 1px solid #f8f8f8; }
 .tema-item:last-child { border-bottom: none; }
 .tema-info { display: flex; flex-direction: column; gap: 2px; }
 .tema-nome { font-size: 14px; color: #444; }
@@ -387,10 +467,7 @@ function logout() {
 .tema-percentual { font-size: 13px; font-weight: 600; min-width: 36px; text-align: right; }
 .tema-percentual.cinza { color: #bbb; font-weight: 400; }
 
-.tabela-container {
-  background: white; border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden;
-}
+.tabela-container { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
 .tabela { width: 100%; border-collapse: collapse; }
 .tabela thead { background: #667eea; color: white; }
 .tabela th { padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 500; }
@@ -404,11 +481,12 @@ function logout() {
 .vermelho { color: #ef4444; }
 .azul { color: #667eea; }
 .roxo { color: #a855f7; }
-
-/* Nova classe de margem para as tendências na tabela */
 .ml-2 { margin-left: 8px; }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
+  .header-section { flex-direction: column; align-items: flex-start; }
+  .gamificacao-card { width: 100%; box-sizing: border-box; justify-content: space-between; }
+  .xp-box { flex: 1; }
   .resumo { grid-template-columns: repeat(2, 1fr); }
   .barra-mini { width: 60px; }
 }

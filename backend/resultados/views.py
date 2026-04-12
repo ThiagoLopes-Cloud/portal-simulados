@@ -342,9 +342,6 @@ class GabaritoView(APIView):
 
         # ============================================================
         # FASE 7: ESTRATÉGIA DE RECOMENDAÇÃO O(1)
-        # Em vez de fazer uma query no banco para cada tema que o aluno errou,
-        # pegamos todas as IDs dos temas com erro (temas_erros.keys()) e fazemos
-        # UMA ÚNICA query na tabela MaterialEstudo. Isso garante escalabilidade.
         # ============================================================
         
         materiais_db = MaterialEstudo.objects.filter(
@@ -400,6 +397,16 @@ class DashboardView(APIView):
     
     def get(self, request):
         dados = calcular_dashboard(request.user)
+        
+        # ==========================================
+        # FASE 9: ENVIANDO DADOS DE GAMIFICAÇÃO
+        # ==========================================
+        perfil = getattr(request.user, 'perfil', None)
+        dados['gamificacao'] = {
+            'xp': perfil.xp if perfil else 0,
+            'ofensiva': perfil.ofensiva if perfil else 0,
+        }
+        
         return Response(dados, status=status.HTTP_200_OK)
 
 
