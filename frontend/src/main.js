@@ -5,6 +5,9 @@ import { createApp } from 'vue'
 // App.vue é o componente principal que contém todos os outros
 import App from './App.vue'
 
+//
+import './assets/main.css'
+
 // Importa o router que configuramos
 import router from './router/index.js'
 
