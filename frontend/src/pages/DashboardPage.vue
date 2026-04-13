@@ -264,7 +264,7 @@ function logout() {
   left: 0; 
   width: 100%; 
   height: 100%;
-  background-image: url('../assets/fundo-dash.jpg'); 
+  background-image: url('../assets/fundo-dash.png'); 
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
