@@ -268,15 +268,17 @@ function logout() {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 1;
+  z-index: 0; /* Joga bem para o fundo */
+  pointer-events: none; /* A MÁGICA: Deixa o clique "atravessar" a imagem */
 }
 
 .main-fundo::after {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle at center, rgba(11, 15, 25, 0.5) 0%, rgba(11, 15, 25, 0.9) 100%);
-  z-index: 2;
+  /* Deixei o escuro mais suave (de 0.9 para 0.7) para a tela brilhar mais */
+  background: radial-gradient(circle at center, rgba(11, 15, 25, 0.3) 0%, rgba(11, 15, 25, 0.7) 100%);
+  z-index: 1;
 }
 
 .content-above-bg {
