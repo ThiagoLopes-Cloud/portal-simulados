@@ -70,36 +70,36 @@ const password = ref('')
 const loginError = ref(false)
 
 async function handleLogin() {
-  loginError.value = false // Reseta o erro a cada tentativa
+  loginError.value = false 
   try {
-    // 👇 CORREÇÃO APLICADA: /api/token/ alinhado com o core/urls.py do Django
-    const response = await api.post('/api/token/', { 
+    // AJUSTE FINAL: Rota '/api/login/' conforme definido no seu users/urls.py
+    const response = await api.post('/api/login/', { 
       username: username.value, 
       password: password.value 
     })
     
-    // Salva os tokens de acesso
+    // Armazenamento dos tokens para o Vue Router
     localStorage.setItem('access_token', response.data.access)
-    console.log("✅ Token salvo com sucesso!")
     
     if (response.data.refresh) {
       localStorage.setItem('refresh_token', response.data.refresh)
     }
     
-    // Salva o papel do usuário (role)
+    // Armazenamento do cargo do usuário
     if (response.data.role) {
       localStorage.setItem('user_role', response.data.role)
     } else {
       localStorage.setItem('user_role', 'student')
     }
     
-    // Redirecionamento seguro usando o nome da rota
-    console.log("Redirecionando para o Dashboard...")
+    console.log("Acesso concedido. Navegando para o Dashboard...")
+    
+    // Redirecionamento usando o nome da rota definido no router/index.js
     router.push({ name: 'dashboard' })
     
   } catch (error) {
     console.error("Erro na autenticação:", error)
-    loginError.value = true // Exibe a mensagem de erro vermelha na interface
+    loginError.value = true 
   }
 }
 </script>
@@ -273,10 +273,8 @@ async function handleLogin() {
   text-shadow: var(--glow-secondary);
 }
 
-/* Utilitários Locais */
 .color-primary { color: var(--color-primary); }
 .color-secondary { color: var(--color-secondary); }
-.color-error { color: var(--color-error); }
 .text-dim { color: var(--text-dim); }
 .font-bold { font-weight: 700; }
 </style>
