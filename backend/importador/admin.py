@@ -13,7 +13,7 @@ from .models import ImportacaoProva, ProvaOriginal, QuestaoImportada, QuestaoPro
 from .services import processar_importacao, publicar_questao_importada
 
 
-@admin.action(description='Aprovar e publicar questões selecionadas')
+@admin.action(description='Aprovar e publicar questoes selecionadas')
 def aprovar_e_publicar(modeladmin, request, queryset):
     publicadas = 0
     for questao in queryset:
@@ -29,31 +29,31 @@ def aprovar_e_publicar(modeladmin, request, queryset):
     if publicadas:
         modeladmin.message_user(
             request,
-            f'{publicadas} questão(ões) publicada(s) com sucesso.',
+            f'{publicadas} questao(oes) publicada(s) com sucesso.',
             level=messages.SUCCESS,
         )
 
 
-@admin.action(description='Marcar questões selecionadas como correção necessária')
+@admin.action(description='Marcar questoes selecionadas como correcao necessaria')
 def marcar_correcao_necessaria(modeladmin, request, queryset):
     total = queryset.exclude(status=QuestaoImportada.PUBLICADA).update(
         status=QuestaoImportada.CORRECAO_NECESSARIA,
     )
     modeladmin.message_user(
         request,
-        f'{total} questão(ões) marcada(s) para correção.',
+        f'{total} questao(oes) marcada(s) para correcao.',
         level=messages.SUCCESS,
     )
 
 
-@admin.action(description='Rejeitar questões selecionadas')
+@admin.action(description='Rejeitar questoes selecionadas')
 def rejeitar_questoes_importadas(modeladmin, request, queryset):
     total = queryset.exclude(status=QuestaoImportada.PUBLICADA).update(
         status=QuestaoImportada.REJEITADA
     )
     modeladmin.message_user(
         request,
-        f'{total} questão(ões) rejeitada(s).',
+        f'{total} questao(oes) rejeitada(s).',
         level=messages.SUCCESS,
     )
 
@@ -248,7 +248,7 @@ class ImportacaoProvaAdmin(admin.ModelAdmin):
     def descricao_importacao(self, obj):
         return f'ENEM {obj.ano} - Dia {obj.dia} - {obj.get_cor_display()}'
 
-    descricao_importacao.short_description = 'Importação'
+    descricao_importacao.short_description = 'Importacao'
 
     def total_importadas_admin(self, obj):
         return obj.total_importadas
@@ -268,7 +268,7 @@ class ImportacaoProvaAdmin(admin.ModelAdmin):
     def total_correcao_admin(self, obj):
         return obj.total_correcao_necessaria
 
-    total_correcao_admin.short_description = 'Correção necessária'
+    total_correcao_admin.short_description = 'Correcao necessaria'
 
 
 @admin.register(ProvaOriginal)
@@ -284,14 +284,25 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
     list_display = [
         'numero_na_prova',
         'idioma',
+        'tema',
+        'dificuldade',
         'importacao',
         'status',
         'gabarito_oficial',
         'questao_oficial',
         'enunciado_resumido',
     ]
-    list_filter = ['status', 'idioma', 'importacao__ano', 'importacao__cor', 'importacao']
-    search_fields = ['enunciado', 'texto_bruto', 'motivo_status']
+    list_filter = [
+        'status',
+        'idioma',
+        'dificuldade',
+        'tema__materia',
+        'tema',
+        'importacao__ano',
+        'importacao__cor',
+        'importacao',
+    ]
+    search_fields = ['enunciado', 'texto_bruto', 'motivo_status', 'tema__nome', 'tema__materia__nome']
     readonly_fields = ['importacao', 'prova_original', 'texto_bruto', 'questao_oficial', 'criado_em', 'atualizado_em']
     ordering = ['importacao', 'numero_na_prova', 'idioma']
     actions = [aprovar_e_publicar, marcar_correcao_necessaria, rejeitar_questoes_importadas]
@@ -300,11 +311,21 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
         ('Origem', {
             'fields': ('importacao', 'prova_original', 'numero_na_prova', 'idioma', 'status', 'motivo_status', 'questao_oficial'),
         }),
-        ('Texto extraído', {
+        ('Texto extraido', {
             'fields': ('texto_bruto',),
         }),
-        ('Conteúdo revisável', {
-            'fields': ('enunciado', 'opcao_a', 'opcao_b', 'opcao_c', 'opcao_d', 'opcao_e', 'gabarito_oficial'),
+        ('Conteudo revisavel', {
+            'fields': (
+                'enunciado',
+                'tema',
+                'opcao_a',
+                'opcao_b',
+                'opcao_c',
+                'opcao_d',
+                'opcao_e',
+                'gabarito_oficial',
+                'dificuldade',
+            ),
         }),
         ('Auditoria', {
             'fields': ('criado_em', 'atualizado_em'),

@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from conteudo.models import Materia, Tema
 from importador.models import ImportacaoProva, ProvaOriginal, QuestaoImportada, QuestaoProvaOriginal
 from importador.services import (
     classify_question,
@@ -348,3 +349,136 @@ class DedupeQuestaoEntreProvasTests(TestCase):
 
         self.assertNotEqual(q_ingles.id, q_espanhol.id)
         self.assertEqual(Questao.objects.filter(enunciado='Texto equivalente.').count(), 2)
+
+
+class TemaEDificuldadeImportadasTests(TestCase):
+    def test_questao_importada_nasce_com_dificuldade_media_por_padrao(self):
+        user = User.objects.create_user(username='admin4', password='senha123', role='admin')
+        importacao = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova = ProvaOriginal.objects.create(importacao=importacao, descricao='ENEM 2025 - Azul')
+
+        questao = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=12,
+            enunciado='Enunciado importado.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='A',
+        )
+
+        self.assertEqual(questao.dificuldade, 'M')
+        self.assertIsNone(questao.tema)
+
+    def test_publicacao_propaga_tema_e_dificuldade_para_questao_oficial(self):
+        user = User.objects.create_user(username='admin5', password='senha123', role='admin')
+        materia = Materia.objects.create(nome='Fisica', codigo='FIS')
+        tema = Tema.objects.create(nome='Mecanica', materia=materia)
+
+        importacao = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova = ProvaOriginal.objects.create(importacao=importacao, descricao='ENEM 2025 - Azul')
+        Simulado.objects.create(
+            titulo='ENEM 2025 - Dia 1 - Azul',
+            descricao='Original',
+            criado_por=user,
+            ativo=False,
+            importacao_origem=importacao,
+            prova_original=prova,
+            eh_simulado_original=True,
+        )
+
+        importada = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=25,
+            tema=tema,
+            dificuldade='D',
+            enunciado='Enunciado com tema e dificuldade.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='B',
+        )
+
+        questao = publicar_questao_importada(importada)
+
+        self.assertEqual(questao.tema, tema)
+        self.assertEqual(questao.dificuldade, 'D')
+
+    def test_dedupe_reaproveita_questao_e_completa_tema_ausente(self):
+        user = User.objects.create_user(username='admin6', password='senha123', role='admin')
+        materia = Materia.objects.create(nome='Fisica', codigo='FIS')
+        tema = Tema.objects.create(nome='Termologia', materia=materia)
+
+        importacao = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova = ProvaOriginal.objects.create(importacao=importacao, descricao='ENEM 2025 - Azul')
+        Simulado.objects.create(
+            titulo='ENEM 2025 - Dia 1 - Azul',
+            descricao='Original',
+            criado_por=user,
+            ativo=False,
+            importacao_origem=importacao,
+            prova_original=prova,
+            eh_simulado_original=True,
+        )
+
+        Questao.objects.create(
+            enunciado='Mesmo enunciado.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            resposta_correta='C',
+            dificuldade='M',
+            explicacao='',
+            fonte='ENEM oficial - INEP',
+            ano_origem=2025,
+            revisado=True,
+        )
+
+        importada = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=42,
+            tema=tema,
+            dificuldade='D',
+            enunciado='Mesmo enunciado.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='C',
+        )
+
+        questao = publicar_questao_importada(importada)
+
+        self.assertEqual(questao.tema, tema)
+        self.assertEqual(questao.dificuldade, 'D')

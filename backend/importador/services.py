@@ -464,6 +464,7 @@ def processar_importacao(importacao):
                 opcao_c=parsed['opcao_c'],
                 opcao_d=parsed['opcao_d'],
                 opcao_e=parsed['opcao_e'],
+                dificuldade='M',
                 gabarito_oficial=answer,
                 status=status,
                 motivo_status=reason,
@@ -502,13 +503,14 @@ def publicar_questao_importada(questao_importada):
     if questao is None:
         questao = Questao.objects.create(
             enunciado=questao_importada.enunciado,
+            tema=questao_importada.tema,
             opcao_a=questao_importada.opcao_a,
             opcao_b=questao_importada.opcao_b,
             opcao_c=questao_importada.opcao_c,
             opcao_d=questao_importada.opcao_d,
             opcao_e=questao_importada.opcao_e,
             resposta_correta=questao_importada.gabarito_oficial,
-            dificuldade='M',
+            dificuldade=questao_importada.dificuldade,
             explicacao='',
             fonte='ENEM oficial - INEP',
             ano_origem=questao_importada.importacao.ano,
@@ -518,6 +520,19 @@ def publicar_questao_importada(questao_importada):
             prova_original=questao_importada.prova_original,
             numero_na_prova=questao_importada.numero_na_prova,
         )
+    else:
+        updated_fields = []
+        if questao.tema_id is None and questao_importada.tema_id is not None:
+            questao.tema = questao_importada.tema
+            updated_fields.append('tema')
+        if (
+            questao.dificuldade == 'M'
+            and questao_importada.dificuldade in {'F', 'D'}
+        ):
+            questao.dificuldade = questao_importada.dificuldade
+            updated_fields.append('dificuldade')
+        if updated_fields:
+            questao.save(update_fields=updated_fields + ['atualizado_em'])
 
     SimuladoQuestao.objects.update_or_create(
         simulado=questao_importada.importacao.simulado_original,
