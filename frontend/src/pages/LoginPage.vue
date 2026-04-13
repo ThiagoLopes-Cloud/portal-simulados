@@ -280,3 +280,4 @@ async function handleLogin() {
 .text-dim { color: var(--text-dim); }
 .font-bold { font-weight: 700; }
 </style>
+// Este é o componente de LoginPage.vue, responsável por renderizar a interface de login e lidar com a autenticação do usuário. Ele utiliza a API para enviar as credenciais e gerenciar os tokens de acesso. A estilização é feita para criar uma atmosfera futurista e imersiva, alinhada com o tema do SIMUS LAB.
