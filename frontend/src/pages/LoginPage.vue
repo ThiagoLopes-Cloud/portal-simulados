@@ -279,4 +279,4 @@ async function handleLogin() {
 .color-error { color: var(--color-error); }
 .text-dim { color: var(--text-dim); }
 .font-bold { font-weight: 700; }
-</style>
+</style
