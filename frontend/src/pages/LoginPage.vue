@@ -15,14 +15,18 @@
           <p>Acesse seu cockpit tático e continue sua evolução.</p>
         </div>
 
+        <div v-if="loginError" class="erro-alerta ui-display">
+          ⚠️ Credenciais inválidas. Tente novamente.
+        </div>
+
         <form @submit.prevent="handleLogin" class="login-form">
           <div class="input-group">
-            <label for="email" class="ui-display">E-mail de Acesso</label>
+            <label for="username" class="ui-display">Usuário ou E-mail</label>
             <input 
-              type="email" 
-              id="email" 
-              v-model="email" 
-              placeholder="recruta@metamorfose.com.br" 
+              type="text" 
+              id="username" 
+              v-model="username" 
+              placeholder="Digite seu usuário" 
               required
             >
           </div>
@@ -58,50 +62,49 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../services/api.js' // 1. Descomentamos a importação da API!
+import api from '../services/api.js'
 
 const router = useRouter()
-// Note que seu backend original provavelmente usava username em vez de email,
-// então vamos manter a variável 'username' aqui para garantir a conexão com o Django.
-const username = ref('') 
+const username = ref('')
 const password = ref('')
+const loginError = ref(false)
 
 async function handleLogin() {
+  loginError.value = false // Reseta o erro a cada tentativa
   try {
-    // 2. Religa a chamada oficial para o seu backend Django!
-    // Se o seu endpoint for diferente de '/token/' (ex: '/login/'), é só ajustar.
+    // IMPORTANTE: O Django SimpleJWT geralmente usa '/token/' para login. 
+    // Se o seu backend usa '/login/', mude a URL abaixo para '/login/'.
     const response = await api.post('/token/', { 
       username: username.value, 
       password: password.value 
     })
     
-    // 3. Salva os crachás de acesso no navegador
+    // Salva os tokens de acesso
     localStorage.setItem('access_token', response.data.access)
+    
+    // Nem toda API devolve o refresh token direto, mas se devolver, salvamos:
     if (response.data.refresh) {
       localStorage.setItem('refresh_token', response.data.refresh)
     }
     
-    // Se o seu backend manda a role do usuário no login, salvamos também
+    // Salva o papel do usuário (role)
     if (response.data.role) {
       localStorage.setItem('user_role', response.data.role)
     } else {
-      // Valor padrão caso não venha na API
-      localStorage.setItem('user_role', 'student') 
+      localStorage.setItem('user_role', 'student')
     }
     
-    console.log("Acesso concedido à Arena!")
+    // Redireciona para o Dashboard
     router.push('/dashboard')
     
   } catch (error) {
-    console.error("Falha na autenticação:", error)
-    alert('Credenciais inválidas! Tente novamente, recruta.')
+    console.error("Erro na autenticação", error)
+    loginError.value = true // Exibe a mensagem de erro na tela
   }
 }
 </script>
 
 <style scoped>
-/* A estrutura base herda do nosso Design System global, mas estilizamos os escopos locais aqui */
-
 .login-wrapper {
   position: relative;
   min-height: 100vh;
@@ -112,14 +115,12 @@ async function handleLogin() {
   overflow: hidden;
 }
 
-/* Background Imersivo com overlay escuro para não ofuscar o formulário */
 .tech-background {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  /* 👇 CORREÇÃO AQUI: Dois pontinhos antes da barra */
   background-image: url('../assets/login-bg-neon.png'); 
   background-size: cover;
   background-position: center;
@@ -143,8 +144,8 @@ async function handleLogin() {
 
 .login-box {
   padding: 40px 30px;
-  background: rgba(11, 15, 25, 0.6); /* Mais escuro que o padrão para contraste extra */
-  border: 1px solid rgba(0, 229, 255, 0.2); /* Borda sutil cyan */
+  background: rgba(11, 15, 25, 0.6);
+  border: 1px solid rgba(0, 229, 255, 0.2);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 229, 255, 0.05);
 }
 
@@ -167,7 +168,7 @@ async function handleLogin() {
 
 .welcome-text {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .welcome-text h2 {
@@ -179,6 +180,18 @@ async function handleLogin() {
 .welcome-text p {
   font-size: 0.9rem;
   color: var(--text-dim);
+}
+
+.erro-alerta {
+  background: rgba(255, 42, 85, 0.1);
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(255, 42, 85, 0.2);
 }
 
 .login-form {
@@ -263,12 +276,7 @@ async function handleLogin() {
 /* Utilitários Locais */
 .color-primary { color: var(--color-primary); }
 .color-secondary { color: var(--color-secondary); }
+.color-error { color: var(--color-error); }
 .text-dim { color: var(--text-dim); }
 .font-bold { font-weight: 700; }
-
-/* Estilo específico para o "LAB" com brilho Neon Magenta */
-.color-secondary {
-  color: var(--color-secondary); /* Aplica a cor Magenta */
-  text-shadow: var(--glow-secondary); /* Adiciona o brilho Neon Magenta */
-}
 </style>
