@@ -58,26 +58,43 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-// import api from '../services/api.js' // Descomente quando integrar com seu backend real
+import api from '../services/api.js' // 1. Descomentamos a importação da API!
 
 const router = useRouter()
-const email = ref('')
+// Note que seu backend original provavelmente usava username em vez de email,
+// então vamos manter a variável 'username' aqui para garantir a conexão com o Django.
+const username = ref('') 
 const password = ref('')
 
 async function handleLogin() {
-  // Lógica de autenticação com o seu backend Django
   try {
-    /* const response = await api.post('/login/', { email: email.value, password: password.value })
-    localStorage.setItem('access_token', response.data.access)
-    localStorage.setItem('user_role', response.data.role)
-    */
+    // 2. Religa a chamada oficial para o seu backend Django!
+    // Se o seu endpoint for diferente de '/token/' (ex: '/login/'), é só ajustar.
+    const response = await api.post('/token/', { 
+      username: username.value, 
+      password: password.value 
+    })
     
-    // Simulação de login bem-sucedido para testar a UI
-    console.log("Login tático acionado!", email.value)
+    // 3. Salva os crachás de acesso no navegador
+    localStorage.setItem('access_token', response.data.access)
+    if (response.data.refresh) {
+      localStorage.setItem('refresh_token', response.data.refresh)
+    }
+    
+    // Se o seu backend manda a role do usuário no login, salvamos também
+    if (response.data.role) {
+      localStorage.setItem('user_role', response.data.role)
+    } else {
+      // Valor padrão caso não venha na API
+      localStorage.setItem('user_role', 'student') 
+    }
+    
+    console.log("Acesso concedido à Arena!")
     router.push('/dashboard')
+    
   } catch (error) {
-    console.error("Erro na autenticação", error)
-    // Aqui entrará um toast de erro com a variável --color-error
+    console.error("Falha na autenticação:", error)
+    alert('Credenciais inválidas! Tente novamente, recruta.')
   }
 }
 </script>
