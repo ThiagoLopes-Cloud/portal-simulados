@@ -6,7 +6,7 @@
       <div class="glass-card login-box">
         
         <div class="logo-area">
-          <h1 class="ui-display logo-text"><span class="color-primary">SIMUS</span>LAB</h1>
+          <h1 class="ui-display logo-text"><span class="color-primary">SIMUS</span><span class="color-secondary">LAB</span></h1>
           <p class="tagline text-dim">by Metamorfose</p>
         </div>
 
@@ -248,4 +248,10 @@ async function handleLogin() {
 .color-secondary { color: var(--color-secondary); }
 .text-dim { color: var(--text-dim); }
 .font-bold { font-weight: 700; }
+
+/* Estilo específico para o "LAB" com brilho Neon Magenta */
+.color-secondary {
+  color: var(--color-secondary); /* Aplica a cor Magenta */
+  text-shadow: var(--glow-secondary); /* Adiciona o brilho Neon Magenta */
+}
 </style>
