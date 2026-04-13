@@ -2,7 +2,8 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://portal-simulados-production.up.railway.app/api',
+  // Removi o /api daqui para não duplicar com as rotas dos componentes
+  baseURL: 'https://portal-simulados-production.up.railway.app',
 })
 
 api.interceptors.request.use((config) => {
