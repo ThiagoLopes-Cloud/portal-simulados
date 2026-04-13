@@ -102,8 +102,8 @@ async function handleLogin() {
   left: 0;
   width: 100%;
   height: 100%;
-  /* A imagem do Prompt 1 vai entrar nesta URL */
-  background-image: url('/assets/login-bg-neon.jpg'); 
+  /* 👇 CORREÇÃO AQUI: Dois pontinhos antes da barra */
+  background-image: url('../assets/login-bg-neon.png'); 
   background-size: cover;
   background-position: center;
   z-index: 1;
