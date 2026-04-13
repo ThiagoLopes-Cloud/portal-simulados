@@ -72,17 +72,16 @@ const loginError = ref(false)
 async function handleLogin() {
   loginError.value = false // Reseta o erro a cada tentativa
   try {
-    // IMPORTANTE: O Django SimpleJWT geralmente usa '/token/' para login. 
-    // Se o seu backend usa '/login/', mude a URL abaixo para '/login/'.
+    // Comunicação com o Backend Django
     const response = await api.post('/token/', { 
       username: username.value, 
       password: password.value 
     })
     
-    // Salva os tokens de acesso
+    // Salva os tokens de acesso cruciais para o Vue Router liberar a porta
     localStorage.setItem('access_token', response.data.access)
+    console.log("✅ Token salvo com sucesso:", response.data.access)
     
-    // Nem toda API devolve o refresh token direto, mas se devolver, salvamos:
     if (response.data.refresh) {
       localStorage.setItem('refresh_token', response.data.refresh)
     }
@@ -94,11 +93,12 @@ async function handleLogin() {
       localStorage.setItem('user_role', 'student')
     }
     
-    // Redireciona para o Dashboard
-    router.push('/dashboard')
+    // CORREÇÃO: Usando o nome exato da rota para evitar bloqueios do Vue Router
+    console.log("Redirecionando para o Dashboard...")
+    router.push({ name: 'dashboard' })
     
   } catch (error) {
-    console.error("Erro na autenticação", error)
+    console.error("Erro na autenticação:", error)
     loginError.value = true // Exibe a mensagem de erro na tela
   }
 }
