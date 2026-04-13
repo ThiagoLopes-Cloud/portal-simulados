@@ -1,195 +1,148 @@
 <template>
-  <div class="dashboard">
-    <nav class="navbar">
-      <h1>Portal de Simulados</h1>
+  <div class="dashboard-wrapper">
+    <nav class="navbar glass-card">
+      <div class="logo">
+        <h1 class="ui-display logo-text"><span class="color-primary">SIMUS</span><span class="color-secondary">LAB</span></h1>
+      </div>
+
       <div class="nav-links">
-        <router-link to="/simulados">Simulados</router-link>
-        <router-link to="/ranking">Ranking</router-link>
-        <router-link v-if="isAdmin" to="/admin/alunos" class="link-admin">
-          👥 Alunos
+        <router-link to="/simulados" class="nav-item ui-display">Batalhas (Simulados)</router-link>
+        <router-link to="/ranking" class="nav-item ui-display">Hall da Fama</router-link>
+        <router-link v-if="isAdmin" to="/admin/alunos" class="nav-item ui-display link-admin">
+          Comando (Admin)
         </router-link>
-        <button @click="logout" class="btn-logout">Sair</button>
+      </div>
+
+      <div class="user-stats">
+        <div class="xp-container" v-if="dados.gamificacao">
+          <div class="level-badge ui-display">LVL {{ nivelAtual }}</div>
+          <div class="xp-bar-bg">
+            <div class="xp-bar-fill" :style="{ width: progressoNivel + '%' }"></div>
+          </div>
+          <span class="xp-text ui-display">{{ xpProgresso }} / 500 XP</span>
+        </div>
+
+        <div class="streak-badge" :class="{ 'fogo-ativo': dados.gamificacao?.ofensiva > 0 }" title="Dias seguidos de estudo">
+          <span class="fire-icon">{{ dados.gamificacao?.ofensiva > 0 ? '🔥' : '🧊' }}</span>
+          <span class="streak-count ui-display">{{ dados.gamificacao?.ofensiva || 0 }} D</span>
+        </div>
+        
+        <button @click="logout" class="btn-logout ui-display">Sair</button>
       </div>
     </nav>
 
-    <div v-if="carregando" class="loading">Carregando dashboard...</div>
-    <div v-else-if="erro" class="erro">{{ erro }}</div>
+    <div v-if="carregando" class="loading ui-display color-primary">Inicializando Sistemas do Laboratório...</div>
+    <div v-else-if="erro" class="erro ui-display color-error">{{ erro }}</div>
 
-    <div v-else class="container">
-      
-      <div class="header-section">
-        <div class="welcome">
-          <h2>Olá, {{ username }}! 👋</h2>
-          <p>Veja como está seu desempenho hoje</p>
+    <main v-else class="main-content">
+      <header class="welcome-header">
+        <h2 class="ui-display">Painel Tático, {{ username }}!</h2>
+        <p class="text-dim">Treinador: "Foco total, recruta. Os dados abaixo revelam o quão perto você está da aprovação."</p>
+      </header>
+
+      <section class="stats-grid">
+        <div class="card-resumo glass-card">
+          <span class="resumo-valor ui-display" :class="corScoreText(dados.score_geral)">{{ dados.score_geral }}%</span>
+          <span class="resumo-label ui-display">Score Geral Tático</span>
         </div>
+        <div class="card-resumo glass-card">
+          <span class="resumo-valor ui-display color-primary">{{ dados.total_simulados }}</span>
+          <span class="resumo-label ui-display">Batalhas Vencidas</span>
+        </div>
+        <div class="card-resumo glass-card">
+          <span class="resumo-valor ui-display color-secondary">{{ dados.por_materia.length }}</span>
+          <span class="resumo-label ui-display">Matérias Mapeadas</span>
+        </div>
+        <div class="card-resumo acao glass-card" @click="$router.push('/simulados')">
+          <span class="resumo-valor action-icon">🎯</span>
+          <span class="resumo-label ui-display">Iniciar Nova Missão</span>
+        </div>
+      </section>
 
-        <div class="gamificacao-card" v-if="dados.gamificacao">
-          <div class="streak-box" :class="{ 'fogo-ativo': dados.gamificacao.ofensiva > 0 }">
-            <div class="icone-fogo">
-              {{ dados.gamificacao.ofensiva > 0 ? '🔥' : '🧊' }}
-            </div>
-            <div class="streak-info">
-              <span class="streak-valor">{{ dados.gamificacao.ofensiva }}</span>
-              <span class="streak-label">Dias seguidos</span>
-            </div>
+      <div class="content-split">
+        <section class="secao-materias">
+          <h3 class="section-title ui-display"><span class="color-primary">></span> Diagnóstico de Performance</h3>
+
+          <div v-if="dados.por_materia.length === 0" class="vazio glass-card">
+            <p>Aguardando dados de combate. Inicie um simulado para gerar seu diagnóstico.</p>
           </div>
 
-          <div class="xp-box">
-            <div class="xp-header">
-              <span class="nivel-badge">🌟 Nível {{ nivelAtual }}</span>
-              <span class="xp-total">{{ dados.gamificacao.xp }} XP Total</span>
-            </div>
-            <div class="xp-barra-fundo">
-              <div 
-                class="xp-barra-preenchimento" 
-                :style="{ width: progressoNivel + '%' }"
-              ></div>
-            </div>
-            <div class="xp-footer">
-              Faltam <strong>{{ xpFaltante }} XP</strong> para o Nível {{ nivelAtual + 1 }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="resumo">
-        <div class="card-resumo">
-          <span class="resumo-valor" :class="corScore(dados.score_geral)">
-            {{ dados.score_geral }}%
-          </span>
-          <span class="resumo-label">Score geral</span>
-        </div>
-        <div class="card-resumo">
-          <span class="resumo-valor azul">{{ dados.total_simulados }}</span>
-          <span class="resumo-label">Simulados feitos</span>
-        </div>
-        <div class="card-resumo">
-          <span class="resumo-valor roxo">{{ dados.por_materia.length }}</span>
-          <span class="resumo-label">Matérias avaliadas</span>
-        </div>
-        <div class="card-resumo acao" @click="$router.push('/simulados')">
-          <span class="resumo-valor">📝</span>
-          <span class="resumo-label">Fazer simulado</span>
-        </div>
-      </div>
-
-      <section class="secao">
-        <h3>Desempenho por matéria</h3>
-
-        <div v-if="dados.por_materia.length === 0" class="vazio">
-          Faça um simulado com questões vinculadas a temas para ver seu desempenho.
-        </div>
-
-        <div
-          v-for="materia in dados.por_materia"
-          :key="materia.codigo"
-          class="card-materia"
-        >
-          <div class="materia-header" @click="toggleMateria(materia.codigo)">
-            <div class="materia-info">
-              <span class="materia-badge">{{ materia.codigo }}</span>
-              <span class="materia-nome">{{ materia.materia }}</span>
-              <span class="materia-detalhe">
-                {{ materia.acertos }}/{{ materia.total_questoes }} questões
-              </span>
-            </div>
-            <div class="materia-direita">
-              <div class="barra-mini">
-                <div
-                  class="barra-fill"
-                  :class="corScore(materia.percentual)"
-                  :style="{ width: materia.percentual + '%' }"
-                ></div>
+          <div v-for="materia in dados.por_materia" :key="materia.codigo" class="card-materia glass-card">
+            <div class="materia-header" @click="toggleMateria(materia.codigo)">
+              <div class="materia-info">
+                <span class="materia-badge ui-display">{{ materia.codigo }}</span>
+                <span class="materia-nome">{{ materia.materia }}</span>
               </div>
-              <span class="materia-percentual" :class="corScore(materia.percentual)">
-                {{ materia.percentual }}%
-              </span>
-              <span class="diferenca" :class="materia.diferenca_media >= 0 ? 'positivo' : 'negativo'">
-                {{ materia.diferenca_media >= 0 ? '+' : '' }}{{ materia.diferenca_media }}%
-              </span>
-              <span class="toggle-icon">
-                {{ materiasAbertas.includes(materia.codigo) ? '▲' : '▼' }}
-              </span>
-            </div>
-          </div>
-
-          <div v-if="materiasAbertas.includes(materia.codigo)" class="temas-lista">
-            <div class="temas-legenda">
-              <span>Seu desempenho</span>
-              <span>Média da plataforma</span>
-            </div>
-            <div
-              v-for="tema in materia.temas"
-              :key="tema.tema"
-              class="tema-item"
-            >
-              <div class="tema-info">
-                <span class="tema-nome">{{ tema.tema }}</span>
-                <span class="tema-detalhe">{{ tema.acertos }}/{{ tema.total }} questões</span>
-              </div>
-              <div class="tema-direita">
-                <div class="barra-dupla">
-                  <div class="barra-label">Você</div>
-                  <div class="barra-mini pequena">
-                    <div
-                      class="barra-fill"
-                      :class="corScore(tema.percentual)"
-                      :style="{ width: tema.percentual + '%' }"
-                    ></div>
-                  </div>
-                  <span class="tema-percentual" :class="corScore(tema.percentual)">
-                    {{ tema.percentual }}%
-                  </span>
+              <div class="materia-direita">
+                <span class="materia-detalhe ui-display text-dim">{{ materia.acertos }}/{{ materia.total_questoes }}</span>
+                <div class="barra-mini">
+                  <div class="barra-fill" :class="corScoreBg(materia.percentual)" :style="{ width: materia.percentual + '%' }"></div>
                 </div>
-                <div class="barra-dupla">
-                  <div class="barra-label cinza">Média</div>
-                  <div class="barra-mini pequena">
-                    <div
-                      class="barra-fill cinza-fill"
-                      :style="{ width: tema.media_plataforma + '%' }"
-                    ></div>
+                <span class="materia-percentual ui-display" :class="corScoreText(materia.percentual)">{{ materia.percentual }}%</span>
+                <span class="diferenca ui-display" :class="materia.diferenca_media >= 0 ? 'positivo' : 'negativo'">
+                  {{ materia.diferenca_media >= 0 ? '+' : '' }}{{ materia.diferenca_media }}%
+                  <span v-if="materia.diferenca_media >= 0" class="trend">▲</span>
+                  <span v-else class="trend">▼</span>
+                </span>
+              </div>
+            </div>
+
+            <div v-if="materiasAbertas.includes(materia.codigo)" class="temas-lista">
+              <div class="temas-legenda text-dim ui-display">
+                <span>Seu Radar</span>
+                <span>Média Global</span>
+              </div>
+              <div v-for="tema in materia.temas" :key="tema.tema" class="tema-item">
+                <div class="tema-info">
+                  <span class="tema-nome">{{ tema.tema }}</span>
+                  <span class="tema-detalhe text-dim">{{ tema.acertos }}/{{ tema.total }} acertos</span>
+                </div>
+                <div class="tema-direita">
+                  <div class="barra-dupla">
+                    <div class="barra-mini pequena">
+                      <div class="barra-fill" :class="corScoreBg(tema.percentual)" :style="{ width: tema.percentual + '%' }"></div>
+                    </div>
+                    <span class="tema-percentual ui-display" :class="corScoreText(tema.percentual)">{{ tema.percentual }}%</span>
                   </div>
-                  <span class="tema-percentual cinza">
-                    {{ tema.media_plataforma }}%
-                  </span>
+                  <div class="barra-dupla opacity-50">
+                    <div class="barra-mini pequena">
+                      <div class="barra-fill bg-dim" :style="{ width: tema.media_plataforma + '%' }"></div>
+                    </div>
+                    <span class="tema-percentual ui-display text-dim">{{ tema.media_plataforma }}%</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="secao">
-        <h3>Histórico de simulados</h3>
-        <div v-if="dados.historico.length === 0" class="vazio">
-          Você ainda não realizou nenhum simulado.
-        </div>
-        <div class="tabela-container" v-else>
-          <table class="tabela">
-            <thead>
-              <tr>
-                <th>Simulado</th>
-                <th>Acertos</th>
-                <th>Score</th>
-                <th>Data</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in historicoComTendencia" :key="item.resultado_id">
-                <td>{{ item.simulado }} (T{{ item.tentativa }})</td>
-                <td>{{ item.acertos }}/{{ item.total }}</td>
-                <td :class="corScore(item.score)">
-                  {{ item.score }}%
-                  <span v-if="item.trend === 'up'" class="diferenca positivo ml-2">▲ +{{ item.diff }}%</span>
-                  <span v-else-if="item.trend === 'down'" class="diferenca negativo ml-2">▼ {{ item.diff }}%</span>
-                  <span v-else-if="item.trend === 'same'" class="diferenca ml-2">—</span>
-                </td>
-                <td class="data">{{ item.data }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
+        <section class="secao-historico">
+          <h3 class="section-title ui-display"><span class="color-secondary">></span> Registro de Missões</h3>
+          
+          <div v-if="dados.historico.length === 0" class="vazio glass-card">
+            Nenhum registro encontrado.
+          </div>
+          
+          <div class="historico-container glass-card" v-else>
+            <div v-for="item in historicoComTendencia" :key="item.resultado_id" class="historico-item">
+              <div class="hist-info">
+                <span class="hist-nome">{{ item.simulado }} <span class="tentativa-badge ui-display">T{{ item.tentativa }}</span></span>
+                <span class="hist-data text-dim">{{ item.data }}</span>
+              </div>
+              <div class="hist-score">
+                <span class="hist-acertos text-dim">{{ item.acertos }}/{{ item.total }}</span>
+                <span class="hist-percentual ui-display" :class="corScoreText(item.score)">{{ item.score }}%</span>
+                <div class="hist-trend" :class="item.trend === 'up' ? 'positivo' : (item.trend === 'down' ? 'negativo' : 'text-dim')">
+                  <span v-if="item.trend === 'up'">▲ +{{ item.diff }}%</span>
+                  <span v-else-if="item.trend === 'down'">▼ {{ item.diff }}%</span>
+                  <span v-else>—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -210,54 +163,28 @@ const dados = ref({
   total_simulados: 0,
   por_materia: [],
   historico: [],
-  gamificacao: { xp: 0, ofensiva: 0 } // Preparado para a Fase 9
+  gamificacao: { xp: 0, ofensiva: 0 }
 })
 
-// ==========================================
-// LÓGICA DE GAMIFICAÇÃO (FASE 9)
-// ==========================================
-const XP_POR_NIVEL = 500 // O aluno sobe de nível a cada 500 XP
-
-const nivelAtual = computed(() => {
-  const xp = dados.value.gamificacao?.xp || 0
-  return Math.floor(xp / XP_POR_NIVEL) + 1
-})
-
-const xpProgresso = computed(() => {
-  const xp = dados.value.gamificacao?.xp || 0
-  return xp % XP_POR_NIVEL
-})
-
-const progressoNivel = computed(() => {
-  return (xpProgresso.value / XP_POR_NIVEL) * 100
-})
-
-const xpFaltante = computed(() => {
-  return XP_POR_NIVEL - xpProgresso.value
-})
-// ==========================================
+// Lógica de Gamificação
+const XP_POR_NIVEL = 500
+const nivelAtual = computed(() => Math.floor((dados.value.gamificacao?.xp || 0) / XP_POR_NIVEL) + 1)
+const xpProgresso = computed(() => (dados.value.gamificacao?.xp || 0) % XP_POR_NIVEL)
+const progressoNivel = computed(() => (xpProgresso.value / XP_POR_NIVEL) * 100)
 
 const historicoComTendencia = computed(() => {
   const mapPorSimulado = {};
   const historicoCronologico = [...dados.value.historico].reverse();
-
   const historicoEnriquecido = historicoCronologico.map(item => {
-    let trend = null;
-    let diff = 0;
-    
+    let trend = null; let diff = 0;
     if (mapPorSimulado[item.simulado_id] !== undefined) {
       const scoreAnterior = mapPorSimulado[item.simulado_id];
       diff = parseFloat((item.score - scoreAnterior).toFixed(1));
-      
-      if (diff > 0) trend = 'up';
-      else if (diff < 0) trend = 'down';
-      else trend = 'same';
+      if (diff > 0) trend = 'up'; else if (diff < 0) trend = 'down'; else trend = 'same';
     }
-    
     mapPorSimulado[item.simulado_id] = item.score;
     return { ...item, trend, diff };
   });
-
   return historicoEnriquecido.reverse();
 });
 
@@ -269,12 +196,11 @@ onMounted(async () => {
     ])
     username.value = perfil.data.username
     dados.value = dashboard.data
-
     if (dados.value.por_materia.length > 0) {
       materiasAbertas.value = [dados.value.por_materia[0].codigo]
     }
   } catch (error) {
-    erro.value = 'Erro ao carregar o dashboard.'
+    erro.value = 'Falha ao conectar com o laboratório.'
   } finally {
     carregando.value = false
   }
@@ -282,17 +208,20 @@ onMounted(async () => {
 
 function toggleMateria(codigo) {
   const index = materiasAbertas.value.indexOf(codigo)
-  if (index === -1) {
-    materiasAbertas.value.push(codigo)
-  } else {
-    materiasAbertas.value.splice(index, 1)
-  }
+  if (index === -1) materiasAbertas.value.push(codigo)
+  else materiasAbertas.value.splice(index, 1)
 }
 
-function corScore(valor) {
-  if (valor >= 70) return 'verde'
-  if (valor >= 50) return 'amarelo'
-  return 'vermelho'
+function corScoreText(valor) {
+  if (valor >= 70) return 'color-success'
+  if (valor >= 50) return 'text-main'
+  return 'color-error'
+}
+
+function corScoreBg(valor) {
+  if (valor >= 70) return 'bg-success'
+  if (valor >= 50) return 'bg-warning'
+  return 'bg-error'
 }
 
 function logout() {
@@ -304,190 +233,127 @@ function logout() {
 </script>
 
 <style scoped>
-/* Estilos Base e Navbar mantidos iguais */
-.dashboard { min-height: 100vh; background: #f5f5f5; }
+.dashboard-wrapper {
+  min-height: 100vh;
+  /* Reaproveitamos o fundo do login aqui para manter a imersão, mas você pode gerar outro abstrato depois */
+  background-image: url('../assets/login-bg-neon.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding: 20px;
+}
 
+/* Navbar */
 .navbar {
-  background: #667eea; color: white; padding: 16px 32px;
   display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 15px 30px; margin-bottom: 30px;
 }
-.navbar h1 { font-size: 20px; font-weight: 600; }
-.nav-links { display: flex; align-items: center; gap: 24px; }
-.nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
-.link-admin { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 6px; }
-.btn-logout { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.logo-text { font-size: 1.5rem; letter-spacing: 2px; margin: 0; }
+.nav-links { display: flex; gap: 20px; }
+.nav-item { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; letter-spacing: 1px; transition: color 0.3s; }
+.nav-item:hover, .nav-item.router-link-active { color: var(--color-primary); text-shadow: var(--glow-primary); }
+.link-admin { border: 1px solid var(--color-secondary); padding: 4px 10px; border-radius: 4px; color: var(--color-secondary); }
 
-.loading, .vazio { color: #999; padding: 40px 0; text-align: center; }
-.erro { color: #c00; text-align: center; padding: 40px; }
+/* User Stats & XP */
+.user-stats { display: flex; align-items: center; gap: 20px; }
+.xp-container { display: flex; align-items: center; gap: 12px; }
+.level-badge { background: var(--color-secondary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; box-shadow: var(--glow-secondary); }
+.xp-bar-bg { width: 150px; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 99px; overflow: hidden; }
+.xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); box-shadow: var(--glow-primary); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+.xp-text { font-size: 0.75rem; color: var(--text-dim); }
 
-.container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+.streak-badge { display: flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); transition: all 0.3s; }
+.streak-badge.fogo-ativo { border-color: #ff9d00; background: rgba(255, 157, 0, 0.1); box-shadow: 0 0 10px rgba(255, 157, 0, 0.2); }
+.fire-icon { font-size: 1rem; filter: grayscale(1); }
+.fogo-ativo .fire-icon { filter: grayscale(0); animation: pulsar 2s infinite alternate; }
+.streak-count { font-size: 0.85rem; color: var(--text-dim); }
+.fogo-ativo .streak-count { color: #ff9d00; font-weight: 700; }
 
-/* ==========================================
-   HEADER & GAMIFICAÇÃO (FASE 9)
-   ========================================== */
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-.welcome h2 { font-size: 26px; color: #333; margin-bottom: 4px; }
-.welcome p { color: #666; }
+.btn-logout { background: transparent; color: var(--text-dim); border: 1px solid rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.3s; }
+.btn-logout:hover { border-color: var(--color-error); color: var(--color-error); }
 
-.gamificacao-card {
-  display: flex;
-  gap: 16px;
-  background: white;
-  padding: 16px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
+@keyframes pulsar { from { transform: scale(1); } to { transform: scale(1.1); } }
 
-/* Foguinho */
-.streak-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #f3f4f6;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-}
-.streak-box.fogo-ativo {
-  background: #fff7ed;
-  border-color: #ffedd5;
-}
-.icone-fogo {
-  font-size: 28px;
-  filter: grayscale(1); /* Cinza quando ofensiva é 0 */
-  transition: all 0.3s;
-}
-.fogo-ativo .icone-fogo {
-  filter: grayscale(0); /* Colorido quando ativo */
-  animation: pulsar 2s infinite alternate;
-}
-@keyframes pulsar {
-  from { transform: scale(1); }
-  to { transform: scale(1.1); }
-}
-.streak-info { display: flex; flex-direction: column; }
-.streak-valor { font-size: 20px; font-weight: 800; color: #1f2937; line-height: 1; }
-.fogo-ativo .streak-valor { color: #ea580c; }
-.streak-label { font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+/* Main Content */
+.main-content { max-width: 1200px; margin: 0 auto; }
+.welcome-header { margin-bottom: 30px; text-align: center; }
+.welcome-header h2 { font-size: 2rem; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+.section-title { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
 
-/* XP e Progresso */
-.xp-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 200px;
-  padding: 0 8px;
-}
-.xp-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.nivel-badge {
-  background: #8b5cf6;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-}
-.xp-total { font-size: 13px; font-weight: 600; color: #4b5563; }
+/* Stats Grid */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
+.card-resumo { padding: 25px; text-align: center; display: flex; flex-direction: column; gap: 5px; border-top: 2px solid transparent; transition: all 0.3s; }
+.card-resumo:hover { transform: translateY(-3px); border-top-color: var(--color-primary); }
+.resumo-valor { font-size: 2.5rem; }
+.resumo-label { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 1px; }
+.card-resumo.acao { cursor: pointer; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.2); }
+.card-resumo.acao:hover { background: rgba(0, 229, 255, 0.15); box-shadow: var(--glow-primary); }
+.action-icon { font-size: 2rem; margin-bottom: 5px; display: inline-block; }
 
-.xp-barra-fundo {
-  width: 100%;
-  height: 8px;
-  background: #f3f4f6;
-  border-radius: 99px;
-  overflow: hidden;
-  margin-bottom: 6px;
-}
-.xp-barra-preenchimento {
-  height: 100%;
-  background: linear-gradient(90deg, #8b5cf6, #c084fc);
-  border-radius: 99px;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.xp-footer { font-size: 11px; color: #9ca3af; }
-.xp-footer strong { color: #6b7280; }
+/* Split Layout */
+.content-split { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
 
-/* ========================================== */
+/* Materias Accordion */
+.card-materia { margin-bottom: 15px; overflow: hidden; transition: all 0.3s; }
+.materia-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; cursor: pointer; }
+.materia-header:hover { background: rgba(255,255,255,0.02); }
+.materia-info { display: flex; align-items: center; gap: 15px; }
+.materia-badge { background: rgba(0, 229, 255, 0.1); color: var(--color-primary); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(0, 229, 255, 0.3); }
+.materia-nome { font-weight: 600; font-size: 1rem; }
+.materia-direita { display: flex; align-items: center; gap: 15px; }
+.materia-detalhe { font-size: 0.8rem; }
+.materia-percentual { font-size: 1.1rem; min-width: 45px; text-align: right; }
 
-.resumo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
-.card-resumo { background: white; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); display: flex; flex-direction: column; gap: 8px; }
-.card-resumo.acao { cursor: pointer; transition: transform 0.2s; }
-.card-resumo.acao:hover { transform: translateY(-3px); }
-.resumo-valor { font-size: 32px; font-weight: 700; }
-.resumo-label { font-size: 13px; color: #999; }
+.barra-mini { width: 100px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; }
+.barra-mini.pequena { width: 70px; }
+.barra-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+.bg-success { background: var(--color-success); box-shadow: var(--glow-success); }
+.bg-warning { background: #F5A623; }
+.bg-error { background: var(--color-error); }
+.bg-dim { background: var(--text-dim); }
 
-.secao { margin-bottom: 40px; }
-.secao h3 { font-size: 18px; color: #333; margin-bottom: 16px; }
+.diferenca { font-size: 0.8rem; min-width: 50px; text-align: right; }
+.positivo { color: var(--color-success); }
+.negativo { color: var(--color-error); }
 
-.card-materia { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 12px; overflow: hidden; }
-.materia-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; transition: background 0.15s; }
-.materia-header:hover { background: #f8f9ff; }
-.materia-info { display: flex; align-items: center; gap: 12px; }
-.materia-badge { background: #667eea; color: white; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
-.materia-nome { font-weight: 600; color: #333; }
-.materia-detalhe { font-size: 13px; color: #999; }
-.materia-direita { display: flex; align-items: center; gap: 12px; }
-.materia-percentual { font-weight: 700; font-size: 16px; min-width: 48px; text-align: right; }
-.diferenca { font-size: 12px; font-weight: 600; min-width: 40px; text-align: right; }
-.diferenca.positivo { color: #22c55e; }
-.diferenca.negativo { color: #ef4444; }
-.toggle-icon { color: #999; font-size: 12px; }
-
-.barra-mini { width: 120px; height: 8px; background: #eee; border-radius: 99px; overflow: hidden; }
-.barra-mini.pequena { width: 80px; height: 6px; }
-.barra-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
-.barra-fill.verde { background: #22c55e; }
-.barra-fill.amarelo { background: #f59e0b; }
-.barra-fill.vermelho { background: #ef4444; }
-.barra-fill.cinza-fill { background: #cbd5e1; }
-
-.temas-lista { border-top: 1px solid #f0f0f0; }
-.temas-legenda { display: flex; justify-content: flex-end; gap: 40px; padding: 8px 20px; font-size: 11px; color: #bbb; border-bottom: 1px solid #f5f5f5; }
-.tema-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px 12px 44px; border-bottom: 1px solid #f8f8f8; }
+/* Temas Internos */
+.temas-lista { background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05); padding: 10px 0; }
+.temas-legenda { display: flex; justify-content: flex-end; gap: 50px; padding: 5px 25px; font-size: 0.7rem; letter-spacing: 1px; }
+.tema-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 25px 12px 50px; border-bottom: 1px solid rgba(255,255,255,0.02); }
 .tema-item:last-child { border-bottom: none; }
-.tema-info { display: flex; flex-direction: column; gap: 2px; }
-.tema-nome { font-size: 14px; color: #444; }
-.tema-detalhe { font-size: 12px; color: #bbb; }
+.tema-info { display: flex; flex-direction: column; }
+.tema-nome { font-size: 0.9rem; }
+.tema-detalhe { font-size: 0.75rem; }
 .tema-direita { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-.barra-dupla { display: flex; align-items: center; gap: 8px; }
-.barra-label { font-size: 11px; color: #667eea; min-width: 32px; }
-.barra-label.cinza { color: #bbb; }
-.tema-percentual { font-size: 13px; font-weight: 600; min-width: 36px; text-align: right; }
-.tema-percentual.cinza { color: #bbb; font-weight: 400; }
+.barra-dupla { display: flex; align-items: center; gap: 10px; }
+.tema-percentual { font-size: 0.85rem; min-width: 40px; text-align: right; }
+.opacity-50 { opacity: 0.5; }
 
-.tabela-container { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
-.tabela { width: 100%; border-collapse: collapse; }
-.tabela thead { background: #667eea; color: white; }
-.tabela th { padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 500; }
-.tabela tbody tr { border-bottom: 1px solid #f0f0f0; }
-.tabela tbody tr:hover { background: #f8f9ff; }
-.tabela td { padding: 12px 16px; font-size: 14px; color: #333; }
-.data { color: #999; font-size: 13px; }
+/* Historico Custom List */
+.historico-container { padding: 10px; }
+.historico-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; }
+.historico-item:hover { background: rgba(255,255,255,0.02); }
+.historico-item:last-child { border-bottom: none; }
+.hist-info { display: flex; flex-direction: column; gap: 4px; }
+.hist-nome { font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.tentativa-badge { background: rgba(176, 38, 255, 0.15); color: var(--color-secondary); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid rgba(176, 38, 255, 0.3); }
+.hist-data { font-size: 0.75rem; }
+.hist-score { display: flex; align-items: center; gap: 15px; }
+.hist-acertos { font-size: 0.8rem; }
+.hist-percentual { font-size: 1.1rem; min-width: 45px; text-align: right; }
+.hist-trend { font-size: 0.8rem; min-width: 60px; text-align: right; font-weight: 600; }
 
-.verde { color: #22c55e; }
-.amarelo { color: #f59e0b; }
-.vermelho { color: #ef4444; }
-.azul { color: #667eea; }
-.roxo { color: #a855f7; }
-.ml-2 { margin-left: 8px; }
+/* Utilitários Locais */
+.color-primary { color: var(--color-primary); }
+.color-secondary { color: var(--color-secondary); }
+.color-success { color: var(--color-success); }
+.color-error { color: var(--color-error); }
+.text-main { color: var(--text-main); }
+.text-dim { color: var(--text-dim); }
 
-@media (max-width: 768px) {
-  .header-section { flex-direction: column; align-items: flex-start; }
-  .gamificacao-card { width: 100%; box-sizing: border-box; justify-content: space-between; }
-  .xp-box { flex: 1; }
-  .resumo { grid-template-columns: repeat(2, 1fr); }
-  .barra-mini { width: 60px; }
+@media (max-width: 1024px) {
+  .content-split { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .user-stats { display: none; /* Simplifica mobile */ }
 }
 </style>
