@@ -103,7 +103,7 @@ async function handleLogin() {
   width: 100%;
   height: 100%;
   /* 👇 CORREÇÃO AQUI: Dois pontinhos antes da barra */
-  background-image: url('./assets/login-bg-neon.png'); 
+  background-image: url('../assets/login-bg-neon.png'); 
   background-size: cover;
   background-position: center;
   z-index: 1;
