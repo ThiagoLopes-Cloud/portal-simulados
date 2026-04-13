@@ -1,135 +1,106 @@
 <template>
-  <div class="dashboard-wrapper">
-    <div class="main-fundo"></div>
-
-    <nav class="navbar clean-card">
-      <div class="logo-area">
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
         <h1 class="logo-text">
-          <span class="color-primary">SIMUS</span><span class="color-dark">LAB</span>
+          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
         </h1>
-        <p class="tagline text-dim">Painel de Performance</p>
+        <p class="tagline">Painel de Performance</p>
       </div>
 
-      <div class="nav-links">
-        <router-link to="/simulados" class="nav-item">Avaliações</router-link>
-        <router-link to="/ranking" class="nav-item">Ranking Geral</router-link>
-        <router-link v-if="isAdmin" to="/admin/alunos" class="nav-item link-admin">
-          Painel de Comando
+      <nav class="sidebar-nav">
+        <router-link to="/dashboard" class="nav-link">
+          <span class="icon">📊</span> Dashboard
         </router-link>
-      </div>
+        <router-link to="/simulados" class="nav-link">
+          <span class="icon">🎯</span> Avaliações
+        </router-link>
+        <router-link to="/ranking" class="nav-link">
+          <span class="icon">🏆</span> Ranking Geral
+        </router-link>
+        <router-link v-if="isAdmin" to="/admin/alunos" class="nav-link link-admin">
+          <span class="icon">🛡️</span> Comando Admin
+        </router-link>
+      </nav>
 
-      <div class="user-stats">
-        <div class="xp-container" v-if="dados.gamificacao">
-          <div class="level-badge">NÍVEL {{ nivelAtual }}</div>
-          <div class="xp-bar-bg">
-            <div class="xp-bar-fill" :style="{ width: progressoNivel + '%' }"></div>
+      <div class="sidebar-footer">
+        <button @click="logout" class="btn-logout-clean">Sair do Sistema</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="welcome-msg">
+          <h2>Olá, {{ username }}</h2>
+          <p class="text-dim">Mantenha a constância. Seus dados mostram sua evolução.</p>
+        </div>
+
+        <div class="user-stats-top" v-if="dados.gamificacao">
+          <div class="stat-item">
+            <span class="lvl-tag">LVL {{ nivelAtual }}</span>
+            <div class="xp-mini-bar">
+              <div class="xp-fill" :style="{ width: progressoNivel + '%' }"></div>
+            </div>
           </div>
-          <span class="xp-text">{{ xpProgresso }} / 500 XP</span>
+          <div class="streak-mini">
+            🔥 {{ dados.gamificacao?.ofensiva || 0 }} Dias
+          </div>
         </div>
-
-        <div class="streak-badge" :class="{ 'fogo-ativo': dados.gamificacao?.ofensiva > 0 }">
-          <span class="fire-icon">{{ dados.gamificacao?.ofensiva > 0 ? '🔥' : '🧊' }}</span>
-          <span class="streak-count">{{ dados.gamificacao?.ofensiva || 0 }} Dias</span>
-        </div>
-        
-        <button @click="logout" class="btn-logout">Sair</button>
-      </div>
-    </nav>
-
-    <div v-if="carregando" class="status-msg loading">Sincronizando dados de performance...</div>
-    <div v-else-if="erro" class="status-msg erro">{{ erro }}</div>
-
-    <main v-else class="main-content">
-      <header class="welcome-header">
-        <h2>Olá, {{ username }}</h2>
-        <p class="text-dim">"A constância é o que separa o sonho da aprovação. Analise seus dados e otimize sua estratégia."</p>
       </header>
 
-      <section class="stats-grid">
-        <div class="resumo-card clean-card">
-          <span class="resumo-valor" :class="corScoreText(dados.score_geral)">{{ dados.score_geral }}%</span>
-          <span class="resumo-label">Score Geral de Precisão</span>
-        </div>
-        <div class="resumo-card clean-card">
-          <span class="resumo-valor color-primary">{{ dados.total_simulados }}</span>
-          <span class="resumo-label">Simulações Concluídas</span>
-        </div>
-        <div class="resumo-card clean-card">
-          <span class="resumo-valor color-secondary">{{ dados.por_materia.length }}</span>
-          <span class="resumo-label">Áreas de Conhecimento</span>
-        </div>
-        <div class="resumo-card acao-card clean-card" @click="$router.push('/simulados')">
-          <span class="action-icon">🎯</span>
-          <span class="resumo-label-bold">Iniciar Nova Simulação</span>
-        </div>
-      </section>
+      <div v-if="carregando" class="status-msg">Sincronizando laboratório...</div>
+      <div v-else-if="erro" class="status-msg erro">{{ erro }}</div>
 
-      <div class="content-split">
-        <section class="secao-materias">
-          <h3 class="section-title">Diagnóstico por Disciplina</h3>
-
-          <div v-if="dados.por_materia.length === 0" class="vazio clean-card">
-            <p>Aguardando dados iniciais. Realize sua primeira simulação para gerar o diagnóstico.</p>
+      <div v-else class="dashboard-grid">
+        <section class="quick-stats">
+          <div class="stat-card clean-card">
+            <span class="stat-value" :class="corScoreText(dados.score_geral)">{{ dados.score_geral }}%</span>
+            <span class="stat-label">Precisão Geral</span>
           </div>
+          <div class="stat-card clean-card">
+            <span class="stat-value color-blue">{{ dados.total_simulados }}</span>
+            <span class="stat-label">Simulações</span>
+          </div>
+          <div class="stat-card clean-card">
+            <span class="stat-value color-purple">{{ dados.por_materia.length }}</span>
+            <span class="stat-label">Disciplinas</span>
+          </div>
+        </section>
 
-          <div v-for="materia in dados.por_materia" :key="materia.codigo" class="materia-item clean-card">
-            <div class="materia-header" @click="toggleMateria(materia.codigo)">
-              <div class="materia-info">
-                <span class="materia-badge">{{ materia.codigo }}</span>
-                <span class="materia-nome">{{ materia.materia }}</span>
-              </div>
-              <div class="materia-direita">
-                <span class="materia-detalhe text-dim">{{ materia.acertos }}/{{ materia.total_questoes }}</span>
-                <div class="barra-progresso">
-                  <div class="barra-fill" :class="corScoreBg(materia.percentual)" :style="{ width: materia.percentual + '%' }"></div>
+        <div class="data-split">
+          <section class="performance-section">
+            <h3 class="section-title">Diagnóstico de Disciplinas</h3>
+            <div v-for="materia in dados.por_materia" :key="materia.codigo" class="materia-card clean-card">
+              <div class="materia-main" @click="toggleMateria(materia.codigo)">
+                <div class="materia-info">
+                  <span class="m-code">{{ materia.codigo }}</span>
+                  <span class="m-name">{{ materia.materia }}</span>
                 </div>
-                <span class="materia-percentual" :class="corScoreText(materia.percentual)">{{ materia.percentual }}%</span>
-                <span class="tendencia" :class="materia.diferenca_media >= 0 ? 'positivo' : 'negativo'">
-                  {{ materia.diferenca_media >= 0 ? '+' : '' }}{{ materia.diferenca_media }}%
-                </span>
-              </div>
-            </div>
-
-            <div v-if="materiasAbertas.includes(materia.codigo)" class="temas-container">
-              <div v-for="tema in materia.temas" :key="tema.tema" class="tema-row">
-                <div class="tema-info">
-                  <span class="tema-nome">{{ tema.tema }}</span>
-                  <span class="tema-sub text-dim">{{ tema.acertos }}/{{ tema.total }} acertos</span>
-                </div>
-                <div class="tema-stats">
-                  <div class="barra-dupla">
-                    <span class="label-mini">Pessoal</span>
-                    <div class="barra-mini">
-                      <div class="barra-fill" :class="corScoreBg(tema.percentual)" :style="{ width: tema.percentual + '%' }"></div>
-                    </div>
-                    <span class="percent-mini" :class="corScoreText(tema.percentual)">{{ tema.percentual }}%</span>
+                <div class="materia-stats">
+                  <div class="progress-container">
+                    <div class="progress-fill" :class="corScoreBg(materia.percentual)" :style="{ width: materia.percentual + '%' }"></div>
                   </div>
+                  <span class="m-percent" :class="corScoreText(materia.percentual)">{{ materia.percentual }}%</span>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section class="secao-historico">
-          <h3 class="section-title">Histórico de Atividades</h3>
-          
-          <div v-if="dados.historico.length === 0" class="vazio clean-card">Nenhum registro encontrado.</div>
-          
-          <div class="historico-lista clean-card" v-else>
-            <div v-for="item in historicoComTendencia" :key="item.resultado_id" class="hist-row">
-              <div class="hist-meta">
-                <span class="hist-titulo">{{ item.simulado }}</span>
-                <span class="hist-data">{{ item.data }}</span>
-              </div>
-              <div class="hist-result">
-                <span class="hist-percent" :class="corScoreText(item.score)">{{ item.score }}%</span>
-                <span class="hist-icon" :class="item.trend === 'up' ? 'positivo' : (item.trend === 'down' ? 'negativo' : '')">
-                  {{ item.trend === 'up' ? '▲' : (item.trend === 'down' ? '▼' : '—') }}
-                </span>
+          <section class="history-section">
+            <h3 class="section-title">Atividades Recentes</h3>
+            <div class="history-card clean-card">
+              <div v-for="item in historicoComTendencia" :key="item.resultado_id" class="history-row">
+                <div class="h-info">
+                  <span class="h-title">{{ item.simulado }}</span>
+                  <span class="h-date">{{ item.data }}</span>
+                </div>
+                <div class="h-result">
+                  <span :class="corScoreText(item.score)">{{ item.score }}%</span>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </main>
   </div>
@@ -164,14 +135,14 @@ const historicoComTendencia = computed(() => {
   const mapPorSimulado = {};
   const historicoCronologico = [...dados.value.historico].reverse();
   const historicoEnriquecido = historicoCronologico.map(item => {
-    let trend = null; let diff = 0;
+    let trend = null;
     if (mapPorSimulado[item.simulado_id] !== undefined) {
       const scoreAnterior = mapPorSimulado[item.simulado_id];
-      diff = parseFloat((item.score - scoreAnterior).toFixed(1));
-      if (diff > 0) trend = 'up'; else if (diff < 0) trend = 'down'; else trend = 'same';
+      const diff = parseFloat((item.score - scoreAnterior).toFixed(1));
+      if (diff > 0) trend = 'up'; else if (diff < 0) trend = 'down';
     }
     mapPorSimulado[item.simulado_id] = item.score;
-    return { ...item, trend, diff };
+    return { ...item, trend };
   });
   return historicoEnriquecido.reverse();
 });
@@ -184,172 +155,137 @@ onMounted(async () => {
     ])
     username.value = perfil.data.username
     dados.value = dashboard.data
-    if (dados.value.por_materia.length > 0) {
-      materiasAbertas.value = [dados.value.por_materia[0].codigo]
-    }
   } catch (error) {
-    erro.value = 'Falha na sincronização com o laboratório.'
-    console.error(error)
+    erro.value = 'Erro de conexão com o laboratório.'
   } finally {
     carregando.value = false
   }
 })
 
-function toggleMateria(codigo) {
-  const index = materiasAbertas.value.indexOf(codigo)
-  if (index === -1) materiasAbertas.value.push(codigo)
-  else materiasAbertas.value.splice(index, 1)
-}
-
-function corScoreText(valor) {
-  if (valor >= 70) return 'color-success'
-  if (valor >= 50) return 'color-warning'
-  return 'color-error'
-}
-
-function corScoreBg(valor) {
-  if (valor >= 70) return 'bg-success'
-  if (valor >= 50) return 'bg-warning'
-  return 'bg-error'
-}
-
-function logout() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user_role')
-  router.push({ name: 'login' })
-}
+function corScoreText(v) { return v >= 70 ? 'color-green' : v >= 50 ? 'color-orange' : 'color-red'; }
+function corScoreBg(v) { return v >= 70 ? 'bg-green' : v >= 50 ? 'bg-orange' : 'bg-red'; }
+function logout() { localStorage.clear(); router.push('/login'); }
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-.dashboard-wrapper {
-  position: relative;
-  min-height: 100vh;
-  background-color: #F8F9FA;
-  font-family: 'Inter', sans-serif;
-  color: #0A2540;
-  padding: 0 0 40px 0;
-}
-
-.main-fundo {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(135deg, #FFFFFF 0%, #F1F4F8 100%);
-  z-index: 0;
-}
-
-.main-content {
-  position: relative;
-  z-index: 5;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-/* Navbar */
-.navbar {
-  position: relative;
-  z-index: 10;
+.dashboard-layout {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 40px;
-  background: #FFFFFF;
-  margin-bottom: 40px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-  border-radius: 0 0 16px 16px;
+  min-height: 100vh;
   width: 100vw;
-  left: 50%;
-  transform: translateX(-50%);
+  position: absolute;
+  top: 0; left: 0;
+  background-color: #F8FAFC;
+  font-family: 'Inter', sans-serif;
 }
 
-.logo-text { font-size: 1.4rem; font-weight: 700; margin: 0; }
-.tagline { font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; margin-top: -4px; }
-
-.nav-links { display: flex; gap: 25px; }
-.nav-item { 
-  text-decoration: none; color: #6B7280; font-size: 0.9rem; font-weight: 500; 
-  transition: color 0.2s;
+/* --- SIDEBAR AZUL (DNA DO LOGIN) --- */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #0A2540 0%, #0052FF 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 24px;
+  position: fixed;
+  height: 100vh;
 }
-.nav-item:hover, .nav-item.router-link-active { color: #0052FF; }
 
-/* Cards & Stats */
+.logo-white { color: #FFFFFF; font-weight: 700; font-size: 1.5rem; }
+.logo-accent { color: #00D09C; font-weight: 700; font-size: 1.5rem; }
+.tagline { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.7; margin-top: 4px; }
+
+.sidebar-nav { margin-top: 60px; flex: 1; }
+.nav-link {
+  display: flex; align-items: center; gap: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.nav-link:hover, .nav-link.router-link-active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* --- CONTEÚDO BRANCO --- */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 40px 60px;
+}
+
+.top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 40px;
+}
+.welcome-msg h2 { font-size: 1.8rem; font-weight: 700; color: #0A2540; }
+.text-dim { color: #64748B; font-size: 0.95rem; }
+
+.user-stats-top { display: flex; align-items: center; gap: 20px; }
+.lvl-tag { background: #00D09C; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; }
+.xp-mini-bar { width: 100px; height: 6px; background: #E2E8F0; border-radius: 10px; margin-top: 4px; overflow: hidden; }
+.xp-fill { height: 100%; background: #0052FF; }
+.streak-mini { font-weight: 600; color: #EA580C; background: #FFF7ED; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; }
+
+/* Cards Clean */
 .clean-card {
-  background: #FFFFFF;
+  background: white;
   border: 1px solid rgba(0,0,0,0.05);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
-.resumo-card { padding: 30px 20px; text-align: center; }
-.resumo-valor { font-size: 2.2rem; font-weight: 700; display: block; }
-.resumo-label { font-size: 0.8rem; color: #6B7280; font-weight: 500; margin-top: 5px; }
-.resumo-label-bold { font-size: 0.85rem; font-weight: 600; color: #0052FF; }
+.quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px; }
+.stat-card { padding: 30px; text-align: center; }
+.stat-value { font-size: 2.2rem; font-weight: 700; display: block; }
+.stat-label { color: #64748B; font-size: 0.85rem; font-weight: 500; margin-top: 4px; }
 
-.acao-card { 
-  cursor: pointer; background: #F0F5FF; border: 1px solid rgba(0,82,255,0.1); 
+.data-split { display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; }
+.section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+
+.materia-card { margin-bottom: 12px; padding: 18px 24px; }
+.materia-main { display: flex; justify-content: space-between; align-items: center; }
+.m-code { background: #F1F5F9; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; }
+.m-name { font-weight: 600; margin-left: 12px; }
+.progress-container { width: 100px; height: 6px; background: #F1F5F9; border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; }
+
+.history-card { padding: 10px 0; }
+.history-row { display: flex; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid #F1F5F9; }
+.h-title { font-weight: 600; font-size: 0.9rem; display: block; }
+.h-date { font-size: 0.75rem; color: #94A3B8; }
+
+/* Cores */
+.color-blue { color: #0052FF; }
+.color-purple { color: #7C3AED; }
+.color-green { color: #00D09C; }
+.color-orange { color: #F59E0B; }
+.color-red { color: #EF4444; }
+.bg-green { background: #00D09C; }
+.bg-orange { background: #F59E0B; }
+.bg-red { background: #EF4444; }
+
+.btn-logout-clean {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
   transition: all 0.2s;
 }
-.acao-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,82,255,0.1); }
+.btn-logout-clean:hover { background: #EF4444; border-color: #EF4444; }
 
-/* Gamificação Clean */
-.user-stats { display: flex; align-items: center; gap: 25px; }
-.level-badge { background: #00D09C; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
-.xp-bar-bg { width: 120px; height: 8px; background: #E5E7EB; border-radius: 10px; overflow: hidden; }
-.xp-bar-fill { height: 100%; background: #0052FF; transition: width 1s; }
-.xp-text { font-size: 0.75rem; color: #6B7280; font-weight: 500; }
-
-.streak-badge { 
-  display: flex; align-items: center; gap: 6px; padding: 6px 14px; 
-  background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 20px;
-}
-.streak-badge.fogo-ativo { background: #FFF7ED; border-color: #FED7AA; color: #EA580C; }
-.streak-count { font-size: 0.85rem; font-weight: 600; }
-
-/* Materias & Histórico */
-.content-split { display: grid; grid-template-columns: 1.6fr 1fr; gap: 30px; }
-.section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #0A2540; }
-
-.materia-item { margin-bottom: 12px; }
-.materia-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; cursor: pointer; }
-.materia-badge { background: #F3F4F6; color: #374151; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; }
-.materia-nome { font-weight: 600; margin-left: 10px; }
-
-.barra-progresso { width: 80px; height: 6px; background: #F3F4F6; border-radius: 10px; overflow: hidden; }
-.barra-fill { height: 100%; border-radius: 10px; }
-
-/* Cores de Performance */
-.bg-success { background: #00D09C; }
-.bg-warning { background: #F5A623; }
-.bg-error { background: #EF4444; }
-.color-success { color: #00D09C; }
-.color-warning { color: #D97706; }
-.color-error { color: #EF4444; }
-.color-primary { color: #0052FF; }
-.color-secondary { color: #7C3AED; }
-
-.hist-row { 
-  display: flex; justify-content: space-between; padding: 15px 20px; 
-  border-bottom: 1px solid #F3F4F6;
-}
-.hist-row:last-child { border-bottom: none; }
-.hist-titulo { font-size: 0.9rem; font-weight: 600; display: block; }
-.hist-data { font-size: 0.75rem; color: #9CA3AF; }
-.hist-percent { font-weight: 700; font-size: 1rem; }
-
-.btn-logout { 
-  background: none; border: 1px solid #E5E7EB; color: #6B7280; 
-  padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
-  transition: all 0.2s;
-}
-.btn-logout:hover { border-color: #EF4444; color: #EF4444; }
-
-@media (max-width: 1024px) {
-  .content-split { grid-template-columns: 1fr; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .user-stats { display: none; }
+@media (max-width: 1100px) {
+  .sidebar { width: 80px; padding: 40px 10px; }
+  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
+  .main-content { margin-left: 80px; }
 }
 </style>
