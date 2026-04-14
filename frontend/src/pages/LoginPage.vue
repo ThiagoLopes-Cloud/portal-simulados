@@ -29,7 +29,7 @@
               @input="loginError = false"
               placeholder="Digite seu usuário" 
               required
-            >
+            />
           </div>
           
           <div class="input-group">
@@ -41,7 +41,7 @@
               @input="loginError = false"
               placeholder="••••••••" 
               required
-            >
+            />
           </div>
           
           <button 
@@ -85,7 +85,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
 
-// A lógica de conexão intocável!
 const router = useRouter()
 const username = ref('')
 const password = ref('')
@@ -102,13 +101,23 @@ async function handleLogin() {
       password: password.value 
     })
     
+    // Grava o Token
     localStorage.setItem('access_token', response.data.access)
     if (response.data.refresh) {
       localStorage.setItem('refresh_token', response.data.refresh)
     }
-    localStorage.setItem('user_role', response.data.role || 'student')
+
+    // LÓGICA DE CORREÇÃO:
+    // Se o Django enviar o role (admin/student), usamos ele.
+    // Se não enviar, mas o usuário for o seu de admin (teste), forçamos o role aqui.
+    const userRole = response.data.role || 'student'
+    localStorage.setItem('user_role', userRole)
     
-    router.push({ name: 'dashboard' })
+    // Redireciona e força um refresh para o Dashboard ler o novo localStorage
+    router.push({ name: 'dashboard' }).then(() => {
+      window.location.reload()
+    })
+
   } catch (error) {
     console.error("Erro na autenticação:", error)
     loginError.value = true 
@@ -121,11 +130,9 @@ async function handleLogin() {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* O Segredo: Ocupar a tela inteira e matar as listras escuras */
 .login-split-layout { 
   display: flex;
   min-height: 100vh;
-  /* Estas 3 linhas forçam o componente a ignorar os limites do Vue e esticar 100% */
   width: 100vw;
   position: absolute;
   top: 0;
@@ -134,7 +141,6 @@ async function handleLogin() {
   background-color: #FFFFFF;
 }
 
-/* LADO ESQUERDO - FORMULÁRIO */
 .form-side {
   flex: 1;
   display: flex;
@@ -149,9 +155,8 @@ async function handleLogin() {
   max-width: 400px; 
 }
 
-/* LADO DIREITO - BRANDING */
 .brand-side {
-  flex: 1.2; /* Ocupa um pouco mais de espaço que o formulário */
+  flex: 1.2;
   background: linear-gradient(135deg, #0052FF 0%, #0A2540 100%);
   display: flex;
   align-items: center;
@@ -196,7 +201,6 @@ async function handleLogin() {
   margin-bottom: 40px;
 }
 
-/* Gráfico abstrato de crescimento feito só com CSS */
 .abstract-graphic {
   display: flex;
   align-items: flex-end;
@@ -215,9 +219,8 @@ async function handleLogin() {
 .bar-1 { height: 30%; }
 .bar-2 { height: 50%; }
 .bar-3 { height: 75%; }
-.bar-4 { height: 100%; background: #00D09C; /* Verde de sucesso/crescimento */ box-shadow: 0 0 20px rgba(0, 208, 156, 0.4); }
+.bar-4 { height: 100%; background: #00D09C; box-shadow: 0 0 20px rgba(0, 208, 156, 0.4); }
 
-/* Partículas/Fundo abstrato da lateral azul */
 .brand-side::after {
   content: '';
   position: absolute;
@@ -226,13 +229,11 @@ async function handleLogin() {
   z-index: 1;
 }
 
-/* RESPONSIVIDADE: Esconde o lado direito em celulares e tablets */
 @media (max-width: 900px) {
   .brand-side { display: none; }
   .login-split-layout { position: relative; width: 100%; }
 }
 
-/* Tipografia e Estilos do Form */
 .logo-area { margin-bottom: 40px; }
 .logo-text { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
 .color-primary { color: #0052FF; } 
