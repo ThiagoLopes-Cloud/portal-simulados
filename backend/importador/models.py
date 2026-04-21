@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from conteudo.models import Tema
 from users.models import User
 
 
@@ -16,7 +17,7 @@ class ImportacaoProva(models.Model):
     STATUS_CHOICES = [
         (ENVIADA, 'Enviada'),
         (PROCESSANDO, 'Processando'),
-        (AGUARDANDO_REVISAO, 'Aguardando revisão'),
+        (AGUARDANDO_REVISAO, 'Aguardando revisao'),
         (PARCIALMENTE_PUBLICADA, 'Parcialmente publicada'),
         (PUBLICADA, 'Publicada'),
         (FALHOU, 'Falhou'),
@@ -92,8 +93,8 @@ class ImportacaoProva(models.Model):
     atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
 
     class Meta:
-        verbose_name = 'Importação de Prova'
-        verbose_name_plural = 'Importações de Prova'
+        verbose_name = 'Importacao de Prova'
+        verbose_name_plural = 'Importacoes de Prova'
         ordering = ['-criado_em']
 
     def __str__(self):
@@ -144,8 +145,8 @@ class ImportacaoProva(models.Model):
             simulado = None
         if simulado and simulado.resultados.exists():
             raise ValidationError(
-                'Não é possível excluir esta importação porque o simulado original '
-                'já possui resultados de alunos.'
+                'Nao e possivel excluir esta importacao porque o simulado original '
+                'ja possui resultados de alunos.'
             )
         storage = self.pdf_prova.storage if self.pdf_prova else None
         prova_name = self.pdf_prova.name if self.pdf_prova else None
@@ -165,7 +166,7 @@ class ProvaOriginal(models.Model):
 
     STATUS_CHOICES = [
         (RASCUNHO, 'Rascunho'),
-        (EM_REVISAO, 'Em revisão'),
+        (EM_REVISAO, 'Em revisao'),
         (PARCIAL, 'Parcial'),
         (COMPLETA, 'Completa'),
     ]
@@ -174,16 +175,16 @@ class ProvaOriginal(models.Model):
         ImportacaoProva,
         on_delete=models.CASCADE,
         related_name='prova_original',
-        verbose_name='Importação',
+        verbose_name='Importacao',
     )
     descricao = models.CharField(
         max_length=255,
         blank=True,
-        verbose_name='Descrição',
+        verbose_name='Descricao',
     )
     total_questoes_esperado = models.PositiveIntegerField(
         default=0,
-        verbose_name='Total de questões esperado',
+        verbose_name='Total de questoes esperado',
     )
     status_editorial = models.CharField(
         max_length=20,
@@ -218,17 +219,23 @@ class QuestaoImportada(models.Model):
     PUBLICADA = 'publicada'
 
     STATUS_CHOICES = [
-        (PENDENTE_APROVACAO, 'Pendente de aprovação'),
-        (CORRECAO_NECESSARIA, 'Correção necessária'),
+        (PENDENTE_APROVACAO, 'Pendente de aprovacao'),
+        (CORRECAO_NECESSARIA, 'Correcao necessaria'),
         (REJEITADA, 'Rejeitada'),
         (PUBLICADA, 'Publicada'),
+    ]
+
+    DIFICULDADE_CHOICES = [
+        ('F', 'Facil'),
+        ('M', 'Medio'),
+        ('D', 'Dificil'),
     ]
 
     importacao = models.ForeignKey(
         ImportacaoProva,
         on_delete=models.CASCADE,
         related_name='questoes_importadas',
-        verbose_name='Importação',
+        verbose_name='Importacao',
     )
     prova_original = models.ForeignKey(
         ProvaOriginal,
@@ -236,7 +243,12 @@ class QuestaoImportada(models.Model):
         related_name='questoes_importadas',
         verbose_name='Prova original',
     )
-    numero_na_prova = models.PositiveIntegerField(verbose_name='Número na prova')
+    numero_na_prova = models.PositiveIntegerField(verbose_name='Numero na prova')
+    pagina_inicial = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Pagina inicial',
+    )
     idioma = models.CharField(
         max_length=20,
         choices=IDIOMA_CHOICES,
@@ -244,13 +256,33 @@ class QuestaoImportada(models.Model):
         blank=True,
         verbose_name='Idioma',
     )
-    texto_bruto = models.TextField(blank=True, verbose_name='Texto bruto extraído')
+    texto_bruto = models.TextField(blank=True, verbose_name='Texto bruto extraido')
     enunciado = models.TextField(blank=True, verbose_name='Enunciado')
+    tema = models.ForeignKey(
+        Tema,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='questoes_importadas',
+        verbose_name='Tema',
+    )
     opcao_a = models.TextField(blank=True, verbose_name='Alternativa A')
     opcao_b = models.TextField(blank=True, verbose_name='Alternativa B')
     opcao_c = models.TextField(blank=True, verbose_name='Alternativa C')
     opcao_d = models.TextField(blank=True, verbose_name='Alternativa D')
     opcao_e = models.TextField(blank=True, verbose_name='Alternativa E')
+    dificuldade = models.CharField(
+        max_length=1,
+        choices=DIFICULDADE_CHOICES,
+        default='M',
+        verbose_name='Dificuldade',
+    )
+    imagem_enunciado_arquivo = models.FileField(
+        upload_to='importacoes/imagens/enunciados/',
+        null=True,
+        blank=True,
+        verbose_name='Imagem extraida do enunciado',
+    )
     gabarito_oficial = models.CharField(
         max_length=1,
         blank=True,
@@ -262,7 +294,7 @@ class QuestaoImportada(models.Model):
         null=True,
         blank=True,
         related_name='importacoes_publicadas',
-        verbose_name='Questão oficial publicada',
+        verbose_name='Questao oficial publicada',
     )
     status = models.CharField(
         max_length=30,
@@ -275,8 +307,8 @@ class QuestaoImportada(models.Model):
     atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
 
     class Meta:
-        verbose_name = 'Questão Importada'
-        verbose_name_plural = 'Questões Importadas'
+        verbose_name = 'Questao Importada'
+        verbose_name_plural = 'Questoes Importadas'
         ordering = ['numero_na_prova', 'idioma']
         unique_together = ['importacao', 'numero_na_prova', 'idioma']
 

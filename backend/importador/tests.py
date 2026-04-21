@@ -1,9 +1,16 @@
+import shutil
+from pathlib import Path
+
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.test import TestCase
+from django.test.utils import override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from conteudo.models import Materia, Tema
 from importador.models import ImportacaoProva, ProvaOriginal, QuestaoImportada, QuestaoProvaOriginal
 from importador.services import (
+    build_public_media_url,
     classify_question,
     clean_extracted_field,
     normalize_text,
@@ -11,6 +18,7 @@ from importador.services import (
     parse_question_block,
     publicar_questao_importada,
     split_question_blocks,
+    question_has_visual_hint,
 )
 from questoes.models import Questao
 from simulados.models import Simulado
@@ -163,6 +171,28 @@ class ImportadorParsingTests(TestCase):
         )
         self.assertEqual(status, QuestaoImportada.CORRECAO_NECESSARIA)
         self.assertIn('Alternativas ausentes', reason)
+
+    def test_classify_question_requires_image_when_visual_hint_exists(self):
+        status, reason = classify_question(
+            {
+                'texto_bruto': 'Observe a figura e responda.',
+                'enunciado': 'Observe a figura e responda.',
+                'opcao_a': 'A',
+                'opcao_b': 'B',
+                'opcao_c': 'C',
+                'opcao_d': 'D',
+                'opcao_e': 'E',
+            },
+            'A',
+            has_image=False,
+        )
+        self.assertEqual(status, QuestaoImportada.CORRECAO_NECESSARIA)
+        self.assertIn('indicativo visual', reason)
+
+    def test_question_has_visual_hint_detects_chart_and_figure_terms(self):
+        self.assertTrue(question_has_visual_hint('Observe o grafico e assinale a alternativa correta.'))
+        self.assertTrue(question_has_visual_hint('A figura a seguir apresenta um mapa.'))
+        self.assertFalse(question_has_visual_hint('Texto puramente conceitual sem apoio visual.'))
 
 
 class ImportacaoDeleteProtectionTests(TestCase):
@@ -423,6 +453,101 @@ class TemaEDificuldadeImportadasTests(TestCase):
 
         self.assertEqual(questao.tema, tema)
         self.assertEqual(questao.dificuldade, 'D')
+
+
+class ImagemEnunciadoImportadaTests(TestCase):
+    def setUp(self):
+        self.temp_media = Path(settings.BASE_DIR) / 'test_media_importador'
+        self.temp_media.mkdir(parents=True, exist_ok=True)
+        self.override = override_settings(
+            MEDIA_ROOT=str(self.temp_media),
+            MEDIA_URL='/media/',
+            PUBLIC_BASE_URL='http://testserver',
+        )
+        self.override.enable()
+
+    def tearDown(self):
+        self.override.disable()
+        shutil.rmtree(self.temp_media, ignore_errors=True)
+
+    def test_build_public_media_url_uses_public_base_url(self):
+        user = User.objects.create_user(username='admin7', password='senha123', role='admin')
+        importacao = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova = ProvaOriginal.objects.create(importacao=importacao, descricao='ENEM 2025 - Azul')
+        questao = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=8,
+            enunciado='Questao com imagem.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='A',
+        )
+        questao.imagem_enunciado_arquivo.save(
+            'teste.png',
+            SimpleUploadedFile('teste.png', b'fake-image', content_type='image/png'),
+            save=True,
+        )
+
+        self.assertEqual(
+            build_public_media_url(questao.imagem_enunciado_arquivo),
+            f'http://testserver{questao.imagem_enunciado_arquivo.url}',
+        )
+
+    def test_publicacao_propaga_imagem_enunciado_para_questao_oficial(self):
+        user = User.objects.create_user(username='admin8', password='senha123', role='admin')
+        importacao = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova = ProvaOriginal.objects.create(importacao=importacao, descricao='ENEM 2025 - Azul')
+        Simulado.objects.create(
+            titulo='ENEM 2025 - Dia 1 - Azul',
+            descricao='Original',
+            criado_por=user,
+            ativo=False,
+            importacao_origem=importacao,
+            prova_original=prova,
+            eh_simulado_original=True,
+        )
+        importada = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=18,
+            enunciado='Questao com imagem publicada.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='B',
+        )
+        importada.imagem_enunciado_arquivo.save(
+            'figura.png',
+            SimpleUploadedFile('figura.png', b'fake-image', content_type='image/png'),
+            save=True,
+        )
+
+        questao = publicar_questao_importada(importada)
+
+        self.assertEqual(
+            questao.imagem_enunciado,
+            f'http://testserver{importada.imagem_enunciado_arquivo.url}',
+        )
 
     def test_dedupe_reaproveita_questao_e_completa_tema_ausente(self):
         user = User.objects.create_user(username='admin6', password='senha123', role='admin')

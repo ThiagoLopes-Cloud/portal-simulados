@@ -239,11 +239,7 @@ class ImportacaoProvaAdmin(admin.ModelAdmin):
             try:
                 obj.delete()
             except ValidationError as exc:
-                self.message_user(
-                    request,
-                    f'{obj}: {exc}',
-                    level=messages.ERROR,
-                )
+                self.message_user(request, f'{obj}: {exc}', level=messages.ERROR)
 
     def descricao_importacao(self, obj):
         return f'ENEM {obj.ano} - Dia {obj.dia} - {obj.get_cor_display()}'
@@ -283,9 +279,11 @@ class ProvaOriginalAdmin(admin.ModelAdmin):
 class QuestaoImportadaAdmin(admin.ModelAdmin):
     list_display = [
         'numero_na_prova',
+        'pagina_inicial',
         'idioma',
         'tema',
         'dificuldade',
+        'tem_imagem_enunciado',
         'importacao',
         'status',
         'gabarito_oficial',
@@ -303,13 +301,30 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
         'importacao',
     ]
     search_fields = ['enunciado', 'texto_bruto', 'motivo_status', 'tema__nome', 'tema__materia__nome']
-    readonly_fields = ['importacao', 'prova_original', 'texto_bruto', 'questao_oficial', 'criado_em', 'atualizado_em']
+    readonly_fields = [
+        'importacao',
+        'prova_original',
+        'texto_bruto',
+        'questao_oficial',
+        'preview_imagem_enunciado',
+        'criado_em',
+        'atualizado_em',
+    ]
     ordering = ['importacao', 'numero_na_prova', 'idioma']
     actions = [aprovar_e_publicar, marcar_correcao_necessaria, rejeitar_questoes_importadas]
 
     fieldsets = (
         ('Origem', {
-            'fields': ('importacao', 'prova_original', 'numero_na_prova', 'idioma', 'status', 'motivo_status', 'questao_oficial'),
+            'fields': (
+                'importacao',
+                'prova_original',
+                'numero_na_prova',
+                'pagina_inicial',
+                'idioma',
+                'status',
+                'motivo_status',
+                'questao_oficial',
+            ),
         }),
         ('Texto extraido', {
             'fields': ('texto_bruto',),
@@ -327,10 +342,29 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
                 'dificuldade',
             ),
         }),
+        ('Imagem do enunciado', {
+            'fields': ('preview_imagem_enunciado', 'imagem_enunciado_arquivo'),
+        }),
         ('Auditoria', {
             'fields': ('criado_em', 'atualizado_em'),
         }),
     )
+
+    def tem_imagem_enunciado(self, obj):
+        return bool(obj.imagem_enunciado_arquivo)
+
+    tem_imagem_enunciado.boolean = True
+    tem_imagem_enunciado.short_description = 'Imagem'
+
+    def preview_imagem_enunciado(self, obj):
+        if not obj.imagem_enunciado_arquivo:
+            return 'Sem imagem extraida'
+        return format_html(
+            '<a href="{0}" target="_blank"><img src="{0}" style="max-width: 360px; max-height: 280px; border: 1px solid #444;" /></a>',
+            obj.imagem_enunciado_arquivo.url,
+        )
+
+    preview_imagem_enunciado.short_description = 'Preview da imagem'
 
 
 @admin.register(QuestaoProvaOriginal)

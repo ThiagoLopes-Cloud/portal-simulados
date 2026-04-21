@@ -141,6 +141,10 @@ CSRF_TRUSTED_ORIGINS = [
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+PUBLIC_BASE_URL = os.getenv(
+    'PUBLIC_BASE_URL',
+    'http://localhost:8000' if DEBUG else '',
+)
 
 # Define que o campo ID padrão dos models é BigAutoField (inteiro grande)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
