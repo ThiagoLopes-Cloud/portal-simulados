@@ -18,6 +18,7 @@ from importador.services import (
     parse_gabarito,
     parse_question_block,
     publicar_questao_importada,
+    select_owner_block_for_page,
     split_question_blocks,
     question_has_visual_hint,
 )
@@ -193,7 +194,35 @@ class ImportadorParsingTests(TestCase):
     def test_question_has_visual_hint_detects_chart_and_figure_terms(self):
         self.assertTrue(question_has_visual_hint('Observe o grafico e assinale a alternativa correta.'))
         self.assertTrue(question_has_visual_hint('A figura a seguir apresenta um mapa.'))
+        self.assertTrue(question_has_visual_hint('Nesse cartaz publicitario, os recursos verbais e nao verbais...'))
         self.assertFalse(question_has_visual_hint('Texto puramente conceitual sem apoio visual.'))
+
+    def test_select_owner_block_for_page_prefers_unique_visual_block(self):
+        blocks = [
+            {
+                'numero': 11,
+                'texto': 'Texto da questao.\nA figura decorativa da mulher ante o protagonismo masculino.',
+                'pagina_inicial': 8,
+                'paginas': [8],
+            },
+            {
+                'numero': 14,
+                'texto': 'Disponivel em exemplo.\nNesse cartaz publicitario, os recursos verbais e nao verbais...',
+                'pagina_inicial': 8,
+                'paginas': [8, 9],
+            },
+        ]
+        owner = select_owner_block_for_page(8, blocks)
+        self.assertEqual(owner['numero'], 14)
+
+    def test_select_owner_block_for_page_without_visual_hint_uses_last_starting_block(self):
+        blocks = [
+            {'numero': 3, 'texto': 'Texto da 3', 'pagina_inicial': 3, 'paginas': [2, 3]},
+            {'numero': 4, 'texto': 'Texto da 4', 'pagina_inicial': 3, 'paginas': [3]},
+            {'numero': 5, 'texto': 'Texto da 5', 'pagina_inicial': 3, 'paginas': [3, 4]},
+        ]
+        owner = select_owner_block_for_page(3, blocks)
+        self.assertEqual(owner['numero'], 5)
 
 
 class ImportacaoDeleteBehaviorTests(TestCase):

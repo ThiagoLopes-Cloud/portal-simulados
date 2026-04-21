@@ -39,7 +39,7 @@ JOIN_START_STOPWORDS = {
 QUESTION_RANGE_RE = re.compile(r'Quest[õo]es de \d+ a \d+', re.IGNORECASE)
 GABARITO_BILINGUAL_HEADER_RE = re.compile(r'INGL[ÊE]S\s+ESPANHOL', re.IGNORECASE)
 VISUAL_HINT_RE = re.compile(
-    r'\b(figura|imagem|grafico|gr[aá]fico|tabela|mapa|charge|cartum|tirinha|quadrinho|'
+    r'\b(figura|imagem|grafico|gr[aá]fico|tabela|mapa|charge|cartum|tirinha|quadrinho|cartaz|poster|p[oô]ster|'
     r'infografico|infogr[aá]fico|esquema|ilustracao|ilustra[cç][aã]o|fotografia|foto)\b',
     re.IGNORECASE,
 )
@@ -379,6 +379,12 @@ def question_has_visual_hint(text):
     return bool(VISUAL_HINT_RE.search(text or ''))
 
 
+def block_hint_text(block):
+    parsed = parse_question_block(block['texto'])
+    enunciado = parsed.get('enunciado') or ''
+    return enunciado
+
+
 def classify_question(parsed, answer, has_image=False):
     problems = []
     if not parsed['enunciado']:
@@ -477,42 +483,47 @@ def question_blocks_overlap(block_a, block_b):
     return bool(set(block_a.get('paginas', [])) & set(block_b.get('paginas', [])))
 
 
+def select_owner_block_for_page(page_number, all_blocks):
+    starting_blocks = [block for block in all_blocks if block.get('pagina_inicial') == page_number]
+    candidate_blocks = starting_blocks or [block for block in all_blocks if page_number in block.get('paginas', [])]
+    if not candidate_blocks:
+        return None
+
+    visual_blocks = [block for block in candidate_blocks if question_has_visual_hint(block_hint_text(block))]
+    if len(visual_blocks) == 1:
+        return visual_blocks[0]
+
+    if starting_blocks:
+        return starting_blocks[-1]
+
+    return candidate_blocks[-1]
+
+
 def select_images_for_block(block, all_blocks, page_entries_by_number):
     page_numbers = block.get('paginas') or ([block['pagina_inicial']] if block.get('pagina_inicial') else [])
-    candidate_images = []
-    competing_blocks = []
-
-    for other_block in all_blocks:
-        if question_blocks_overlap(block, other_block):
-            competing_blocks.append(other_block)
+    page_images = []
 
     for page_number in page_numbers:
         page_entry = page_entries_by_number.get(page_number)
-        if page_entry:
-            candidate_images.extend(page_entry['images'])
+        if not page_entry or not page_entry['images']:
+            continue
+        owner_block = select_owner_block_for_page(page_number, all_blocks)
+        if owner_block is block:
+            page_images.extend(page_entry['images'])
 
-    if not candidate_images:
+    if not page_images:
         return None, [], None
 
-    if len(candidate_images) == 1:
-        image = candidate_images[0]
-        if len(competing_blocks) == 1:
-            return image, [], None
+    if len(page_images) == 1:
+        return page_images[0], [], None
 
-        visual_blocks = [item for item in competing_blocks if question_has_visual_hint(item['texto'])]
-        if len(visual_blocks) == 1 and visual_blocks[0] is block:
-            return image, [], None
-
-        return None, [], 'Imagem presente na pagina, mas associacao esta ambigua.'
-
-    if len(competing_blocks) == 1:
+    if len(page_images) > 1:
         return (
-            candidate_images[0],
-            candidate_images[1:6],
-            'Multiplas imagens detectadas; imagens adicionais foram associadas sequencialmente para revisao.',
+            page_images[0],
+            page_images[1:6],
+            'Multiplas imagens detectadas para a mesma questao; imagens adicionais foram associadas sequencialmente para revisao.',
         )
-
-    return None, [], 'Multiplas imagens detectadas na mesma area da prova.'
+    return None, [], None
 
 
 def save_extracted_image(questao_importada, image_info):
