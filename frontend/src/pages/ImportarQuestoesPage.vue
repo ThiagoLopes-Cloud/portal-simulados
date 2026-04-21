@@ -1,278 +1,218 @@
 <template>
-  <!-- Container principal da página de importação -->
-  <div class="importar">
-
-    <!-- Navbar superior — mesma do resto do sistema -->
-    <nav class="navbar">
-      <h1>Portal de Simulados</h1>
-      <div class="nav-links">
-        <router-link to="/dashboard">Dashboard</router-link>
-        <router-link to="/admin/alunos">Alunos</router-link>
-        <button @click="logout" class="btn-logout">Sair</button>
-      </div>
-    </nav>
-
-    <!-- Conteúdo principal -->
-    <div class="container">
-
-      <!-- Cabeçalho da página -->
-      <div class="page-header">
-        <h2>📥 Importar Questões via IA</h2>
-        <p class="subtitulo">
-          Gere questões com o ChatGPT ou Gemini e importe em segundos.
-          Você poderá revisar e aprovar cada questão antes de publicar.
-        </p>
+  <div class="dashboard-layout">
+    
+    <aside class="sidebar admin-sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo-text">
+          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
+        </h1>
+        <p class="tagline">Comando Admin</p>
       </div>
 
-      <!-- Layout de duas colunas -->
-      <div class="grid">
+      <nav class="sidebar-nav">
+        <router-link to="/admin/alunos" class="nav-link">
+          <span class="icon">👥</span> Gestão de Alunos
+        </router-link>
+        <router-link to="/admin/importar" class="nav-link active">
+          <span class="icon">📥</span> Importar Questões
+        </router-link>
+        <router-link to="/simulados" class="nav-link">
+          <span class="icon">🎯</span> Ver Avaliações
+        </router-link>
+        <router-link to="/ranking" class="nav-link">
+          <span class="icon">🏆</span> Ranking Geral
+        </router-link>
+      </nav>
 
-        <!-- ==============================
-             COLUNA ESQUERDA — Guia de uso
-             ============================== -->
-        <div class="card guia">
-          <h3>Como gerar suas questões</h3>
+      <div class="sidebar-footer">
+        <button @click="logout" class="btn-logout-clean">Sair do Sistema</button>
+      </div>
+    </aside>
 
-          <!-- Passo 1 -->
-          <div class="passo">
-            <div class="passo-numero">1</div>
-            <div class="passo-conteudo">
-              <strong>Acesse o ChatGPT ou o Gemini</strong>
-              <p>Use qualquer uma das IAs abaixo. As duas funcionam bem com o nosso prompt.</p>
-              <div class="links-ia">
-                <!-- Link para o ChatGPT -->
-                <a href="https://chat.openai.com" target="_blank" class="btn-ia">
-                  ChatGPT ↗
-                </a>
-                <!-- Link para o Gemini -->
-                 <a href="https://gemini.google.com" target="_blank" class="btn-ia">
-                  Gemini ↗    
-                </a>
+    <main class="main-content">
+      
+      <header class="top-bar">
+        <div class="welcome-msg">
+          <h2>Motor de Inteligência Artificial</h2>
+          <p class="text-secondary">Gere baterias de questões utilizando LLMs (ChatGPT/Gemini) e importe os dados estruturados.</p>
+        </div>
+        <div class="admin-badge">Modo Administrador</div>
+      </header>
+
+      <div class="import-grid">
+
+        <div class="pipeline-section">
+          <div class="clean-card pipeline-card">
+            <h3 class="section-title">Pipeline de Geração Automática</h3>
+            
+            <div class="pipeline-steps">
+              <div class="step-box">
+                <div class="step-indicator">1</div>
+                <div class="step-content">
+                  <h4 class="step-title">Selecionar Motor LLM</h4>
+                  <p class="step-desc">Escolha uma inteligência artificial para processar o prompt de formatação.</p>
+                  <div class="ai-buttons">
+                    <a href="https://chat.openai.com" target="_blank" class="btn-ai chatgpt">
+                      <span class="ai-icon">⎔</span> ChatGPT ↗
+                    </a>
+                    <a href="https://gemini.google.com" target="_blank" class="btn-ai gemini">
+                      <span class="ai-icon">✧</span> Gemini ↗
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="step-box">
+                <div class="step-indicator">2</div>
+                <div class="step-content">
+                  <h4 class="step-title">Copiar Engenharia de Prompt</h4>
+                  <p class="step-desc">Copie o prompt base do sistema. Ele garante que a IA gere as questões no formato JSON exato que o laboratório necessita.</p>
+                  
+                  <div class="prompt-preview">
+                    <div class="prompt-code">Você é um especialista em elaboração de questões no padrão ENEM... Gere [QUANTIDADE] questões da disciplina [MATERIA_NOME]...</div>
+                    <div class="fade-overlay"></div>
+                  </div>
+                  
+                  <button @click="copiarPrompt" class="btn-copy-action" :class="{ 'copy-success': promptCopiado }">
+                    {{ promptCopiado ? '✓ Copiado para Área de Transferência' : '📋 Copiar Prompt Base' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="step-box">
+                <div class="step-indicator">3</div>
+                <div class="step-content">
+                  <h4 class="step-title">Injetar Parâmetros</h4>
+                  <p class="step-desc">Cole o prompt na IA escolhida e substitua as variáveis <code>[QUANTIDADE]</code> e <code>[MATERIA_NOME]</code> pelos dados da bateria desejada. Execute a geração.</p>
+                </div>
+              </div>
+
+              <div class="step-box">
+                <div class="step-indicator">4</div>
+                <div class="step-content">
+                  <h4 class="step-title">Extração e Importação</h4>
+                  <p class="step-desc">Copie exclusivamente o bloco de código JSON gerado pela IA (do `{` inicial ao `}` final) e cole no terminal de importação ao lado.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="system-warning">
+              <span class="warning-icon">⚠️</span>
+              <div class="warning-text">
+                <strong>Protocolo de Revisão:</strong> Questões importadas entram no estado "Pendente". A avaliação só ficará visível aos alunos após revisão manual e ativação no painel do Django Admin.
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Passo 2 -->
-          <div class="passo">
-            <div class="passo-numero">2</div>
-            <div class="passo-conteudo">
-              <strong>Copie o prompt abaixo</strong>
-              <p>Clique no botão para copiar o prompt completo. Ele instrui a IA a gerar questões
-                 no formato exato que o nosso sistema espera.</p>
+        <div class="terminal-section">
+          <div class="clean-card terminal-card">
+            <h3 class="section-title">Terminal de Inserção JSON</h3>
 
-              <!-- Prévia do prompt — mostra as primeiras linhas para o professor saber o que é -->
-              <div class="prompt-preview">
-                Você é um especialista em elaboração de questões no padrão ENEM...
-                Gere [QUANTIDADE_DE_QUESTOES] questões da disciplina [MATERIA_NOME]...
+            <div class="editor-wrapper">
+              <div class="editor-header">
+                <span class="editor-tab">data_payload.json</span>
+                <span class="editor-status" :class="statusJson.tipo" v-if="jsonTexto.trim()">
+                  {{ statusJson.mensagem }}
+                </span>
+              </div>
+              <textarea
+                v-model="jsonTexto"
+                class="code-textarea"
+                placeholder='{
+  "simulado": {
+    "titulo": "Nome da Bateria",
+    "descricao": "Detalhes..."
+  },
+  "questoes": [ ... ]
+}'
+                spellcheck="false"
+              ></textarea>
+            </div>
+
+            <div class="detection-badge" v-if="questoesDetectadas > 0">
+              <span class="detection-icon">📊</span> {{ questoesDetectadas }} questão(ões) estruturada(s) detectada(s).
+            </div>
+
+            <button @click="importar" class="btn-import-action" :disabled="!podeImportar || importando">
+              <span v-if="importando" class="spinner"></span>
+              {{ importando ? 'Compilando Dados...' : '🚀 Iniciar Importação' }}
+            </button>
+
+            <div v-if="erroValidacao" class="alert-box error">
+              <span class="alert-icon">❌</span>
+              <div class="alert-content">
+                <strong>Erro de Sintaxe:</strong>
+                <p>{{ erroValidacao }}</p>
+              </div>
+            </div>
+
+            <div v-if="erroServidor" class="alert-box error">
+              <span class="alert-icon">❌</span>
+              <div class="alert-content">
+                <strong>Rejeitado pelo Servidor:</strong>
+                <p>{{ erroServidor }}</p>
+                <p class="alert-hint">Verifique a formatação do JSON ou regenere a resposta na IA.</p>
+              </div>
+            </div>
+
+            <div v-if="resultado" class="alert-box success">
+              <div class="success-header">
+                <span class="alert-icon">✅</span>
+                <strong>Importação Concluída com Sucesso!</strong>
               </div>
 
-              <!-- Botão que copia o prompt completo para o clipboard -->
-              <button @click="copiarPrompt" class="btn-copiar" :class="{ copiado: promptCopiado }">
-                {{ promptCopiado ? '✓ Prompt copiado!' : '📋 Copiar prompt completo' }}
+              <div class="summary-box">
+                <div class="summary-row">
+                  <span class="summary-label">Avaliação:</span>
+                  <span class="summary-value">{{ resultado.simulado_titulo }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Volume:</span>
+                  <span class="summary-value">{{ resultado.total_importadas }} questões</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Status:</span>
+                  <span class="status-pill pending">Aguardando Auditoria</span>
+                </div>
+              </div>
+
+              <div class="next-steps">
+                <strong>Próximas Ações Requeridas:</strong>
+                <ol>
+                  <li>Acesse as <a href="https://portal-simulados-production.up.railway.app/admin/questoes/questao/?revisado__exact=0" target="_blank">Questões Não Revisadas no Admin ↗</a></li>
+                  <li>Realize a auditoria e aprove as questões.</li>
+                  <li>Ative a avaliação na tela de <a href="https://portal-simulados-production.up.railway.app/admin/simulados/simulado/" target="_blank">Simulados ↗</a></li>
+                </ol>
+              </div>
+
+              <button @click="reiniciar" class="btn-reset-action">
+                + Preparar Novo Lote
               </button>
             </div>
-          </div>
 
-          <!-- Passo 3 -->
-          <div class="passo">
-            <div class="passo-numero">3</div>
-            <div class="passo-conteudo">
-              <strong>Cole na IA e substitua os campos</strong>
-              <p>
-                Troque <code>[NÚMERO]</code> pela quantidade de questões
-                e <code>[TEMA/DISCIPLINA]</code> pelo assunto desejado.
-                Então envie a mensagem.
-              </p>
-            </div>
-          </div>
-
-          <!-- Passo 4 -->
-          <div class="passo">
-            <div class="passo-numero">4</div>
-            <div class="passo-conteudo">
-              <strong>Copie o JSON gerado</strong>
-              <p>
-                A IA vai responder com um bloco de código JSON.
-                Copie tudo — desde o <code>{</code> inicial até o <code>}</code> final.
-              </p>
-            </div>
-          </div>
-
-          <!-- Passo 5 -->
-          <div class="passo">
-            <div class="passo-numero">5</div>
-            <div class="passo-conteudo">
-              <strong>Cole aqui ao lado e importe</strong>
-              <p>
-                Cole o JSON na área de texto ao lado e clique em "Importar".
-                Após a importação, revise e aprove as questões no
-                <a href="https://portal-simulados-production.up.railway.app/admin" target="_blank">
-                  Django Admin ↗
-                </a>
-                antes de ativar o simulado.
-              </p>
-            </div>
-          </div>
-
-          <!-- Aviso sobre revisão -->
-          <div class="aviso-revisao">
-            ⚠️ As questões importadas ficam <strong>pendentes de revisão</strong>.
-            O simulado só fica visível para os alunos após você revisar, aprovar
-            as questões e ativar o simulado no Admin.
-          </div>
-        </div>
-
-        <!-- ==============================
-             COLUNA DIREITA — Área de import
-             ============================== -->
-        <div class="card importacao">
-          <h3>Cole o JSON aqui</h3>
-
-          <!-- Área de texto para o JSON -->
-          <textarea
-            v-model="jsonTexto"
-            class="json-textarea"
-            placeholder='{
-  "simulado": {
-    "titulo": "Simulado de Matemática",
-    "descricao": "10 questões de funções",
-    "data_inicio": null,
-    "data_fim": null
-  },
-  "questoes": [
-    {
-      "ordem": 1,
-      "enunciado": "...",
-      ...
-    }
-  ]
-}'
-            spellcheck="false"
-          ></textarea>
-
-          <!-- Indicador de status do JSON (válido / inválido / vazio) -->
-          <div class="json-status" :class="statusJson.tipo" v-if="jsonTexto.trim()">
-            {{ statusJson.mensagem }}
-          </div>
-
-          <!-- Contador de questões detectadas no JSON -->
-          <div class="contador-questoes" v-if="questoesDetectadas > 0">
-            📊 {{ questoesDetectadas }} questão(ões) detectada(s) no JSON
-          </div>
-
-          <!-- Botão de importar -->
-          <button
-            @click="importar"
-            class="btn-importar"
-            :disabled="!podeImportar || importando"
-          >
-            <!-- Estado de carregamento -->
-            <span v-if="importando" class="spinner"></span>
-            {{ importando ? 'Importando...' : '🚀 Importar questões' }}
-          </button>
-
-          <!-- Erro de validação local (antes de enviar) -->
-          <div v-if="erroValidacao" class="feedback erro">
-            <strong>❌ Erro no JSON:</strong>
-            <p>{{ erroValidacao }}</p>
-          </div>
-
-          <!-- Resultado do servidor após importação bem-sucedida -->
-          <div v-if="resultado" class="feedback sucesso">
-            <strong>✅ Importação concluída!</strong>
-
-            <!-- Resumo da importação -->
-            <div class="resultado-resumo">
-              <div class="resumo-item">
-                <span class="resumo-label">Simulado criado</span>
-                <span class="resumo-valor">{{ resultado.simulado_titulo }}</span>
-              </div>
-              <div class="resumo-item">
-                <span class="resumo-label">Questões importadas</span>
-                <span class="resumo-valor">{{ resultado.total_importadas }}</span>
-              </div>
-              <div class="resumo-item">
-                <span class="resumo-label">Status</span>
-                <span class="resumo-valor badge-pendente">Pendente de revisão</span>
-              </div>
-            </div>
-
-            <!-- Próximos passos após importar -->
-            <div class="proximos-passos">
-              <p><strong>Próximos passos:</strong></p>
-              <ol>
-                <li>
-                  Acesse o
-                  <a href="https://portal-simulados-production.up.railway.app/admin/questoes/questao/?revisado__exact=0"
-                     target="_blank">
-                    Django Admin → Questões não revisadas ↗
-                  </a>
-                </li>
-                <li>Revise cada questão importada</li>
-                <li>Selecione as aprovadas e use a ação "Aprovar questões selecionadas"</li>
-                <li>
-                  Acesse
-                  <a href="https://portal-simulados-production.up.railway.app/admin/simulados/simulado/"
-                     target="_blank">
-                    Admin → Simulados ↗
-                  </a>
-                  e ative o simulado
-                </li>
-              </ol>
-            </div>
-
-            <!-- Botão para importar novo lote -->
-            <button @click="reiniciar" class="btn-novo">
-              + Importar novo lote
-            </button>
-          </div>
-
-          <!-- Erro retornado pelo servidor -->
-          <div v-if="erroServidor" class="feedback erro">
-            <strong>❌ Erro na importação:</strong>
-            <p>{{ erroServidor }}</p>
-            <p class="dica-erro">
-              Verifique se o JSON está no formato correto e tente novamente.
-              Se o erro persistir, confira o prompt e gere o JSON novamente com a IA.
-            </p>
           </div>
         </div>
 
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-// Importa as funções reativas do Vue
+// LÓGICA INTACTA
 import { ref, computed } from 'vue'
-
-// Importa o router para navegação e logout
 import { useRouter } from 'vue-router'
-
-// Importa o serviço de API configurado com interceptors JWT
 import api from '../services/api.js'
 
 const router = useRouter()
-
-// ==========================================
-// Estado reativo da página
-// ==========================================
-
-// Texto digitado/colado na textarea
 const jsonTexto = ref('')
+const importando = ref(false)
+const erroValidacao = ref('')
+const erroServidor = ref('')
+const resultado = ref(null)
+const promptCopiado = ref(false)
 
-// Estados de feedback
-const importando = ref(false)      // Requisição em andamento
-const erroValidacao = ref('')      // Erro de validação local (antes de enviar)
-const erroServidor = ref('')       // Erro retornado pelo backend
-const resultado = ref(null)        // Resultado da importação bem-sucedida
-const promptCopiado = ref(false)   // Controla feedback do botão "Copiar prompt"
-
-// ==========================================
-// Prompt completo para copiar
-// O professor cola isso no ChatGPT/Claude e preenche os campos
-// ==========================================
 const PROMPT_COMPLETO = `Você é um especialista em elaboração de questões no padrão ENEM, com foco em avaliação de competências e habilidades.
 Gere [QUANTIDADE_DE_QUESTOES] questões da disciplina [MATERIA_NOME] com alto nível de qualidade pedagógica, seguindo rigorosamente o formato JSON especificado.
 
@@ -355,24 +295,16 @@ FORMATO OBRIGATÓRIO:
 
 Gere as questões agora.`
 
-// ==========================================
-// Computed: analisa o JSON em tempo real
-// ==========================================
-
-// Tenta parsear o JSON da textarea e retorna status visual
 const statusJson = computed(() => {
-  if (!jsonTexto.value.trim()) {
-    return { tipo: '', mensagem: '' }
-  }
+  if (!jsonTexto.value.trim()) return { tipo: '', mensagem: '' }
   try {
     JSON.parse(jsonTexto.value)
-    return { tipo: 'valido', mensagem: '✓ JSON válido' }
+    return { tipo: 'valid', mensagem: 'Sintaxe Válida' }
   } catch (e) {
-    return { tipo: 'invalido', mensagem: '✗ JSON inválido — verifique a formatação' }
+    return { tipo: 'invalid', mensagem: 'Sintaxe Inválida' }
   }
 })
 
-// Conta quantas questões foram detectadas no JSON
 const questoesDetectadas = computed(() => {
   try {
     const parsed = JSON.parse(jsonTexto.value)
@@ -382,99 +314,54 @@ const questoesDetectadas = computed(() => {
   }
 })
 
-// O botão de importar só fica ativo quando o JSON é válido e não há resultado ainda
 const podeImportar = computed(() => {
-  return statusJson.value.tipo === 'valido' && !resultado.value
+  return statusJson.value.tipo === 'valid' && !resultado.value
 })
 
-// ==========================================
-// Ações do usuário
-// ==========================================
-
-// Copia o prompt completo para o clipboard do usuário
 async function copiarPrompt() {
   try {
-    // navigator.clipboard só funciona em HTTPS ou localhost
     await navigator.clipboard.writeText(PROMPT_COMPLETO)
-
-    // Feedback visual temporário no botão
     promptCopiado.value = true
-    setTimeout(() => {
-      promptCopiado.value = false
-    }, 3000)
-
+    setTimeout(() => { promptCopiado.value = false }, 3000)
   } catch (e) {
-    // Fallback caso o clipboard não funcione (alguns browsers bloqueiam)
     console.error('Erro ao copiar:', e)
-    alert('Não foi possível copiar automaticamente. Selecione o texto do prompt manualmente.')
+    alert('Não foi possível copiar automaticamente. Selecione o texto do prompt manualmente no código fonte.')
   }
 }
 
-// Valida o JSON localmente e envia para a API
 async function importar() {
-  // Limpa estados anteriores
   erroValidacao.value = ''
   erroServidor.value = ''
   resultado.value = null
 
-  // Valida o JSON antes de enviar
   let parsedJson
   try {
     parsedJson = JSON.parse(jsonTexto.value)
   } catch (e) {
-    erroValidacao.value = 'O texto colado não é um JSON válido. Verifique se copiou tudo corretamente.'
+    erroValidacao.value = 'Estrutura JSON malformada.'
     return
   }
 
-  // Validações estruturais básicas antes de enviar ao servidor
-  // Isso poupa uma viagem desnecessária à API
-  if (!parsedJson.simulado) {
-    erroValidacao.value = 'O JSON precisa ter um campo "simulado" com título e descrição.'
-    return
-  }
-  if (!parsedJson.simulado.titulo) {
-    erroValidacao.value = 'O simulado precisa ter um "titulo".'
-    return
-  }
-  if (!parsedJson.questoes || !Array.isArray(parsedJson.questoes)) {
-    erroValidacao.value = 'O JSON precisa ter um campo "questoes" com uma lista de questões.'
-    return
-  }
-  if (parsedJson.questoes.length === 0) {
-    erroValidacao.value = 'A lista de questões está vazia.'
-    return
-  }
+  if (!parsedJson.simulado) { erroValidacao.value = 'Chave ausente: "simulado".'; return }
+  if (!parsedJson.simulado.titulo) { erroValidacao.value = 'Chave ausente: "simulado.titulo".'; return }
+  if (!parsedJson.questoes || !Array.isArray(parsedJson.questoes)) { erroValidacao.value = 'Chave ausente: array "questoes".'; return }
+  if (parsedJson.questoes.length === 0) { erroValidacao.value = 'Array "questoes" está vazio.'; return }
 
-  // Ativa o estado de carregamento
   importando.value = true
 
   try {
-    // Envia para o endpoint do importador
-    // O backend valida cada campo e cria Simulado + Questoes + SimuladoQuestao
-    const response = await api.post('/importar/', parsedJson)
-
-    // Salva o relatório retornado pelo backend para exibir na tela
+    const response = await api.post('/api/importar/', parsedJson) // Atualizado para /api/
     resultado.value = response.data
-
   } catch (error) {
-    // Extrai a mensagem de erro do backend se disponível
-    if (error.response?.data?.error) {
-      erroServidor.value = error.response.data.error
-    } else if (error.response?.data?.detail) {
-      erroServidor.value = error.response.data.detail
-    } else if (typeof error.response?.data === 'string') {
-      erroServidor.value = error.response.data
-    } else {
-      erroServidor.value = 'Erro inesperado. Tente novamente ou verifique o JSON.'
-    }
-
+    if (error.response?.data?.error) erroServidor.value = error.response.data.error
+    else if (error.response?.data?.detail) erroServidor.value = error.response.data.detail
+    else if (typeof error.response?.data === 'string') erroServidor.value = error.response.data
+    else erroServidor.value = 'Erro de comunicação com a API.'
   } finally {
-    // Desativa o carregamento independente do resultado
     importando.value = false
   }
 }
 
-// Reinicia o formulário para uma nova importação
 function reiniciar() {
   jsonTexto.value = ''
   resultado.value = null
@@ -482,7 +369,6 @@ function reiniciar() {
   erroServidor.value = ''
 }
 
-// Logout — remove tokens e redireciona para o login
 function logout() {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
@@ -492,429 +378,114 @@ function logout() {
 </script>
 
 <style scoped>
-/* ============================================
-   Layout base
-   ============================================ */
-.importar {
-  min-height: 100vh;
-  background: #f5f5f5;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
 
-/* Navbar — mesmo padrão do resto do sistema */
-.navbar {
-  background: #667eea;
-  color: white;
-  padding: 16px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.navbar h1 { font-size: 20px; font-weight: 600; }
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-.nav-links a {
-  color: white;
-  text-decoration: none;
-  font-size: 14px;
-  opacity: 0.9;
-}
-.btn-logout {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.4);
-  padding: 6px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
+/* Base & Layout */
+.dashboard-layout { display: flex; min-height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; background-color: #F8FAFC; font-family: 'Inter', sans-serif; }
+.admin-sidebar { width: 220px; background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%); color: white; display: flex; flex-direction: column; padding: 30px 20px; position: fixed; height: 100vh; z-index: 100; border-right: 1px solid #334155; }
+.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
+.logo-accent { color: #38BDF8; font-weight: 800; font-size: 1.3rem; }
+.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; color: #94A3B8; margin-top: 2px; }
+.sidebar-nav { margin-top: 40px; flex: 1; }
+.nav-link { display: flex; align-items: center; gap: 10px; color: #94A3B8; text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
+.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
+.btn-logout-clean { background: transparent; border: 1px solid #475569; color: #CBD5E1; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+.btn-logout-clean:hover { background: #EF4444; border-color: #EF4444; color: white; }
 
-/* Container principal */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
-}
+.main-content { flex: 1; margin-left: 220px; padding: 30px 50px; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.welcome-msg h2 { font-size: 1.7rem; font-weight: 700; color: #0F172A; margin: 0; }
+.text-secondary { color: #475569; font-size: 0.9rem; margin-top: 4px; }
+.admin-badge { background: #1E293B; color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 12px; border-radius: 20px; }
 
-/* Cabeçalho da página */
-.page-header {
-  margin-bottom: 32px;
-}
-.page-header h2 {
-  font-size: 26px;
-  color: #333;
-  margin-bottom: 8px;
-}
-.subtitulo {
-  color: #666;
-  font-size: 15px;
-  max-width: 700px;
-  line-height: 1.6;
-}
+/* Utils */
+.clean-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03); padding: 30px; }
+.section-title { font-size: 1.2rem; font-weight: 700; color: #0F172A; margin: 0 0 25px 0; padding-bottom: 15px; border-bottom: 1px solid #F1F5F9; }
 
-/* Grid de duas colunas */
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  align-items: start;
-}
+/* Grid de Importação */
+.import-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
 
-/* Cards base */
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 32px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-.card h3 {
-  font-size: 18px;
-  color: #333;
-  margin-bottom: 24px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
-}
+/* ==================================
+   COLUNA ESQUERDA (Pipeline)
+   ================================== */
+.pipeline-steps { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
+.step-box { display: flex; gap: 15px; }
+.step-indicator { width: 30px; height: 30px; background: #0052FF; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; margin-top: 2px; box-shadow: 0 4px 10px rgba(0, 82, 255, 0.2); }
+.step-content { flex: 1; }
+.step-title { font-size: 1rem; font-weight: 700; color: #1E293B; margin: 0 0 6px 0; }
+.step-desc { color: #475569; font-size: 0.9rem; line-height: 1.5; margin: 0; }
+.step-desc code { background: #F1F5F9; color: #0052FF; padding: 2px 6px; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 600; }
 
-/* ============================================
-   Coluna esquerda — guia de uso
-   ============================================ */
+.ai-buttons { display: flex; gap: 10px; margin-top: 12px; }
+.btn-ai { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+.chatgpt { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; } .chatgpt:hover { background: #D1FAE5; }
+.gemini { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; } .gemini:hover { background: #DBEAFE; }
+.ai-icon { font-size: 1.1rem; }
 
-/* Cada passo do guia */
-.passo {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
+.prompt-preview { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin: 15px 0 10px 0; position: relative; overflow: hidden; }
+.prompt-code { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: #64748B; line-height: 1.6; height: 40px; overflow: hidden; }
+.fade-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 30px; background: linear-gradient(transparent, #F8FAFC); }
 
-/* Bolinha com o número do passo */
-.passo-numero {
-  width: 32px;
-  height: 32px;
-  background: #667eea;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
+.btn-copy-action { width: 100%; background: white; border: 1px solid #0052FF; color: #0052FF; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+.btn-copy-action:hover { background: #EFF6FF; }
+.copy-success { background: #10B981 !important; border-color: #10B981 !important; color: white !important; }
 
-.passo-conteudo strong {
-  display: block;
-  color: #333;
-  margin-bottom: 6px;
-  font-size: 15px;
-}
-.passo-conteudo p {
-  color: #666;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.passo-conteudo code {
-  background: #f0f3ff;
-  color: #667eea;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-.passo-conteudo a {
-  color: #667eea;
-  text-decoration: none;
-}
-.passo-conteudo a:hover {
-  text-decoration: underline;
-}
+.system-warning { display: flex; gap: 12px; background: #FFFBEB; border: 1px solid #FDE68A; padding: 15px 20px; border-radius: 8px; align-items: flex-start; }
+.warning-icon { font-size: 1.2rem; }
+.warning-text { font-size: 0.85rem; color: #92400E; line-height: 1.5; }
 
-/* Botões de link para as IAs */
-.links-ia {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-.btn-ia {
-  background: #f0f3ff;
-  color: #667eea;
-  border: 1px solid #c7d2fe;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-.btn-ia:hover {
-  background: #e0e7ff;
-}
+/* ==================================
+   COLUNA DIREITA (Terminal)
+   ================================== */
+.editor-wrapper { border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
+.editor-header { background: #F1F5F9; border-bottom: 1px solid #CBD5E1; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; }
+.editor-tab { font-family: 'Fira Code', monospace; font-size: 0.75rem; font-weight: 600; color: #475569; }
+.editor-status { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+.editor-status.valid { background: #DCFCE7; color: #059669; }
+.editor-status.invalid { background: #FEE2E2; color: #DC2626; }
 
-/* Prévia do prompt — mostra as primeiras linhas para o professor saber o que é */
-.prompt-preview {
-  background: #f8f9ff;
-  border: 1px solid #e0e7ff;
-  border-radius: 6px;
-  padding: 12px;
-  font-size: 12px;
-  color: #666;
-  font-family: monospace;
-  line-height: 1.5;
-  margin: 10px 0;
-  max-height: 60px;
-  overflow: hidden;
-  position: relative;
-}
-/* Efeito fade no final da prévia — indica que há mais conteúdo */
-.prompt-preview::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 24px;
-  background: linear-gradient(transparent, #f8f9ff);
-}
+.code-textarea { width: 100%; height: 350px; padding: 15px; border: none; background: #FAFAF9; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #1E293B; line-height: 1.6; resize: vertical; outline: none; }
+.code-textarea:focus { background: white; }
 
-/* Botão de copiar prompt */
-.btn-copiar {
-  display: block;
-  width: 100%;
-  padding: 10px 16px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  margin-top: 10px;
-  transition: background 0.2s;
-}
-.btn-copiar:hover { background: #5a6fd6; }
+.detection-badge { background: #EFF6FF; color: #0052FF; padding: 8px 15px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; display: inline-block; }
 
-/* Estado "copiado" — feedback verde temporário */
-.btn-copiar.copiado {
-  background: #22c55e;
-}
+.btn-import-action { width: 100%; background: #0052FF; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px; }
+.btn-import-action:hover:not(:disabled) { background: #0043D1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2); }
+.btn-import-action:disabled { background: #94A3B8; cursor: not-allowed; }
 
-/* Caixa de aviso sobre revisão */
-.aviso-revisao {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 8px;
-  padding: 14px 16px;
-  font-size: 13px;
-  color: #92400e;
-  line-height: 1.6;
-  margin-top: 8px;
-}
+.spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ============================================
-   Coluna direita — área de importação
-   ============================================ */
+/* Alertas de Resultado */
+.alert-box { margin-top: 20px; padding: 20px; border-radius: 8px; display: flex; gap: 15px; align-items: flex-start; }
+.error { background: #FEF2F2; border: 1px solid #FECACA; }
+.error .alert-content strong { color: #991B1B; font-size: 0.95rem; display: block; margin-bottom: 5px; }
+.error .alert-content p { margin: 0; color: #B91C1C; font-size: 0.85rem; line-height: 1.5; }
+.alert-hint { margin-top: 10px !important; font-size: 0.8rem !important; color: #7F1D1D !important; font-style: italic; }
 
-/* Textarea para o JSON */
-.json-textarea {
-  width: 100%;
-  min-height: 320px;
-  padding: 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-family: 'Courier New', Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.6;
-  color: #333;
-  resize: vertical;
-  outline: none;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-}
-.json-textarea:focus {
-  border-color: #667eea;
-}
-.json-textarea::placeholder {
-  color: #aaa;
-}
+.success { background: white; border: 1px solid #A7F3D0; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1); flex-direction: column; }
+.success-header { display: flex; align-items: center; gap: 10px; color: #065F46; font-size: 1.1rem; border-bottom: 1px solid #D1FAE5; padding-bottom: 15px; width: 100%; }
 
-/* Indicador de validade do JSON */
-.json-status {
-  margin-top: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 12px;
-  border-radius: 6px;
-}
-.json-status.valido {
-  background: #f0fdf4;
-  color: #16a34a;
-}
-.json-status.invalido {
-  background: #fef2f2;
-  color: #dc2626;
-}
+.summary-box { background: #F0FDF4; border-radius: 8px; padding: 15px; width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.summary-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
+.summary-label { color: #065F46; font-weight: 500; }
+.summary-value { color: #064E3B; font-weight: 700; }
+.status-pill { background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
 
-/* Contador de questões detectadas */
-.contador-questoes {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #667eea;
-  font-weight: 500;
-}
+.next-steps { font-size: 0.85rem; color: #334155; line-height: 1.6; }
+.next-steps strong { color: #0F172A; }
+.next-steps a { color: #0052FF; font-weight: 600; text-decoration: none; }
+.next-steps a:hover { text-decoration: underline; }
 
-/* Botão principal de importar */
-.btn-importar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  margin-top: 16px;
-  transition: background 0.2s;
-}
-.btn-importar:hover:not(:disabled) { background: #5a6fd6; }
-.btn-importar:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.btn-reset-action { background: transparent; border: 1px solid #10B981; color: #10B981; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; margin-top: 10px; }
+.btn-reset-action:hover { background: #ECFDF5; }
 
-/* Spinner de carregamento dentro do botão */
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255,255,255,0.4);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: girar 0.7s linear infinite;
-}
-@keyframes girar {
-  to { transform: rotate(360deg); }
-}
-
-/* ============================================
-   Caixas de feedback (sucesso e erro)
-   ============================================ */
-.feedback {
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: 8px;
-  font-size: 14px;
-}
-.feedback.sucesso {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
-}
-.feedback.erro {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
-}
-.feedback strong {
-  display: block;
-  font-size: 15px;
-  margin-bottom: 12px;
-}
-.feedback p {
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* Resumo da importação bem-sucedida */
-.resultado-resumo {
-  background: white;
-  border-radius: 6px;
-  padding: 12px;
-  margin: 12px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.resumo-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-}
-.resumo-label { color: #666; }
-.resumo-valor { font-weight: 600; color: #333; }
-
-/* Badge amarelo de status "pendente" */
-.badge-pendente {
-  background: #fef3c7;
-  color: #92400e;
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-size: 12px;
-}
-
-/* Lista de próximos passos */
-.proximos-passos {
-  margin-top: 12px;
-  font-size: 13px;
-}
-.proximos-passos p {
-  margin-bottom: 8px;
-  color: #166534;
-}
-.proximos-passos ol {
-  padding-left: 20px;
-  margin: 0;
-  line-height: 1.8;
-}
-.proximos-passos a {
-  color: #15803d;
-  font-weight: 500;
-}
-
-/* Dica extra no erro */
-.dica-erro {
-  margin-top: 8px !important;
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-/* Botão de importar novo lote */
-.btn-novo {
-  margin-top: 14px;
-  padding: 8px 16px;
-  background: #22c55e;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-.btn-novo:hover { background: #16a34a; }
-
-/* ============================================
-   Responsivo — mobile/tablet
-   ============================================ */
-@media (max-width: 768px) {
-  /* Uma coluna em telas pequenas */
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  /* A guia vai em cima, o import embaixo */
-  .guia { order: 1; }
-  .importacao { order: 2; }
-
-  .navbar {
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-  }
+@media (max-width: 1000px) {
+  .admin-sidebar { width: 70px; padding: 30px 10px; }
+  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
+  .main-content { margin-left: 70px; padding: 20px; }
+  .import-grid { grid-template-columns: 1fr; }
+  .pipeline-card { order: 1; }
+  .terminal-card { order: 2; }
 }
 </style>

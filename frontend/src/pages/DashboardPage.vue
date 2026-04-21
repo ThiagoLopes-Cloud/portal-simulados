@@ -1,146 +1,190 @@
 <template>
-  <div class="dashboard-wrapper">
-    <nav class="navbar glass-card">
-      <div class="logo">
-        <h1 class="ui-display logo-text"><span class="color-primary">SIMUS</span><span class="color-secondary">LAB</span></h1>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo-text">
+          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
+        </h1>
+        <p class="tagline">Performance Lab</p>
       </div>
 
-      <div class="nav-links">
-        <router-link to="/simulados" class="nav-item ui-display">Batalhas (Simulados)</router-link>
-        <router-link to="/ranking" class="nav-item ui-display">Hall da Fama</router-link>
-        <router-link v-if="isAdmin" to="/admin/alunos" class="nav-item ui-display link-admin">
-          Comando (Admin)
+      <nav class="sidebar-nav">
+        <router-link to="/dashboard" class="nav-link active">
+          <span class="icon">📊</span> Dashboard
         </router-link>
-      </div>
-
-      <div class="user-stats">
-        <div class="xp-container" v-if="dados.gamificacao">
-          <div class="level-badge ui-display">LVL {{ nivelAtual }}</div>
-          <div class="xp-bar-bg">
-            <div class="xp-bar-fill" :style="{ width: progressoNivel + '%' }"></div>
-          </div>
-          <span class="xp-text ui-display">{{ xpProgresso }} / 500 XP</span>
-        </div>
-
-        <div class="streak-badge" :class="{ 'fogo-ativo': dados.gamificacao?.ofensiva > 0 }" title="Dias seguidos de estudo">
-          <span class="fire-icon">{{ dados.gamificacao?.ofensiva > 0 ? '🔥' : '🧊' }}</span>
-          <span class="streak-count ui-display">{{ dados.gamificacao?.ofensiva || 0 }} D</span>
-        </div>
+        <router-link to="/simulados" class="nav-link">
+          <span class="icon">🎯</span> Avaliações
+        </router-link>
+        <router-link to="/turmas" class="nav-link">
+          <span class="icon">👥</span> Minhas Turmas
+        </router-link>
+        <router-link to="/ranking" class="nav-link">
+          <span class="icon">🏆</span> Ranking
+        </router-link>
         
-        <button @click="logout" class="btn-logout ui-display">Sair</button>
+        <template v-if="isAdmin">
+          <div class="nav-divider">Comando Admin</div>
+          <router-link to="/admin/alunos" class="nav-link link-admin">
+            <span class="icon">👥</span> Gestão Alunos
+          </router-link>
+          <router-link to="/admin/importar" class="nav-link link-admin">
+            <span class="icon">📥</span> Importar Bateria
+          </router-link>
+        </template>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button @click="logout" class="btn-logout-clean">Sair</button>
       </div>
-    </nav>
+    </aside>
 
-    <div v-if="carregando" class="loading ui-display color-primary">Inicializando Sistemas do Laboratório...</div>
-    <div v-else-if="erro" class="erro ui-display color-error">{{ erro }}</div>
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="welcome-msg">
+          <h2>Olá, {{ username || 'Candidato' }}</h2>
+          <p class="text-secondary">Análise tática e evolução constante.</p>
+        </div>
 
-    <main v-else class="main-content">
-      <header class="welcome-header">
-        <h2 class="ui-display">Painel Tático, {{ username }}!</h2>
-        <p class="text-dim">Treinador: "Foco total, recruta. Os dados abaixo revelam o quão perto você está da aprovação."</p>
+        <div class="user-stats-top" v-if="!carregando && dados.gamificacao">
+          <div class="stat-item">
+            <span class="lvl-tag">NÍVEL {{ nivelAtual }}</span>
+            <div class="xp-mini-bar">
+              <div class="xp-fill" :style="{ width: progressoNivel + '%' }"></div>
+            </div>
+          </div>
+          <div class="streak-mini">
+            🔥 {{ dados.gamificacao?.ofensiva || 0 }} Dias
+          </div>
+        </div>
       </header>
 
-      <section class="stats-grid">
-        <div class="card-resumo glass-card">
-          <span class="resumo-valor ui-display" :class="corScoreText(dados.score_geral)">{{ dados.score_geral }}%</span>
-          <span class="resumo-label ui-display">Score Geral Tático</span>
-        </div>
-        <div class="card-resumo glass-card">
-          <span class="resumo-valor ui-display color-primary">{{ dados.total_simulados }}</span>
-          <span class="resumo-label ui-display">Batalhas Vencidas</span>
-        </div>
-        <div class="card-resumo glass-card">
-          <span class="resumo-valor ui-display color-secondary">{{ dados.por_materia.length }}</span>
-          <span class="resumo-label ui-display">Matérias Mapeadas</span>
-        </div>
-        <div class="card-resumo acao glass-card" @click="$router.push('/simulados')">
-          <span class="resumo-valor action-icon">🎯</span>
-          <span class="resumo-label ui-display">Iniciar Nova Missão</span>
-        </div>
-      </section>
+      <div v-if="erro" class="status-msg erro">{{ erro }}</div>
 
-      <div class="content-split">
-        <section class="secao-materias">
-          <h3 class="section-title ui-display"><span class="color-primary">></span> Diagnóstico de Performance</h3>
+      <div v-else-if="carregando" class="skeleton-wrapper">
+        <div class="skeleton-box shimmer" style="height: 180px; margin-bottom: 30px;"></div>
+        <div class="quick-stats">
+          <div class="skeleton-card shimmer" v-for="n in 3" :key="n"></div>
+        </div>
+      </div>
 
-          <div v-if="dados.por_materia.length === 0" class="vazio glass-card">
-            <p>Aguardando dados de combate. Inicie um simulado para gerar seu diagnóstico.</p>
-          </div>
-
-          <div v-for="materia in dados.por_materia" :key="materia.codigo" class="card-materia glass-card">
-            <div class="materia-header" @click="toggleMateria(materia.codigo)">
-              <div class="materia-info">
-                <span class="materia-badge ui-display">{{ materia.codigo }}</span>
-                <span class="materia-nome">{{ materia.materia }}</span>
-              </div>
-              <div class="materia-direita">
-                <span class="materia-detalhe ui-display text-dim">{{ materia.acertos }}/{{ materia.total_questoes }}</span>
-                <div class="barra-mini">
-                  <div class="barra-fill" :class="corScoreBg(materia.percentual)" :style="{ width: materia.percentual + '%' }"></div>
-                </div>
-                <span class="materia-percentual ui-display" :class="corScoreText(materia.percentual)">{{ materia.percentual }}%</span>
-                <span class="diferenca ui-display" :class="materia.diferenca_media >= 0 ? 'positivo' : 'negativo'">
-                  {{ materia.diferenca_media >= 0 ? '+' : '' }}{{ materia.diferenca_media }}%
-                  <span v-if="materia.diferenca_media >= 0" class="trend">▲</span>
-                  <span v-else class="trend">▼</span>
-                </span>
+      <div v-else>
+        
+        <section v-if="isAdmin" class="admin-quick-actions">
+          <div class="admin-banner clean-card">
+            <div class="banner-info">
+              <div class="admin-shield">🛡️</div>
+              <div>
+                <h3 class="banner-title">Painel de Comando Ativo</h3>
+                <p class="banner-desc">Acesso rápido às ferramentas de gestão e conteúdo do laboratório.</p>
               </div>
             </div>
-
-            <div v-if="materiasAbertas.includes(materia.codigo)" class="temas-lista">
-              <div class="temas-legenda text-dim ui-display">
-                <span>Seu Radar</span>
-                <span>Média Global</span>
-              </div>
-              <div v-for="tema in materia.temas" :key="tema.tema" class="tema-item">
-                <div class="tema-info">
-                  <span class="tema-nome">{{ tema.tema }}</span>
-                  <span class="tema-detalhe text-dim">{{ tema.acertos }}/{{ tema.total }} acertos</span>
-                </div>
-                <div class="tema-direita">
-                  <div class="barra-dupla">
-                    <div class="barra-mini pequena">
-                      <div class="barra-fill" :class="corScoreBg(tema.percentual)" :style="{ width: tema.percentual + '%' }"></div>
-                    </div>
-                    <span class="tema-percentual ui-display" :class="corScoreText(tema.percentual)">{{ tema.percentual }}%</span>
-                  </div>
-                  <div class="barra-dupla opacity-50">
-                    <div class="barra-mini pequena">
-                      <div class="barra-fill bg-dim" :style="{ width: tema.media_plataforma + '%' }"></div>
-                    </div>
-                    <span class="tema-percentual ui-display text-dim">{{ tema.media_plataforma }}%</span>
-                  </div>
-                </div>
-              </div>
+            <div class="banner-buttons">
+              <button @click="$router.push('/admin/alunos')" class="btn-outline-admin">
+                👥 Base de Alunos
+              </button>
+              <button @click="$router.push('/admin/importar')" class="btn-primary-admin">
+                📥 Importar Questões (IA)
+              </button>
             </div>
           </div>
         </section>
 
-        <section class="secao-historico">
-          <h3 class="section-title ui-display"><span class="color-secondary">></span> Registro de Missões</h3>
-          
-          <div v-if="dados.historico.length === 0" class="vazio glass-card">
-            Nenhum registro encontrado.
+        <div v-if="dados.total_simulados === 0 && !isAdmin" class="empty-state-card clean-card">
+          <div class="empty-icon-wrapper">
+            <span class="empty-icon">🎯</span>
           </div>
+          <h3 class="empty-title">Seu diagnóstico tático começa aqui.</h3>
+          <p class="empty-subtitle">
+            O laboratório de inteligência precisa de dados para calibrar sua estratégia. 
+            Realize sua primeira avaliação para destrancar seu painel de performance.
+          </p>
+          <button @click="$router.push('/simulados')" class="btn-primary-action">
+            Iniciar Primeira Simulação
+          </button>
+        </div>
+
+        <div v-if="dados.total_simulados > 0 || isAdmin" class="dashboard-grid">
           
-          <div class="historico-container glass-card" v-else>
-            <div v-for="item in historicoComTendencia" :key="item.resultado_id" class="historico-item">
-              <div class="hist-info">
-                <span class="hist-nome">{{ item.simulado }} <span class="tentativa-badge ui-display">T{{ item.tentativa }}</span></span>
-                <span class="hist-data text-dim">{{ item.data }}</span>
+          <section v-if="recomendacaoPrincipal.titulo" class="recommendation-area">
+            <div class="intelligence-card">
+              <div class="intel-header">
+                <span class="intel-badge">FASE 7: RECOMENDAÇÃO TÁTICA</span>
+                <span class="intel-status">Inteligência Ativa</span>
               </div>
-              <div class="hist-score">
-                <span class="hist-acertos text-dim">{{ item.acertos }}/{{ item.total }}</span>
-                <span class="hist-percentual ui-display" :class="corScoreText(item.score)">{{ item.score }}%</span>
-                <div class="hist-trend" :class="item.trend === 'up' ? 'positivo' : (item.trend === 'down' ? 'negativo' : 'text-dim')">
-                  <span v-if="item.trend === 'up'">▲ +{{ item.diff }}%</span>
-                  <span v-else-if="item.trend === 'down'">▼ {{ item.diff }}%</span>
-                  <span v-else>—</span>
+              <div class="intel-content">
+                <div class="intel-text">
+                  <h3>{{ recomendacaoPrincipal.titulo }}</h3>
+                  <p>{{ recomendacaoPrincipal.descricao }}</p>
                 </div>
+                <button @click="$router.push('/simulados')" class="btn-intel-action">
+                  Executar Plano de Ação
+                </button>
               </div>
             </div>
+          </section>
+
+          <section class="quick-stats">
+            <div class="stat-card highlight-card">
+              <span class="stat-value" :class="corScoreText(dados.score_geral)">{{ dados.score_geral }}%</span>
+              <span class="stat-label">Precisão Geral</span>
+            </div>
+            <div class="stat-card highlight-card">
+              <span class="stat-value text-primary">{{ dados.total_simulados }}</span>
+              <span class="stat-label">Simulações</span>
+            </div>
+            <div class="stat-card highlight-card">
+              <span class="stat-value text-purple">{{ dados.por_materia.length }}</span>
+              <span class="stat-label">Disciplinas</span>
+            </div>
+          </section>
+
+          <div class="data-split">
+            
+            <section class="performance-section">
+              <h3 class="section-title">Diagnóstico de Performance</h3>
+              <div v-for="materia in dados.por_materia" :key="materia.codigo" class="materia-card highlight-card">
+                <div class="materia-main">
+                  <div class="materia-info">
+                    <span class="m-code">{{ materia.codigo }}</span>
+                    <span class="m-name">{{ materia.materia }}</span>
+                  </div>
+                  <div class="materia-stats">
+                    <div class="progress-container">
+                      <div class="progress-fill" :class="corScoreBg(materia.percentual)" :style="{ width: materia.percentual + '%' }"></div>
+                    </div>
+                    <span class="m-percent" :class="corScoreText(materia.percentual)">{{ materia.percentual }}%</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="history-section">
+              <h3 class="section-title">Atividades Recentes</h3>
+              
+              <div v-if="dados.historico.length === 0" class="history-card highlight-card empty-history">
+                Nenhuma atividade recente encontrada.
+              </div>
+
+              <div v-else class="history-card highlight-card">
+                <div 
+                  v-for="item in historicoComTendencia" 
+                  :key="item.resultado_id" 
+                  class="history-row clickable-row"
+                  @click="$router.push({ name: 'resultado', params: { id: item.resultado_id } })"
+                >
+                  <div class="h-info">
+                    <span class="h-title">{{ item.simulado }}</span>
+                    <span class="h-date">{{ item.data }}</span>
+                  </div>
+                  <div class="h-action-area">
+                    <span class="h-percent" :class="corScoreText(item.score)">{{ item.score }}%</span>
+                    <span class="action-arrow">→</span>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       </div>
     </main>
   </div>
@@ -155,7 +199,6 @@ const router = useRouter()
 const username = ref('')
 const carregando = ref(true)
 const erro = ref('')
-const materiasAbertas = ref([])
 const isAdmin = ref(localStorage.getItem('user_role') === 'admin')
 
 const dados = ref({
@@ -166,7 +209,16 @@ const dados = ref({
   gamificacao: { xp: 0, ofensiva: 0 }
 })
 
-// Lógica de Gamificação
+// Lógica de Recomendação Baseada em Dados
+const recomendacaoPrincipal = computed(() => {
+  if (!dados.value.por_materia || dados.value.por_materia.length === 0) return {}
+  const piorMateria = [...dados.value.por_materia].sort((a, b) => a.percentual - b.percentual)[0]
+  return {
+    titulo: `Foco Estratégico: ${piorMateria.materia}`,
+    descricao: `O teu desempenho nesta área está em ${piorMateria.percentual}%. Recomendamos uma bateria de exercícios focada em mapear as tuas lacunas nesta disciplina hoje.`
+  }
+})
+
 const XP_POR_NIVEL = 500
 const nivelAtual = computed(() => Math.floor((dados.value.gamificacao?.xp || 0) / XP_POR_NIVEL) + 1)
 const xpProgresso = computed(() => (dados.value.gamificacao?.xp || 0) % XP_POR_NIVEL)
@@ -176,14 +228,14 @@ const historicoComTendencia = computed(() => {
   const mapPorSimulado = {};
   const historicoCronologico = [...dados.value.historico].reverse();
   const historicoEnriquecido = historicoCronologico.map(item => {
-    let trend = null; let diff = 0;
+    let trend = null;
     if (mapPorSimulado[item.simulado_id] !== undefined) {
       const scoreAnterior = mapPorSimulado[item.simulado_id];
-      diff = parseFloat((item.score - scoreAnterior).toFixed(1));
-      if (diff > 0) trend = 'up'; else if (diff < 0) trend = 'down'; else trend = 'same';
+      const diff = parseFloat((item.score - scoreAnterior).toFixed(1));
+      if (diff > 0) trend = 'up'; else if (diff < 0) trend = 'down';
     }
     mapPorSimulado[item.simulado_id] = item.score;
-    return { ...item, trend, diff };
+    return { ...item, trend };
   });
   return historicoEnriquecido.reverse();
 });
@@ -191,169 +243,158 @@ const historicoComTendencia = computed(() => {
 onMounted(async () => {
   try {
     const [perfil, dashboard] = await Promise.all([
-      api.get('/profile/'),
-      api.get('/resultados/dashboard/'),
+      api.get('/api/profile/'),
+      api.get('/api/resultados/dashboard/'),
     ])
     username.value = perfil.data.username
     dados.value = dashboard.data
-    if (dados.value.por_materia.length > 0) {
-      materiasAbertas.value = [dados.value.por_materia[0].codigo]
-    }
   } catch (error) {
-    erro.value = 'Falha ao conectar com o laboratório.'
+    erro.value = 'Erro de conexão.'
   } finally {
     carregando.value = false
   }
 })
 
-function toggleMateria(codigo) {
-  const index = materiasAbertas.value.indexOf(codigo)
-  if (index === -1) materiasAbertas.value.push(codigo)
-  else materiasAbertas.value.splice(index, 1)
-}
-
-function corScoreText(valor) {
-  if (valor >= 70) return 'color-success'
-  if (valor >= 50) return 'text-main'
-  return 'color-error'
-}
-
-function corScoreBg(valor) {
-  if (valor >= 70) return 'bg-success'
-  if (valor >= 50) return 'bg-warning'
-  return 'bg-error'
-}
-
-function logout() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user_role')
-  router.push({ name: 'login' })
-}
+function corScoreText(v) { return v >= 70 ? 'text-green' : v >= 50 ? 'text-orange' : 'text-red'; }
+function corScoreBg(v) { return v >= 70 ? 'bg-green' : v >= 50 ? 'bg-orange' : 'bg-red'; }
+function logout() { localStorage.clear(); router.push('/login'); }
 </script>
 
 <style scoped>
-.dashboard-wrapper {
-  min-height: 100vh;
-  /* Reaproveitamos o fundo do login aqui para manter a imersão, mas você pode gerar outro abstrato depois */
-  background-image: url('../assets/login-bg-neon.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  padding: 20px;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.dashboard-layout {
+  display: flex; min-height: 100vh; width: 100vw; position: absolute;
+  top: 0; left: 0; background-color: #F1F5F9; font-family: 'Inter', sans-serif;
 }
 
-/* Navbar */
-.navbar {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 15px 30px; margin-bottom: 30px;
+/* Sidebar */
+.sidebar {
+  width: 220px; background: linear-gradient(180deg, #0A2540 0%, #0052FF 100%);
+  color: white; display: flex; flex-direction: column; padding: 30px 20px;
+  position: fixed; height: 100vh; z-index: 100;
 }
-.logo-text { font-size: 1.5rem; letter-spacing: 2px; margin: 0; }
-.nav-links { display: flex; gap: 20px; }
-.nav-item { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; letter-spacing: 1px; transition: color 0.3s; }
-.nav-item:hover, .nav-item.router-link-active { color: var(--color-primary); text-shadow: var(--glow-primary); }
-.link-admin { border: 1px solid var(--color-secondary); padding: 4px 10px; border-radius: 4px; color: var(--color-secondary); }
+.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
+.logo-accent { color: #00D09C; font-weight: 800; font-size: 1.3rem; }
+.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; margin-top: 2px; }
 
-/* User Stats & XP */
-.user-stats { display: flex; align-items: center; gap: 20px; }
-.xp-container { display: flex; align-items: center; gap: 12px; }
-.level-badge { background: var(--color-secondary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; box-shadow: var(--glow-secondary); }
-.xp-bar-bg { width: 150px; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 99px; overflow: hidden; }
-.xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); box-shadow: var(--glow-primary); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
-.xp-text { font-size: 0.75rem; color: var(--text-dim); }
+.sidebar-nav { margin-top: 40px; flex: 1; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; color: rgba(255, 255, 255, 0.8);
+  text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px;
+  font-weight: 500; font-size: 0.9rem; transition: all 0.2s;
+}
+.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; }
 
-.streak-badge { display: flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); transition: all 0.3s; }
-.streak-badge.fogo-ativo { border-color: #ff9d00; background: rgba(255, 157, 0, 0.1); box-shadow: 0 0 10px rgba(255, 157, 0, 0.2); }
-.fire-icon { font-size: 1rem; filter: grayscale(1); }
-.fogo-ativo .fire-icon { filter: grayscale(0); animation: pulsar 2s infinite alternate; }
-.streak-count { font-size: 0.85rem; color: var(--text-dim); }
-.fogo-ativo .streak-count { color: #ff9d00; font-weight: 700; }
+.nav-divider { font-size: 0.65rem; color: #94A3B8; font-weight: 800; text-transform: uppercase; margin: 20px 0 10px 10px; letter-spacing: 0.5px; }
+.link-admin { color: #CBD5E1; } .link-admin:hover { color: white; background: rgba(255, 255, 255, 0.1); }
 
-.btn-logout { background: transparent; color: var(--text-dim); border: 1px solid rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.3s; }
-.btn-logout:hover { border-color: var(--color-error); color: var(--color-error); }
-
-@keyframes pulsar { from { transform: scale(1); } to { transform: scale(1.1); } }
+.btn-logout-clean {
+  background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem;
+}
+.btn-logout-clean:hover { background: #EF4444; border-color: #EF4444; }
 
 /* Main Content */
-.main-content { max-width: 1200px; margin: 0 auto; }
-.welcome-header { margin-bottom: 30px; text-align: center; }
-.welcome-header h2 { font-size: 2rem; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-.section-title { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+.main-content { flex: 1; margin-left: 220px; padding: 40px 50px; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+.welcome-msg h2 { font-size: 1.7rem; font-weight: 700; color: #0F172A; margin: 0; }
+.text-secondary { color: #475569; font-size: 0.9rem; margin-top: 4px; }
 
-/* Stats Grid */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
-.card-resumo { padding: 25px; text-align: center; display: flex; flex-direction: column; gap: 5px; border-top: 2px solid transparent; transition: all 0.3s; }
-.card-resumo:hover { transform: translateY(-3px); border-top-color: var(--color-primary); }
-.resumo-valor { font-size: 2.5rem; }
-.resumo-label { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 1px; }
-.card-resumo.acao { cursor: pointer; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.2); }
-.card-resumo.acao:hover { background: rgba(0, 229, 255, 0.15); box-shadow: var(--glow-primary); }
-.action-icon { font-size: 2rem; margin-bottom: 5px; display: inline-block; }
+/* NOVO: BANNER VIP ADMIN */
+.admin-quick-actions { margin-bottom: 35px; }
+.admin-banner { background: #0F172A; border: 1px solid #1E293B; border-radius: 16px; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1); }
+.banner-info { display: flex; align-items: center; gap: 15px; }
+.admin-shield { font-size: 2.5rem; background: rgba(255, 255, 255, 0.1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.banner-title { color: white; font-size: 1.3rem; font-weight: 700; margin: 0 0 4px 0; }
+.banner-desc { color: #94A3B8; font-size: 0.95rem; margin: 0; }
 
-/* Split Layout */
-.content-split { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+.banner-buttons { display: flex; gap: 15px; }
+.btn-outline-admin { background: transparent; border: 1px solid #334155; color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-outline-admin:hover { background: #1E293B; border-color: #475569; }
+.btn-primary-admin { background: #0052FF; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2); }
+.btn-primary-admin:hover { background: #0043D1; transform: translateY(-2px); }
 
-/* Materias Accordion */
-.card-materia { margin-bottom: 15px; overflow: hidden; transition: all 0.3s; }
-.materia-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; cursor: pointer; }
-.materia-header:hover { background: rgba(255,255,255,0.02); }
-.materia-info { display: flex; align-items: center; gap: 15px; }
-.materia-badge { background: rgba(0, 229, 255, 0.1); color: var(--color-primary); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(0, 229, 255, 0.3); }
-.materia-nome { font-weight: 600; font-size: 1rem; }
-.materia-direita { display: flex; align-items: center; gap: 15px; }
-.materia-detalhe { font-size: 0.8rem; }
-.materia-percentual { font-size: 1.1rem; min-width: 45px; text-align: right; }
+/* Top Gamificação */
+.user-stats-top { display: flex; align-items: center; gap: 15px; }
+.lvl-tag { background: #00D09C; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.75rem; }
+.xp-mini-bar { width: 80px; height: 6px; background: #E2E8F0; border-radius: 10px; margin-top: 4px; overflow: hidden; }
+.xp-fill { height: 100%; background: #0052FF; }
+.streak-mini { font-weight: 700; color: #EA580C; background: #FFF7ED; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #FFEDD5; }
 
-.barra-mini { width: 100px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; }
-.barra-mini.pequena { width: 70px; }
-.barra-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
-.bg-success { background: var(--color-success); box-shadow: var(--glow-success); }
-.bg-warning { background: #F5A623; }
-.bg-error { background: var(--color-error); }
-.bg-dim { background: var(--text-dim); }
+/* Bloco Inteligência */
+.recommendation-area { margin-bottom: 35px; }
+.intelligence-card { background: #FFFFFF; border: 1px solid rgba(0, 82, 255, 0.2); border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 82, 255, 0.08); position: relative; overflow: hidden; }
+.intelligence-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: #0052FF; }
+.intel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.intel-badge { font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; background: #EFF6FF; color: #0052FF; padding: 4px 10px; border-radius: 4px; }
+.intel-status { font-size: 0.75rem; font-weight: 600; color: #10B981; display: flex; align-items: center; gap: 5px; }
+.intel-status::before { content: ''; width: 8px; height: 8px; background: #10B981; border-radius: 50%; display: inline-block; }
+.intel-content { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; }
+.intel-text h3 { font-size: 1.3rem; font-weight: 700; color: #0F172A; margin-bottom: 8px; }
+.intel-text p { color: #475569; font-size: 0.95rem; line-height: 1.5; margin: 0; }
+.btn-intel-action { background: #0052FF; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.btn-intel-action:hover { background: #0043D1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2); }
 
-.diferenca { font-size: 0.8rem; min-width: 50px; text-align: right; }
-.positivo { color: var(--color-success); }
-.negativo { color: var(--color-error); }
+/* Skeleton */
+.skeleton-wrapper { width: 100%; }
+.shimmer { position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 12px; }
+.shimmer::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); animation: loading 1.5s infinite; }
+@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
-/* Temas Internos */
-.temas-lista { background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05); padding: 10px 0; }
-.temas-legenda { display: flex; justify-content: flex-end; gap: 50px; padding: 5px 25px; font-size: 0.7rem; letter-spacing: 1px; }
-.tema-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 25px 12px 50px; border-bottom: 1px solid rgba(255,255,255,0.02); }
-.tema-item:last-child { border-bottom: none; }
-.tema-info { display: flex; flex-direction: column; }
-.tema-nome { font-size: 0.9rem; }
-.tema-detalhe { font-size: 0.75rem; }
-.tema-direita { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-.barra-dupla { display: flex; align-items: center; gap: 10px; }
-.tema-percentual { font-size: 0.85rem; min-width: 40px; text-align: right; }
-.opacity-50 { opacity: 0.5; }
+/* Cards Genéricos */
+.highlight-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+.quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 35px; }
+.stat-card { padding: 25px; text-align: center; }
+.stat-value { font-size: 2.3rem; font-weight: 800; display: block; line-height: 1; }
+.stat-label { color: #64748B; font-size: 0.85rem; font-weight: 600; margin-top: 8px; display: block; }
+.data-split { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+.section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: #1E293B; }
 
-/* Historico Custom List */
-.historico-container { padding: 10px; }
-.historico-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; }
-.historico-item:hover { background: rgba(255,255,255,0.02); }
-.historico-item:last-child { border-bottom: none; }
-.hist-info { display: flex; flex-direction: column; gap: 4px; }
-.hist-nome { font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-.tentativa-badge { background: rgba(176, 38, 255, 0.15); color: var(--color-secondary); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid rgba(176, 38, 255, 0.3); }
-.hist-data { font-size: 0.75rem; }
-.hist-score { display: flex; align-items: center; gap: 15px; }
-.hist-acertos { font-size: 0.8rem; }
-.hist-percentual { font-size: 1.1rem; min-width: 45px; text-align: right; }
-.hist-trend { font-size: 0.8rem; min-width: 60px; text-align: right; font-weight: 600; }
+/* Diagnóstico */
+.materia-card { margin-bottom: 12px; padding: 16px 20px; }
+.materia-main { display: flex; justify-content: space-between; align-items: center; }
+.m-code { background: #F8FAFC; color: #64748B; padding: 3px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; border: 1px solid #E2E8F0; }
+.m-name { font-weight: 600; color: #1E293B; margin-left: 10px; font-size: 0.95rem; }
+.progress-container { width: 120px; height: 8px; background: #F1F5F9; border-radius: 10px; overflow: hidden; margin-right: 15px; }
+.progress-fill { height: 100%; border-radius: 10px; }
 
-/* Utilitários Locais */
-.color-primary { color: var(--color-primary); }
-.color-secondary { color: var(--color-secondary); }
-.color-success { color: var(--color-success); }
-.color-error { color: var(--color-error); }
-.text-main { color: var(--text-main); }
-.text-dim { color: var(--text-dim); }
+/* Histórico Clicável */
+.history-card { padding: 5px 0; }
+.empty-history { padding: 30px; text-align: center; color: #94A3B8; font-size: 0.9rem; }
+.history-row { display: flex; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #F1F5F9; }
+.h-title { font-weight: 600; font-size: 0.9rem; color: #1E293B; }
+.h-date { font-size: 0.75rem; color: #94A3B8; margin-top: 2px; display: block; }
+.h-percent { font-weight: 700; font-size: 0.95rem; }
 
-@media (max-width: 1024px) {
-  .content-split { grid-template-columns: 1fr; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .user-stats { display: none; /* Simplifica mobile */ }
+/* Animações Mágicas do Histórico */
+.clickable-row { cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 8px; margin: 4px 8px; border-bottom: none; }
+.clickable-row:hover { background-color: #EFF6FF; transform: translateX(6px); box-shadow: 0 2px 8px rgba(0, 82, 255, 0.05); }
+.h-action-area { display: flex; align-items: center; gap: 15px; }
+.action-arrow { color: #0052FF; font-weight: 800; font-size: 1.1rem; opacity: 0; transform: translateX(-10px); transition: all 0.3s ease; }
+.clickable-row:hover .action-arrow { opacity: 1; transform: translateX(0); }
+
+/* Cores Premium */
+.text-green { color: #10B981; } .text-orange { color: #F59E0B; } .text-red { color: #EF4444; }
+.text-primary { color: #0052FF; } .text-purple { color: #7C3AED; }
+.bg-green { background-color: #10B981; } .bg-orange { background-color: #F59E0B; } .bg-red { background-color: #EF4444; }
+
+/* Empty State Base */
+.empty-state-card { padding: 60px 40px; text-align: center; border-radius: 16px; background: white; border: 1px dashed #CBD5E1; box-shadow: 0 10px 25px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 20px; }
+.empty-icon-wrapper { width: 80px; height: 80px; background: #EFF6FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.empty-icon { font-size: 2.5rem; }
+.empty-title { font-size: 1.4rem; font-weight: 700; color: #0F172A; margin-bottom: 12px; }
+.empty-subtitle { color: #64748B; line-height: 1.6; max-width: 500px; margin-bottom: 30px; font-size: 0.95rem; }
+.btn-primary-action { background: #0052FF; color: white; padding: 14px 28px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2); }
+.btn-primary-action:hover { background: #0043D1; transform: translateY(-2px); }
+
+@media (max-width: 1000px) {
+  .sidebar { width: 70px; padding: 30px 10px; }
+  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
+  .main-content { margin-left: 70px; }
+  .intel-content { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .data-split { grid-template-columns: 1fr; }
+  .admin-banner { flex-direction: column; text-align: center; gap: 20px; }
+  .banner-info { flex-direction: column; }
 }
 </style>

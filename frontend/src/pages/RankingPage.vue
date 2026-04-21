@@ -1,136 +1,139 @@
 <template>
-  <!-- Container principal da página de ranking -->
-  <div class="ranking">
-
-    <!-- Navbar superior -->
-    <nav class="navbar">
-      <h1>Portal de Simulados</h1>
-      <div class="nav-links">
-        <router-link to="/dashboard">Dashboard</router-link>
-        <router-link to="/simulados">Simulados</router-link>
-        <button @click="logout" class="btn-logout">Sair</button>
-      </div>
-    </nav>
-
-    <!-- Conteúdo principal -->
-    <div class="container">
-      <h2>🏆 Ranking Geral</h2>
-      <p class="subtitulo">Os melhores alunos do portal</p>
-
-      <!-- Estado de carregamento -->
-      <div v-if="carregando" class="loading">
-        Carregando ranking...
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo-text">
+          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
+        </h1>
+        <p class="tagline">Performance Lab</p>
       </div>
 
-      <!-- Mensagem de erro -->
-      <div v-else-if="erro" class="erro">{{ erro }}</div>
+      <nav class="sidebar-nav">
+        <router-link to="/dashboard" class="nav-link">
+          <span class="icon">📊</span> Dashboard
+        </router-link>
+        <router-link to="/simulados" class="nav-link">
+          <span class="icon">🎯</span> Avaliações
+        </router-link>
+        <router-link to="/ranking" class="nav-link active">
+          <span class="icon">🏆</span> Ranking Geral
+        </router-link>
+        <router-link v-if="isAdmin" to="/admin/alunos" class="nav-link link-admin">
+          <span class="icon">🛡️</span> Admin
+        </router-link>
+      </nav>
 
-      <!-- Tabela de ranking -->
-      <div v-else class="tabela-container">
+      <div class="sidebar-footer">
+        <button @click="logout" class="btn-logout-clean">Sair</button>
+      </div>
+    </aside>
 
-        <!-- Mensagem quando não há resultados -->
-        <div v-if="ranking.length === 0" class="vazio">
-          Nenhum resultado encontrado ainda.
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="welcome-msg">
+          <h2>Ranking Geral</h2>
+          <p class="text-secondary">Os melhores desempenhos do laboratório.</p>
+        </div>
+      </header>
+
+      <div v-if="erro" class="status-msg erro">{{ erro }}</div>
+
+      <div v-else-if="carregando" class="skeleton-wrapper">
+        <div class="skeleton-box shimmer" style="height: 60px; margin-bottom: 10px;"></div>
+        <div class="skeleton-box shimmer" style="height: 60px; margin-bottom: 10px;" v-for="n in 5" :key="n"></div>
+      </div>
+
+      <div v-else class="ranking-container">
+        
+        <div v-if="ranking.length === 0" class="empty-state-card clean-card">
+          <div class="empty-icon-wrapper"><span class="empty-icon">🏆</span></div>
+          <h3 class="empty-title">Ranking em formação.</h3>
+          <p class="empty-subtitle">Seja o primeiro a completar uma avaliação e conquiste o topo do laboratório.</p>
         </div>
 
-        <!-- Tabela com os resultados -->
-        <table v-else class="tabela">
-          <thead>
-            <tr>
-              <!-- Cabeçalhos da tabela -->
-              <th>#</th>
-              <th>Aluno</th>
-              <th>Simulado</th>
-              <th>Acertos</th>
-              <th>Score</th>
-              <th>Data</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- v-for percorre cada resultado do ranking -->
-            <tr
-              v-for="(item, index) in ranking"
-              :key="index"
-              :class="{ destaque: index < 3 }"
-            >
-              <!-- Posição no ranking com medalha para top 3 -->
-              <td class="posicao">
-                <span v-if="index === 0">🥇</span>
-                <span v-else-if="index === 1">🥈</span>
-                <span v-else-if="index === 2">🥉</span>
-                <span v-else>{{ index + 1 }}</span>
-              </td>
+        <div v-else class="tabela-wrapper clean-card">
+          <table class="tabela">
+            <thead>
+              <tr>
+                <th class="th-posicao">Posição</th>
+                <th>Candidato</th>
+                <th>Avaliação</th>
+                <th class="th-center">Acertos</th>
+                <th class="th-center">Precisão</th>
+                <th class="th-right">Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr 
+                v-for="(item, index) in ranking" 
+                :key="index"
+                :class="{ 'destaque-ouro': index === 0, 'destaque-prata': index === 1, 'destaque-bronze': index === 2 }"
+              >
+                <td class="td-posicao">
+                  <div class="medal-badge" :class="'medal-' + index" v-if="index < 3">
+                    <span v-if="index === 0">🥇</span>
+                    <span v-else-if="index === 1">🥈</span>
+                    <span v-else-if="index === 2">🥉</span>
+                  </div>
+                  <span v-else class="pos-numero">{{ index + 1 }}º</span>
+                </td>
 
-              <!-- Nome do aluno -->
-              <td class="aluno">{{ item.aluno_username }}</td>
-
-              <!-- Título do simulado -->
-              <td class="simulado">{{ item.simulado_titulo }}</td>
-
-              <!-- Acertos no formato "3 / 3" -->
-              <td class="acertos">{{ item.acertos }} / {{ item.total_questoes }}</td>
-
-              <!-- Score em percentual com cor baseada no valor -->
-              <td class="score" :class="corScore(item.score)">
-                {{ item.score }}%
-              </td>
-
-              <!-- Data formatada -->
-              <td class="data">{{ formatarData(item.realizado_em) }}</td>
-            </tr>
-          </tbody>
-        </table>
+                <td class="td-aluno">
+                  <div class="aluno-info">
+                    <span class="aluno-avatar">{{ item.aluno_username.charAt(0).toUpperCase() }}</span>
+                    <span class="aluno-nome">{{ item.aluno_username }}</span>
+                  </div>
+                </td>
+                
+                <td class="td-simulado">{{ item.simulado_titulo }}</td>
+                <td class="td-acertos th-center">{{ item.acertos }} / {{ item.total_questoes }}</td>
+                <td class="td-score th-center">
+                  <span class="score-badge" :class="corScore(item.score)">{{ item.score }}%</span>
+                </td>
+                <td class="td-data th-right">{{ formatarData(item.realizado_em) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-// Importa as funções reativas do Vue
+// LÓGICA INTACTA
 import { ref, onMounted } from 'vue'
-
-// Importa o router para navegação e logout
 import { useRouter } from 'vue-router'
-
-// Importa o serviço de API
 import api from '../services/api.js'
 
 const router = useRouter()
-
-// Lista do ranking retornada pela API
 const ranking = ref([])
 const carregando = ref(true)
 const erro = ref('')
+const isAdmin = ref(localStorage.getItem('user_role') === 'admin')
 
-// Busca o ranking ao carregar a página
 onMounted(async () => {
   try {
-    // Busca o ranking ordenado por score decrescente
-    const response = await api.get('/resultados/ranking/')
+    const response = await api.get('/api/resultados/ranking/') // Consertado para garantir o /api/
     ranking.value = response.data
   } catch (error) {
-    erro.value = 'Erro ao carregar o ranking.'
+    erro.value = 'Erro de conexão com o laboratório.'
   } finally {
     carregando.value = false
   }
 })
 
-// Retorna a classe de cor baseada no score
-// Verde para >= 70%, amarelo para >= 50%, vermelho para abaixo de 50%
 function corScore(score) {
   const valor = parseFloat(score)
-  if (valor >= 70) return 'verde'
-  if (valor >= 50) return 'amarelo'
-  return 'vermelho'
+  if (valor >= 70) return 'bg-green'
+  if (valor >= 50) return 'bg-orange'
+  return 'bg-red'
 }
 
-// Formata a data para o formato brasileiro
-// ex: "2026-03-19T00:00:00" → "19/03/2026"
 function formatarData(data) {
   return new Date(data).toLocaleDateString('pt-BR')
 }
 
-// Logout — remove tokens e redireciona para o login
 function logout() {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
@@ -140,131 +143,128 @@ function logout() {
 </script>
 
 <style scoped>
-.ranking {
-  min-height: 100vh;
-  background: #f5f5f5;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.dashboard-layout {
+  display: flex; min-height: 100vh; width: 100vw; position: absolute;
+  top: 0; left: 0; background-color: #F1F5F9; font-family: 'Inter', sans-serif;
 }
 
-.navbar {
-  background: #667eea;
-  color: white;
-  padding: 16px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+/* Sidebar (Idêntica ao Dashboard) */
+.sidebar {
+  width: 220px; background: linear-gradient(180deg, #0A2540 0%, #0052FF 100%);
+  color: white; display: flex; flex-direction: column; padding: 30px 20px;
+  position: fixed; height: 100vh; z-index: 100;
+}
+.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
+.logo-accent { color: #00D09C; font-weight: 800; font-size: 1.3rem; }
+.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; margin-top: 2px; }
+
+.sidebar-nav { margin-top: 40px; flex: 1; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; color: rgba(255, 255, 255, 0.8);
+  text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px;
+  font-weight: 500; font-size: 0.9rem; transition: all 0.2s;
+}
+.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; }
+
+.btn-logout-clean {
+  background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem;
+}
+.btn-logout-clean:hover { background: #EF4444; border-color: #EF4444; }
+
+/* Main Content */
+.main-content { flex: 1; margin-left: 220px; padding: 40px 50px; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+.welcome-msg h2 { font-size: 1.7rem; font-weight: 700; color: #0F172A; margin: 0; }
+.text-secondary { color: #475569; font-size: 0.9rem; margin-top: 4px; }
+
+/* UI Clean Tech */
+.clean-card {
+  background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.navbar h1 { font-size: 20px; font-weight: 600; }
+/* Skeleton */
+.skeleton-wrapper { width: 100%; }
+.shimmer { position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 8px; }
+.shimmer::after {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: loading 1.5s infinite;
+}
+@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 24px;
+/* Tabela Profissional */
+.tabela-wrapper { overflow-x: auto; }
+.tabela { width: 100%; border-collapse: collapse; white-space: nowrap; }
+
+.tabela thead { background: #F8FAFC; border-bottom: 2px solid #E2E8F0; }
+.tabela th { padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+.th-center { text-align: center !important; }
+.th-right { text-align: right !important; }
+
+.tabela tbody tr { border-bottom: 1px solid #F1F5F9; transition: background 0.2s; }
+.tabela tbody tr:hover { background: #F8FAFC; }
+
+/* Destaques Top 3 */
+.destaque-ouro { background: linear-gradient(90deg, rgba(250, 214, 38, 0.05) 0%, transparent 100%); }
+.destaque-prata { background: linear-gradient(90deg, rgba(203, 213, 225, 0.1) 0%, transparent 100%); }
+.destaque-bronze { background: linear-gradient(90deg, rgba(217, 119, 6, 0.05) 0%, transparent 100%); }
+
+.tabela td { padding: 16px 24px; font-size: 0.9rem; color: #1E293B; vertical-align: middle; }
+
+/* Posição e Medalhas */
+.td-posicao { width: 80px; }
+.pos-numero { font-weight: 700; color: #94A3B8; font-size: 1rem; }
+.medal-badge { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 1.2rem; }
+.medal-0 { background: #FEF08A; box-shadow: 0 0 10px rgba(250, 214, 38, 0.4); }
+.medal-1 { background: #E2E8F0; }
+.medal-2 { background: #FED7AA; }
+
+/* Aluno Avatar */
+.aluno-info { display: flex; align-items: center; gap: 12px; }
+.aluno-avatar { 
+  width: 32px; height: 32px; background: #0052FF; color: white; 
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+  font-weight: 700; font-size: 0.85rem; 
+}
+.aluno-nome { font-weight: 600; }
+
+.td-simulado { color: #475569; font-weight: 500; }
+.td-acertos { color: #64748B; font-weight: 600; }
+.td-data { color: #94A3B8; font-size: 0.85rem; }
+
+/* Score Badges */
+.score-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; color: white; }
+.bg-green { background-color: #10B981; }
+.bg-orange { background-color: #F59E0B; }
+.bg-red { background-color: #EF4444; }
+
+/* Empty State */
+.empty-state-card {
+  padding: 60px 40px; text-align: center; border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.empty-icon-wrapper { width: 80px; height: 80px; background: #EFF6FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.empty-icon { font-size: 2.5rem; }
+.empty-title { font-size: 1.4rem; font-weight: 700; color: #0F172A; margin-bottom: 12px; }
+.empty-subtitle { color: #64748B; max-width: 500px; font-size: 0.95rem; }
+
+/* Responsivo */
+@media (max-width: 1000px) {
+  .sidebar { width: 70px; padding: 30px 10px; }
+  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
+  .main-content { margin-left: 70px; padding: 20px; }
 }
 
-.nav-links a {
-  color: white;
-  text-decoration: none;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.btn-logout {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.4);
-  padding: 6px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 40px 20px;
-}
-
-h2 { font-size: 24px; color: #333; margin-bottom: 8px; }
-
-.subtitulo { color: #666; margin-bottom: 32px; }
-
-.loading {
-  text-align: center;
-  color: #666;
-  padding: 40px;
-}
-
-.erro {
-  background: #fee;
-  color: #c00;
-  padding: 12px;
-  border-radius: 6px;
-}
-
-.tabela-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  overflow: hidden;
-}
-
-.tabela {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.tabela thead {
-  background: #667eea;
-  color: white;
-}
-
-.tabela th {
-  padding: 14px 16px;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.tabela tbody tr {
-  border-bottom: 1px solid #f0f0f0;
-  transition: background 0.15s;
-}
-
-.tabela tbody tr:hover {
-  background: #f8f9ff;
-}
-
-/* Destaque para o top 3 */
-.tabela tbody tr.destaque {
-  background: #fefdf0;
-}
-
-.tabela td {
-  padding: 14px 16px;
-  font-size: 14px;
-  color: #333;
-}
-
-.posicao { font-size: 18px; text-align: center; }
-
-.aluno { font-weight: 500; }
-
-.simulado { color: #666; }
-
-.acertos { color: #666; }
-
-/* Classes de cor para o score */
-.verde { color: #22c55e; font-weight: 600; }
-.amarelo { color: #f59e0b; font-weight: 600; }
-.vermelho { color: #ef4444; font-weight: 600; }
-
-.data { color: #999; font-size: 13px; }
-
-.vazio {
-  text-align: center;
-  color: #999;
-  padding: 40px;
+@media (max-width: 600px) {
+  .tabela thead { display: none; }
+  .tabela tbody tr { display: flex; flex-direction: column; padding: 15px; position: relative; }
+  .tabela td { padding: 5px 0; text-align: left !important; border: none; }
+  .td-posicao { position: absolute; top: 15px; right: 15px; width: auto; }
+  .aluno-info { margin-bottom: 10px; }
+  .td-score { position: absolute; bottom: 15px; right: 15px; }
 }
 </style>

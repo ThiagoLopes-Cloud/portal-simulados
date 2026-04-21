@@ -1,8 +1,8 @@
-// src/services/api.js
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://portal-simulados-production.up.railway.app/api',
+  // TEM QUE ESTAR SEM O /api NO FINAL!
+  baseURL: 'https://portal-simulados-production.up.railway.app',
 })
 
 api.interceptors.request.use((config) => {
