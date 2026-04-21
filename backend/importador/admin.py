@@ -284,6 +284,7 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
         'tema',
         'dificuldade',
         'tem_imagem_enunciado',
+        'total_imagens_alternativas',
         'importacao',
         'status',
         'gabarito_oficial',
@@ -307,6 +308,7 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
         'texto_bruto',
         'questao_oficial',
         'preview_imagem_enunciado',
+        'preview_imagens_alternativas',
         'criado_em',
         'atualizado_em',
     ]
@@ -345,6 +347,16 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
         ('Imagem do enunciado', {
             'fields': ('preview_imagem_enunciado', 'imagem_enunciado_arquivo'),
         }),
+        ('Imagens das alternativas', {
+            'fields': (
+                'preview_imagens_alternativas',
+                'imagem_opcao_a_arquivo',
+                'imagem_opcao_b_arquivo',
+                'imagem_opcao_c_arquivo',
+                'imagem_opcao_d_arquivo',
+                'imagem_opcao_e_arquivo',
+            ),
+        }),
         ('Auditoria', {
             'fields': ('criado_em', 'atualizado_em'),
         }),
@@ -356,6 +368,20 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
     tem_imagem_enunciado.boolean = True
     tem_imagem_enunciado.short_description = 'Imagem'
 
+    def total_imagens_alternativas(self, obj):
+        return sum(
+            bool(image_field)
+            for image_field in (
+                obj.imagem_opcao_a_arquivo,
+                obj.imagem_opcao_b_arquivo,
+                obj.imagem_opcao_c_arquivo,
+                obj.imagem_opcao_d_arquivo,
+                obj.imagem_opcao_e_arquivo,
+            )
+        )
+
+    total_imagens_alternativas.short_description = 'Imgs alt.'
+
     def preview_imagem_enunciado(self, obj):
         if not obj.imagem_enunciado_arquivo:
             return 'Sem imagem extraida'
@@ -365,6 +391,33 @@ class QuestaoImportadaAdmin(admin.ModelAdmin):
         )
 
     preview_imagem_enunciado.short_description = 'Preview da imagem'
+
+    def preview_imagens_alternativas(self, obj):
+        previews = []
+        for letter, image_field in (
+            ('A', obj.imagem_opcao_a_arquivo),
+            ('B', obj.imagem_opcao_b_arquivo),
+            ('C', obj.imagem_opcao_c_arquivo),
+            ('D', obj.imagem_opcao_d_arquivo),
+            ('E', obj.imagem_opcao_e_arquivo),
+        ):
+            if not image_field:
+                continue
+            previews.append(
+                format_html(
+                    '<div style="display:inline-block; margin: 0 12px 12px 0; text-align:center;">'
+                    '<div style="margin-bottom:4px; font-weight:600;">Alternativa {0}</div>'
+                    '<a href="{1}" target="_blank"><img src="{1}" style="max-width: 220px; max-height: 180px; border: 1px solid #444;" /></a>'
+                    '</div>',
+                    letter,
+                    image_field.url,
+                )
+            )
+        if not previews:
+            return 'Sem imagens extraidas nas alternativas'
+        return format_html(''.join(str(preview) for preview in previews))
+
+    preview_imagens_alternativas.short_description = 'Preview das alternativas'
 
 
 @admin.register(QuestaoProvaOriginal)

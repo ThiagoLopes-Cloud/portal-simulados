@@ -11,6 +11,7 @@ from conteudo.models import Materia, Tema
 from importador.models import ImportacaoProva, ProvaOriginal, QuestaoImportada, QuestaoProvaOriginal
 from importador.services import (
     build_public_media_url,
+    build_public_media_urls_for_question,
     classify_question,
     clean_extracted_field,
     normalize_text,
@@ -195,8 +196,8 @@ class ImportadorParsingTests(TestCase):
         self.assertFalse(question_has_visual_hint('Texto puramente conceitual sem apoio visual.'))
 
 
-class ImportacaoDeleteProtectionTests(TestCase):
-    def test_cannot_delete_importacao_when_simulado_has_results(self):
+class ImportacaoDeleteBehaviorTests(TestCase):
+    def test_can_delete_importacao_even_when_simulado_has_results(self):
         user = User.objects.create_user(
             username='admin',
             password='senha123',
@@ -235,8 +236,10 @@ class ImportacaoDeleteProtectionTests(TestCase):
         )
         simulado.resultados.create(aluno=user, tentativa=1, acertos=1, total_questoes=1, score=100)
 
-        with self.assertRaises(ValidationError):
-            importacao.delete()
+        importacao.delete()
+
+        self.assertFalse(ImportacaoProva.objects.filter(pk=importacao.pk).exists())
+        self.assertFalse(Simulado.objects.filter(pk=simulado.pk).exists())
 
 
 class DedupeQuestaoEntreProvasTests(TestCase):
@@ -504,6 +507,46 @@ class ImagemEnunciadoImportadaTests(TestCase):
             f'http://testserver{questao.imagem_enunciado_arquivo.url}',
         )
 
+    def test_build_public_media_urls_for_question_includes_alternative_images(self):
+        user = User.objects.create_user(username='admin7b', password='senha123', role='admin')
+        importacao = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova = ProvaOriginal.objects.create(importacao=importacao, descricao='ENEM 2025 - Azul')
+        questao = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=9,
+            enunciado='Questao com imagens nas alternativas.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='A',
+        )
+        questao.imagem_opcao_a_arquivo.save(
+            'alt_a.png',
+            SimpleUploadedFile('alt_a.png', b'fake-image-a', content_type='image/png'),
+            save=True,
+        )
+        questao.imagem_opcao_c_arquivo.save(
+            'alt_c.png',
+            SimpleUploadedFile('alt_c.png', b'fake-image-c', content_type='image/png'),
+            save=True,
+        )
+
+        urls = build_public_media_urls_for_question(questao)
+
+        self.assertEqual(urls['imagem_opcao_a'], f'http://testserver{questao.imagem_opcao_a_arquivo.url}')
+        self.assertIsNone(urls['imagem_opcao_b'])
+        self.assertEqual(urls['imagem_opcao_c'], f'http://testserver{questao.imagem_opcao_c_arquivo.url}')
+
     def test_publicacao_propaga_imagem_enunciado_para_questao_oficial(self):
         user = User.objects.create_user(username='admin8', password='senha123', role='admin')
         importacao = ImportacaoProva.objects.create(
@@ -547,6 +590,61 @@ class ImagemEnunciadoImportadaTests(TestCase):
         self.assertEqual(
             questao.imagem_enunciado,
             f'http://testserver{importada.imagem_enunciado_arquivo.url}',
+        )
+
+    def test_publicacao_propaga_imagens_das_alternativas_para_questao_oficial(self):
+        user = User.objects.create_user(username='admin8b', password='senha123', role='admin')
+        importacao = ImportacaoProva.objects.create(
+            ano=2025,
+            dia=1,
+            cor=ImportacaoProva.COR_AZUL,
+            pdf_prova='importacoes/provas/prova2025.pdf',
+            pdf_gabarito='importacoes/gabaritos/gabarito2025.pdf',
+            criado_por=user,
+        )
+        prova = ProvaOriginal.objects.create(importacao=importacao, descricao='ENEM 2025 - Azul')
+        Simulado.objects.create(
+            titulo='ENEM 2025 - Dia 1 - Azul',
+            descricao='Original',
+            criado_por=user,
+            ativo=False,
+            importacao_origem=importacao,
+            prova_original=prova,
+            eh_simulado_original=True,
+        )
+        importada = QuestaoImportada.objects.create(
+            importacao=importacao,
+            prova_original=prova,
+            numero_na_prova=19,
+            enunciado='Questao com imagens nas alternativas publicadas.',
+            opcao_a='A',
+            opcao_b='B',
+            opcao_c='C',
+            opcao_d='D',
+            opcao_e='E',
+            gabarito_oficial='B',
+        )
+        importada.imagem_opcao_a_arquivo.save(
+            'alt_a.png',
+            SimpleUploadedFile('alt_a.png', b'fake-image-a', content_type='image/png'),
+            save=True,
+        )
+        importada.imagem_opcao_d_arquivo.save(
+            'alt_d.png',
+            SimpleUploadedFile('alt_d.png', b'fake-image-d', content_type='image/png'),
+            save=True,
+        )
+
+        questao = publicar_questao_importada(importada)
+
+        self.assertEqual(
+            questao.imagem_opcao_a,
+            f'http://testserver{importada.imagem_opcao_a_arquivo.url}',
+        )
+        self.assertIsNone(questao.imagem_opcao_b)
+        self.assertEqual(
+            questao.imagem_opcao_d,
+            f'http://testserver{importada.imagem_opcao_d_arquivo.url}',
         )
 
     def test_dedupe_reaproveita_questao_e_completa_tema_ausente(self):

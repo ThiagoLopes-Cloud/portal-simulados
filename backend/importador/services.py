@@ -462,11 +462,22 @@ def build_public_media_url(file_field):
     return urljoin(f'{base_url}/', file_field.url.lstrip('/'))
 
 
+def build_public_media_urls_for_question(questao_importada):
+    return {
+        'imagem_enunciado': build_public_media_url(questao_importada.imagem_enunciado_arquivo),
+        'imagem_opcao_a': build_public_media_url(questao_importada.imagem_opcao_a_arquivo),
+        'imagem_opcao_b': build_public_media_url(questao_importada.imagem_opcao_b_arquivo),
+        'imagem_opcao_c': build_public_media_url(questao_importada.imagem_opcao_c_arquivo),
+        'imagem_opcao_d': build_public_media_url(questao_importada.imagem_opcao_d_arquivo),
+        'imagem_opcao_e': build_public_media_url(questao_importada.imagem_opcao_e_arquivo),
+    }
+
+
 def question_blocks_overlap(block_a, block_b):
     return bool(set(block_a.get('paginas', [])) & set(block_b.get('paginas', [])))
 
 
-def select_image_for_block(block, all_blocks, page_entries_by_number):
+def select_images_for_block(block, all_blocks, page_entries_by_number):
     page_numbers = block.get('paginas') or ([block['pagina_inicial']] if block.get('pagina_inicial') else [])
     candidate_images = []
     competing_blocks = []
@@ -481,23 +492,27 @@ def select_image_for_block(block, all_blocks, page_entries_by_number):
             candidate_images.extend(page_entry['images'])
 
     if not candidate_images:
-        return None, None
+        return None, [], None
 
     if len(candidate_images) == 1:
         image = candidate_images[0]
         if len(competing_blocks) == 1:
-            return image, None
+            return image, [], None
 
         visual_blocks = [item for item in competing_blocks if question_has_visual_hint(item['texto'])]
         if len(visual_blocks) == 1 and visual_blocks[0] is block:
-            return image, None
+            return image, [], None
 
-        return None, 'Imagem presente na pagina, mas associacao esta ambigua.'
+        return None, [], 'Imagem presente na pagina, mas associacao esta ambigua.'
 
     if len(competing_blocks) == 1:
-        return candidate_images[0], 'Multiplas imagens detectadas; a primeira foi associada para revisao.'
+        return (
+            candidate_images[0],
+            candidate_images[1:6],
+            'Multiplas imagens detectadas; imagens adicionais foram associadas sequencialmente para revisao.',
+        )
 
-    return None, 'Multiplas imagens detectadas na mesma area da prova.'
+    return None, [], 'Multiplas imagens detectadas na mesma area da prova.'
 
 
 def save_extracted_image(questao_importada, image_info):
@@ -513,6 +528,30 @@ def save_extracted_image(questao_importada, image_info):
         ContentFile(image_info['data']),
         save=False,
     )
+
+
+def save_extracted_option_images(questao_importada, image_infos):
+    option_fields = [
+        ('imagem_opcao_a_arquivo', 'a'),
+        ('imagem_opcao_b_arquivo', 'b'),
+        ('imagem_opcao_c_arquivo', 'c'),
+        ('imagem_opcao_d_arquivo', 'd'),
+        ('imagem_opcao_e_arquivo', 'e'),
+    ]
+    idioma_suffix = questao_importada.idioma or 'geral'
+
+    for image_info, (field_name, letter_suffix) in zip(image_infos, option_fields):
+        suffix = image_info['extension'] if image_info['extension'].startswith('.') else f".{image_info['extension']}"
+        filename = (
+            f"enem_{questao_importada.importacao.ano}_d{questao_importada.importacao.dia}_"
+            f"{questao_importada.importacao.cor}_q{questao_importada.numero_na_prova}_{idioma_suffix}_"
+            f"alt_{letter_suffix}_p{questao_importada.pagina_inicial or image_info['page_number']}{suffix}"
+        )
+        getattr(questao_importada, field_name).save(
+            filename,
+            ContentFile(image_info['data']),
+            save=False,
+        )
 
 
 @transaction.atomic
@@ -595,7 +634,7 @@ def processar_importacao(importacao):
         if not answer and idioma is not None:
             answer = gabarito.get((numero, None), '')
 
-        image_info, image_reason = select_image_for_block(item, question_blocks, page_entries_by_number)
+        image_info, option_image_infos, image_reason = select_images_for_block(item, question_blocks, page_entries_by_number)
         status, reason = classify_question(parsed, answer, has_image=bool(image_info))
         if image_reason:
             reason = f'{reason} {image_reason}'.strip()
@@ -620,6 +659,8 @@ def processar_importacao(importacao):
         )
         if image_info:
             save_extracted_image(questao_importada, image_info)
+        if option_image_infos:
+            save_extracted_option_images(questao_importada, option_image_infos)
         questao_importada.save()
         created.append(questao_importada)
 
@@ -650,19 +691,24 @@ def publicar_questao_importada(questao_importada):
             'Preencha enunciado, alternativas A-E e gabarito oficial antes de publicar.'
         )
 
-    imagem_enunciado_url = build_public_media_url(questao_importada.imagem_enunciado_arquivo)
+    image_urls = build_public_media_urls_for_question(questao_importada)
 
     questao = find_existing_question(questao_importada)
     if questao is None:
         questao = Questao.objects.create(
             enunciado=questao_importada.enunciado,
             tema=questao_importada.tema,
-            imagem_enunciado=imagem_enunciado_url,
+            imagem_enunciado=image_urls['imagem_enunciado'],
             opcao_a=questao_importada.opcao_a,
             opcao_b=questao_importada.opcao_b,
             opcao_c=questao_importada.opcao_c,
             opcao_d=questao_importada.opcao_d,
             opcao_e=questao_importada.opcao_e,
+            imagem_opcao_a=image_urls['imagem_opcao_a'],
+            imagem_opcao_b=image_urls['imagem_opcao_b'],
+            imagem_opcao_c=image_urls['imagem_opcao_c'],
+            imagem_opcao_d=image_urls['imagem_opcao_d'],
+            imagem_opcao_e=image_urls['imagem_opcao_e'],
             resposta_correta=questao_importada.gabarito_oficial,
             dificuldade=questao_importada.dificuldade,
             explicacao='',
@@ -685,9 +731,19 @@ def publicar_questao_importada(questao_importada):
         ):
             questao.dificuldade = questao_importada.dificuldade
             updated_fields.append('dificuldade')
-        if not questao.imagem_enunciado and imagem_enunciado_url:
-            questao.imagem_enunciado = imagem_enunciado_url
+        if not questao.imagem_enunciado and image_urls['imagem_enunciado']:
+            questao.imagem_enunciado = image_urls['imagem_enunciado']
             updated_fields.append('imagem_enunciado')
+        for field_name in [
+            'imagem_opcao_a',
+            'imagem_opcao_b',
+            'imagem_opcao_c',
+            'imagem_opcao_d',
+            'imagem_opcao_e',
+        ]:
+            if not getattr(questao, field_name) and image_urls[field_name]:
+                setattr(questao, field_name, image_urls[field_name])
+                updated_fields.append(field_name)
         if updated_fields:
             questao.save(update_fields=updated_fields + ['atualizado_em'])
 

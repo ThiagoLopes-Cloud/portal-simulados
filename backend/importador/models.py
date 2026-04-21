@@ -139,15 +139,6 @@ class ImportacaoProva(models.Model):
             raise ValidationError({'pdf_gabarito': 'Envie o PDF do gabarito.'})
 
     def delete(self, *args, **kwargs):
-        try:
-            simulado = self.simulado_original
-        except Exception:
-            simulado = None
-        if simulado and simulado.resultados.exists():
-            raise ValidationError(
-                'Nao e possivel excluir esta importacao porque o simulado original '
-                'ja possui resultados de alunos.'
-            )
         storage = self.pdf_prova.storage if self.pdf_prova else None
         prova_name = self.pdf_prova.name if self.pdf_prova else None
         gabarito_name = self.pdf_gabarito.name if self.pdf_gabarito else None
@@ -282,6 +273,36 @@ class QuestaoImportada(models.Model):
         null=True,
         blank=True,
         verbose_name='Imagem extraida do enunciado',
+    )
+    imagem_opcao_a_arquivo = models.FileField(
+        upload_to='importacoes/imagens/opcoes/',
+        null=True,
+        blank=True,
+        verbose_name='Imagem extraida da alternativa A',
+    )
+    imagem_opcao_b_arquivo = models.FileField(
+        upload_to='importacoes/imagens/opcoes/',
+        null=True,
+        blank=True,
+        verbose_name='Imagem extraida da alternativa B',
+    )
+    imagem_opcao_c_arquivo = models.FileField(
+        upload_to='importacoes/imagens/opcoes/',
+        null=True,
+        blank=True,
+        verbose_name='Imagem extraida da alternativa C',
+    )
+    imagem_opcao_d_arquivo = models.FileField(
+        upload_to='importacoes/imagens/opcoes/',
+        null=True,
+        blank=True,
+        verbose_name='Imagem extraida da alternativa D',
+    )
+    imagem_opcao_e_arquivo = models.FileField(
+        upload_to='importacoes/imagens/opcoes/',
+        null=True,
+        blank=True,
+        verbose_name='Imagem extraida da alternativa E',
     )
     gabarito_oficial = models.CharField(
         max_length=1,
