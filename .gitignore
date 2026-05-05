@@ -1,17 +1,41 @@
-# Python
+# =========================
+# Python / Django
+# =========================
 backend/venv/
 backend/__pycache__/
 backend/*.pyc
 backend/.env
 backend/db.sqlite3
 
-# Node
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-
-# VS Code
-.vscode/
-
 **/__pycache__/
 **/*.pyc
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+frontend/node_modules/
+
+dist/
+frontend/dist/
+
+frontend/.env
+
+# =========================
+# Logs
+# =========================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# Sistema
+# =========================
+.DS_Store
+Thumbs.db
