@@ -1,115 +1,131 @@
 <template>
-  <div class="dashboard-layout">
+  <div class="page-layout">
+
     <aside class="sidebar">
-      <div class="sidebar-header">
-        <h1 class="logo-text">
-          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
+      <div class="mb-8">
+        <h1 class="font-display text-xl font-bold">
+          <span class="text-simus-cyan">SIMUS</span><span class="text-slate-50">LAB</span>
         </h1>
-        <p class="tagline">Performance Lab</p>
+        <p class="tagline-text">Performance Lab</p>
       </div>
-
-      <nav class="sidebar-nav">
-        <router-link to="/dashboard" class="nav-link">
-          <span class="icon">📊</span> Dashboard
-        </router-link>
-        <router-link to="/simulados" class="nav-link">
-          <span class="icon">🎯</span> Avaliações
-        </router-link>
-        <router-link to="/ranking" class="nav-link active">
-          <span class="icon">🏆</span> Ranking Geral
-        </router-link>
-        <router-link v-if="isAdmin" to="/admin/alunos" class="nav-link link-admin">
-          <span class="icon">🛡️</span> Admin
-        </router-link>
+      <nav class="flex-1 space-y-1">
+        <router-link to="/dashboard" class="nav-link"><span>📊</span><span class="nav-label">Dashboard</span></router-link>
+        <router-link to="/simulados" class="nav-link"><span>🎯</span><span class="nav-label">Avaliações</span></router-link>
+        <router-link to="/ranking" class="nav-link"><span>🏆</span><span class="nav-label">Ranking Geral</span></router-link>
+        <router-link v-if="isAdmin" to="/admin/alunos" class="nav-link nav-admin"><span>🛡️</span><span class="nav-label">Admin</span></router-link>
       </nav>
-
-      <div class="sidebar-footer">
-        <button @click="logout" class="btn-logout-clean">Sair</button>
-      </div>
+      <button @click="logout" class="logout-btn"><span class="nav-label">Sair</span></button>
     </aside>
 
     <main class="main-content">
-      <header class="top-bar">
-        <div class="welcome-msg">
-          <h2>Ranking Geral</h2>
-          <p class="text-secondary">Os melhores desempenhos do laboratório.</p>
-        </div>
+      <header class="mb-8">
+        <h2 class="font-display text-2xl font-bold text-slate-50">Ranking Geral</h2>
+        <p class="text-slate-400 text-sm mt-1">Os melhores desempenhos do laboratório.</p>
       </header>
 
-      <div v-if="erro" class="status-msg erro">{{ erro }}</div>
+      <div v-if="erro" class="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 text-sm">{{ erro }}</div>
 
-      <div v-else-if="carregando" class="skeleton-wrapper">
-        <div class="skeleton-box shimmer" style="height: 60px; margin-bottom: 10px;"></div>
-        <div class="skeleton-box shimmer" style="height: 60px; margin-bottom: 10px;" v-for="n in 5" :key="n"></div>
+      <div v-else-if="carregando" class="space-y-2">
+        <div class="shimmer h-14 rounded-xl" v-for="n in 6" :key="n" />
       </div>
 
-      <div v-else class="ranking-container">
-        
-        <div v-if="ranking.length === 0" class="empty-state-card clean-card">
-          <div class="empty-icon-wrapper"><span class="empty-icon">🏆</span></div>
-          <h3 class="empty-title">Ranking em formação.</h3>
-          <p class="empty-subtitle">Seja o primeiro a completar uma avaliação e conquiste o topo do laboratório.</p>
+      <div v-else>
+
+        <div v-if="ranking.length === 0"
+             class="card flex flex-col items-center text-center py-14 border-dashed">
+          <div class="w-14 h-14 bg-simus-cyan/10 rounded-full flex items-center justify-center text-3xl mb-5">🏆</div>
+          <h3 class="font-display text-lg font-bold text-slate-50 mb-2">Ranking em formação.</h3>
+          <p class="text-slate-400 text-sm">Seja o primeiro a completar uma avaliação e conquiste o topo do laboratório.</p>
         </div>
 
-        <div v-else class="tabela-wrapper clean-card">
-          <table class="tabela">
+        <div v-else class="card overflow-hidden p-0">
+          <!-- Desktop table -->
+          <table class="w-full hidden sm:table">
             <thead>
-              <tr>
-                <th class="th-posicao">Posição</th>
-                <th>Candidato</th>
-                <th>Avaliação</th>
-                <th class="th-center">Acertos</th>
-                <th class="th-center">Precisão</th>
-                <th class="th-right">Data</th>
+              <tr class="border-b border-white/5">
+                <th class="th w-16">Pos.</th>
+                <th class="th">Candidato</th>
+                <th class="th">Avaliação</th>
+                <th class="th text-center">Acertos</th>
+                <th class="th text-center">Precisão</th>
+                <th class="th text-right">Data</th>
               </tr>
             </thead>
             <tbody>
-              <tr 
-                v-for="(item, index) in ranking" 
-                :key="index"
-                :class="{ 'destaque-ouro': index === 0, 'destaque-prata': index === 1, 'destaque-bronze': index === 2 }"
-              >
-                <td class="td-posicao">
-                  <div class="medal-badge" :class="'medal-' + index" v-if="index < 3">
-                    <span v-if="index === 0">🥇</span>
-                    <span v-else-if="index === 1">🥈</span>
-                    <span v-else-if="index === 2">🥉</span>
+              <tr v-for="(item, index) in ranking" :key="index"
+                  class="border-b border-white/[0.04] transition-colors hover:bg-white/[0.03]"
+                  :class="{
+                    'bg-[rgba(255,214,0,0.03)]': index === 0,
+                    'bg-[rgba(203,213,225,0.02)]': index === 1,
+                    'bg-[rgba(194,120,63,0.03)]': index === 2,
+                  }">
+                <td class="td text-center">
+                  <div v-if="index < 3" class="w-8 h-8 rounded-full mx-auto flex items-center justify-center text-lg"
+                       :class="{ 'bg-yellow-400/10': index===0, 'bg-slate-400/10': index===1, 'bg-orange-400/10': index===2 }">
+                    <span v-if="index===0">🥇</span>
+                    <span v-else-if="index===1">🥈</span>
+                    <span v-else>🥉</span>
                   </div>
-                  <span v-else class="pos-numero">{{ index + 1 }}º</span>
+                  <span v-else class="text-slate-500 font-bold text-sm">{{ index + 1 }}º</span>
                 </td>
-
-                <td class="td-aluno">
-                  <div class="aluno-info">
-                    <span class="aluno-avatar">{{ item.aluno_username.charAt(0).toUpperCase() }}</span>
-                    <span class="aluno-nome">{{ item.aluno_username }}</span>
+                <td class="td">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-simus-cyan/10 border border-simus-cyan/20
+                                flex items-center justify-center text-simus-cyan text-sm font-bold">
+                      {{ item.aluno_username.charAt(0).toUpperCase() }}
+                    </div>
+                    <span class="text-slate-200 font-semibold text-sm">{{ item.aluno_username }}</span>
                   </div>
                 </td>
-                
-                <td class="td-simulado">{{ item.simulado_titulo }}</td>
-                <td class="td-acertos th-center">{{ item.acertos }} / {{ item.total_questoes }}</td>
-                <td class="td-score th-center">
-                  <span class="score-badge" :class="corScore(item.score)">{{ item.score }}%</span>
+                <td class="td text-slate-400 text-sm">{{ item.simulado_titulo }}</td>
+                <td class="td text-center text-slate-300 font-semibold text-sm">{{ item.acertos }} / {{ item.total_questoes }}</td>
+                <td class="td text-center">
+                  <span class="px-2.5 py-1 rounded-full text-white text-xs font-bold" :class="corScore(item.score)">
+                    {{ item.score }}%
+                  </span>
                 </td>
-                <td class="td-data th-right">{{ formatarData(item.realizado_em) }}</td>
+                <td class="td text-right text-slate-500 text-sm">{{ formatarData(item.realizado_em) }}</td>
               </tr>
             </tbody>
           </table>
+
+          <!-- Mobile list -->
+          <div class="sm:hidden divide-y divide-white/5">
+            <div v-for="(item, index) in ranking" :key="index"
+                 class="px-5 py-4 flex items-center gap-4">
+              <div class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-lg"
+                   v-if="index < 3"
+                   :class="{ 'bg-yellow-400/10': index===0, 'bg-slate-400/10': index===1, 'bg-orange-400/10': index===2 }">
+                <span v-if="index===0">🥇</span>
+                <span v-else-if="index===1">🥈</span>
+                <span v-else>🥉</span>
+              </div>
+              <span v-else class="w-8 text-center text-slate-500 font-bold text-sm shrink-0">{{ index + 1 }}º</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-slate-200 font-semibold text-sm">{{ item.aluno_username }}</p>
+                <p class="text-slate-500 text-xs truncate">{{ item.simulado_titulo }}</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-white text-xs font-bold shrink-0" :class="corScore(item.score)">
+                {{ item.score }}%
+              </span>
+            </div>
+          </div>
         </div>
+
       </div>
     </main>
 
-    <nav class="mobile-bottom-nav">
-      <router-link to="/dashboard" class="mnav-item"><span class="mnav-icon">📊</span><span>Dashboard</span></router-link>
-      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
-      <router-link to="/turmas" class="mnav-item"><span class="mnav-icon">👥</span><span>Turmas</span></router-link>
-      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
-      <router-link v-if="isAdmin" to="/admin/alunos" class="mnav-item"><span class="mnav-icon">🛡️</span><span>Admin</span></router-link>
+    <nav class="mobile-nav">
+      <router-link to="/dashboard" class="mnav-item"><span class="text-xl">📊</span><span>Dashboard</span></router-link>
+      <router-link to="/simulados" class="mnav-item"><span class="text-xl">🎯</span><span>Avaliações</span></router-link>
+      <router-link to="/turmas" class="mnav-item"><span class="text-xl">👥</span><span>Turmas</span></router-link>
+      <router-link to="/ranking" class="mnav-item"><span class="text-xl">🏆</span><span>Ranking</span></router-link>
+      <router-link v-if="isAdmin" to="/admin/alunos" class="mnav-item"><span class="text-xl">🛡️</span><span>Admin</span></router-link>
     </nav>
   </div>
 </template>
 
 <script setup>
-// LÓGICA INTACTA
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
@@ -122,7 +138,7 @@ const isAdmin = ref(localStorage.getItem('user_role') === 'admin')
 
 onMounted(async () => {
   try {
-    const response = await api.get('/api/resultados/ranking/') // Consertado para garantir o /api/
+    const response = await api.get('/api/resultados/ranking/')
     ranking.value = response.data
   } catch (error) {
     erro.value = 'Erro de conexão com o laboratório.'
@@ -133,9 +149,9 @@ onMounted(async () => {
 
 function corScore(score) {
   const valor = parseFloat(score)
-  if (valor >= 70) return 'bg-green'
-  if (valor >= 50) return 'bg-orange'
-  return 'bg-red'
+  if (valor >= 70) return 'bg-emerald-500'
+  if (valor >= 50) return 'bg-amber-500'
+  return 'bg-red-500'
 }
 
 function formatarData(data) {
@@ -145,148 +161,64 @@ function formatarData(data) {
 function logout() {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user_role')  
+  localStorage.removeItem('user_role')
   router.push({ name: 'login' })
 }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@reference "../assets/main.css";
 
-.dashboard-layout {
-  display: flex; min-height: 100vh; width: 100vw; position: absolute;
-  top: 0; left: 0; background-color: #F1F5F9; font-family: 'Inter', sans-serif;
-}
-
-/* Sidebar (Idêntica ao Dashboard) */
+.page-layout { @apply flex min-h-screen bg-simus-bg font-body; }
 .sidebar {
-  width: 220px; background: linear-gradient(180deg, #0A2540 0%, #0052FF 100%);
-  color: white; display: flex; flex-direction: column; padding: 30px 20px;
-  position: fixed; height: 100vh; z-index: 100;
+  @apply fixed top-0 left-0 h-screen w-[220px] bg-simus-surface border-r border-white/5
+         flex flex-col px-5 py-8 z-50;
 }
-.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
-.logo-accent { color: #00D09C; font-weight: 800; font-size: 1.3rem; }
-.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; margin-top: 2px; }
-
-.sidebar-nav { margin-top: 40px; flex: 1; }
+.tagline-text { @apply text-[0.6rem] uppercase tracking-widest text-slate-500 mt-0.5; }
 .nav-link {
-  display: flex; align-items: center; gap: 10px; color: rgba(255, 255, 255, 0.8);
-  text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px;
-  font-weight: 500; font-size: 0.9rem; transition: all 0.2s;
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+         text-slate-400 no-underline transition-all duration-150;
 }
-.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; }
-
-.btn-logout-clean {
-  background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem;
+.nav-link:hover { @apply text-slate-50 bg-white/5; }
+.nav-link.router-link-exact-active {
+  @apply text-simus-cyan bg-simus-cyan/10;
+  border-left: 2px solid #00E5FF;
+  padding-left: calc(0.75rem - 2px);
 }
-.btn-logout-clean:hover { background: #EF4444; border-color: #EF4444; }
-
-/* Main Content */
-.main-content { flex: 1; margin-left: 220px; padding: 40px 50px; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
-.welcome-msg h2 { font-size: 1.7rem; font-weight: 700; color: #0F172A; margin: 0; }
-.text-secondary { color: #475569; font-size: 0.9rem; margin-top: 4px; }
-
-/* UI Clean Tech */
-.clean-card {
-  background: white; border: 1px solid #E2E8F0; border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+.nav-admin.router-link-exact-active { @apply text-simus-purple bg-simus-purple/10; border-left-color: #8A2BE2; }
+.logout-btn {
+  @apply w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl
+         border border-white/10 text-slate-400 text-sm font-semibold cursor-pointer transition-colors bg-transparent;
 }
+.logout-btn:hover { @apply border-red-500/30 text-red-400 bg-red-500/5; }
+.main-content { @apply flex-1 ml-[220px] px-8 py-8; }
+.card { @apply bg-simus-surface border border-white/5 rounded-simus p-5; }
+.th { @apply px-5 py-3.5 text-left text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider; }
+.td { @apply px-5 py-4 vertical-align-middle; }
 
-/* Skeleton */
-.skeleton-wrapper { width: 100%; }
-.shimmer { position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 8px; }
-.shimmer::after {
-  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-  animation: loading 1.5s infinite;
+.shimmer { @apply bg-white/5 relative overflow-hidden; }
+.shimmer::after { content: ''; @apply absolute inset-0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); animation: shimmer 1.5s infinite; }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+.mobile-nav {
+  @apply hidden fixed bottom-0 left-0 right-0 bg-simus-surface border-t border-white/5 z-50;
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
-@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-/* Tabela Profissional */
-.tabela-wrapper { overflow-x: auto; }
-.tabela { width: 100%; border-collapse: collapse; white-space: nowrap; }
-
-.tabela thead { background: #F8FAFC; border-bottom: 2px solid #E2E8F0; }
-.tabela th { padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
-.th-center { text-align: center !important; }
-.th-right { text-align: right !important; }
-
-.tabela tbody tr { border-bottom: 1px solid #F1F5F9; transition: background 0.2s; }
-.tabela tbody tr:hover { background: #F8FAFC; }
-
-/* Destaques Top 3 */
-.destaque-ouro { background: linear-gradient(90deg, rgba(250, 214, 38, 0.05) 0%, transparent 100%); }
-.destaque-prata { background: linear-gradient(90deg, rgba(203, 213, 225, 0.1) 0%, transparent 100%); }
-.destaque-bronze { background: linear-gradient(90deg, rgba(217, 119, 6, 0.05) 0%, transparent 100%); }
-
-.tabela td { padding: 16px 24px; font-size: 0.9rem; color: #1E293B; vertical-align: middle; }
-
-/* Posição e Medalhas */
-.td-posicao { width: 80px; }
-.pos-numero { font-weight: 700; color: #94A3B8; font-size: 1rem; }
-.medal-badge { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 1.2rem; }
-.medal-0 { background: #FEF08A; box-shadow: 0 0 10px rgba(250, 214, 38, 0.4); }
-.medal-1 { background: #E2E8F0; }
-.medal-2 { background: #FED7AA; }
-
-/* Aluno Avatar */
-.aluno-info { display: flex; align-items: center; gap: 12px; }
-.aluno-avatar { 
-  width: 32px; height: 32px; background: #0052FF; color: white; 
-  border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-  font-weight: 700; font-size: 0.85rem; 
+.mnav-item {
+  @apply flex-1 flex flex-col items-center gap-1 py-2.5 px-1
+         text-slate-500 no-underline text-[0.6rem] font-semibold transition-colors;
 }
-.aluno-nome { font-weight: 600; }
-
-.td-simulado { color: #475569; font-weight: 500; }
-.td-acertos { color: #64748B; font-weight: 600; }
-.td-data { color: #94A3B8; font-size: 0.85rem; }
-
-/* Score Badges */
-.score-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; color: white; }
-.bg-green { background-color: #10B981; }
-.bg-orange { background-color: #F59E0B; }
-.bg-red { background-color: #EF4444; }
-
-/* Empty State */
-.empty-state-card {
-  padding: 60px 40px; text-align: center; border-radius: 16px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.empty-icon-wrapper { width: 80px; height: 80px; background: #EFF6FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
-.empty-icon { font-size: 2.5rem; }
-.empty-title { font-size: 1.4rem; font-weight: 700; color: #0F172A; margin-bottom: 12px; }
-.empty-subtitle { color: #64748B; max-width: 500px; font-size: 0.95rem; }
-
-/* Responsivo */
-@media (max-width: 1000px) {
-  .sidebar { width: 70px; padding: 30px 10px; }
-  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
-}
-
-/* Mobile Bottom Navigation */
-.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
-.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
-.mnav-icon { font-size: 1.2rem; line-height: 1; }
-.mnav-item.router-link-active { color: #0052FF; }
+.mnav-item.router-link-exact-active { @apply text-simus-cyan; }
 
 @media (max-width: 768px) {
-  .mobile-bottom-nav { display: flex; }
+  .mobile-nav { display: flex; }
   .sidebar { display: none !important; }
   .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
-  .welcome-msg h2 { font-size: 1.4rem; }
 }
-
-@media (max-width: 600px) {
-  .tabela thead { display: none; }
-  .tabela tbody tr { display: flex; flex-direction: column; padding: 15px; position: relative; border-bottom: 1px solid #E2E8F0; }
-  .tabela td { padding: 5px 0; text-align: left !important; border: none; white-space: normal; }
-  .td-posicao { position: absolute; top: 15px; right: 15px; width: auto; }
-  .aluno-info { margin-bottom: 10px; }
-  .td-score { position: absolute; bottom: 15px; right: 15px; }
-  .td-simulado { font-size: 0.8rem; color: #64748B; max-width: calc(100% - 60px); overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 72px; }
+  .nav-label, .tagline-text, .logout-btn span { display: none; }
+  .nav-link { justify-content: center; }
+  .main-content { margin-left: 72px; }
 }
 </style>

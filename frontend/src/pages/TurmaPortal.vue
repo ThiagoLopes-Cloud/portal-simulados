@@ -1,94 +1,88 @@
 <template>
-  <div class="dashboard-layout">
-    
+  <div class="page-layout">
+
     <aside class="sidebar">
-      <div class="sidebar-header">
-        <h1 class="logo-text">
-          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
+      <div class="mb-8">
+        <h1 class="font-display text-xl font-bold">
+          <span class="text-simus-cyan">SIMUS</span><span class="text-slate-50">LAB</span>
         </h1>
-        <p class="tagline">Performance Lab</p>
+        <p class="tagline-text">Performance Lab</p>
       </div>
-
-      <nav class="sidebar-nav">
-        <router-link to="/dashboard" class="nav-link">
-          <span class="icon">📊</span> Dashboard
-        </router-link>
-        <router-link to="/simulados" class="nav-link">
-          <span class="icon">🎯</span> Avaliações
-        </router-link>
-        <router-link to="/turmas" class="nav-link active">
-          <span class="icon">👥</span> Minhas Turmas
-        </router-link>
-        <router-link to="/ranking" class="nav-link">
-          <span class="icon">🏆</span> Ranking
-        </router-link>
+      <nav class="flex-1 space-y-1">
+        <router-link to="/dashboard" class="nav-link"><span>📊</span><span class="nav-label">Dashboard</span></router-link>
+        <router-link to="/simulados" class="nav-link"><span>🎯</span><span class="nav-label">Avaliações</span></router-link>
+        <router-link to="/turmas" class="nav-link"><span>👥</span><span class="nav-label">Minhas Turmas</span></router-link>
+        <router-link to="/ranking" class="nav-link"><span>🏆</span><span class="nav-label">Ranking</span></router-link>
       </nav>
-
-      <div class="sidebar-footer">
-        <button @click="logout" class="btn-logout-clean">Sair</button>
-      </div>
+      <button @click="logout" class="logout-btn"><span class="nav-label">Sair</span></button>
     </aside>
 
     <main class="main-content">
-      <header class="top-bar">
-        <div class="welcome-msg">
-          <h2>Salas de Comando</h2>
-          <p class="text-secondary">Conecte-se ao seu instrutor e acesse missões exclusivas.</p>
-        </div>
+      <header class="mb-8">
+        <h2 class="font-display text-2xl font-bold text-slate-50">Salas de Comando</h2>
+        <p class="text-slate-400 text-sm mt-1">Conecte-se ao seu instrutor e acesse missões exclusivas.</p>
       </header>
 
-      <div class="portal-grid">
-        
-        <div class="action-panel clean-card">
-          <div class="panel-icon">🔑</div>
-          <h3 class="panel-title">Ativar Código de Acesso</h3>
-          <p class="panel-desc">Recebeu um código do seu professor? Insira abaixo para destravar a sala da sua turma.</p>
-          
-          <div class="input-action-group">
-            <input 
-              v-model="codigoInput" 
-              placeholder="Ex: A1B2C3D4" 
-              maxlength="12"
-              class="code-input"
-              @keyup.enter="entrarNaTurma"
-            />
-            <button @click="entrarNaTurma" :disabled="!codigoInput" class="btn-primary-action">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-6">
+
+        <!-- Painel de código -->
+        <div class="card flex flex-col items-center text-center">
+          <div class="w-14 h-14 bg-simus-cyan/10 border border-simus-cyan/20 rounded-full flex items-center justify-center text-3xl mb-5">🔑</div>
+          <h3 class="font-display font-bold text-slate-50 text-lg mb-2">Ativar Código de Acesso</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-7">
+            Recebeu um código do seu professor? Insira abaixo para destravar a sala da sua turma.
+          </p>
+
+          <div class="w-full space-y-3">
+            <input v-model="codigoInput" placeholder="Ex: A1B2C3D4" maxlength="12"
+                   @keyup.enter="entrarNaTurma"
+                   class="code-input" />
+            <button @click="entrarNaTurma" :disabled="!codigoInput"
+                    class="w-full py-3.5 rounded-xl bg-simus-cyan text-simus-bg font-display font-semibold text-sm uppercase tracking-wider
+                           hover:shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:scale-[1.01] transition-all
+                           disabled:opacity-40 disabled:pointer-events-none">
               Validar Acesso
             </button>
           </div>
-          
-          <div v-if="mensagem" class="alert-success">
-            <span class="alert-icon">✓</span> {{ mensagem }}
+
+          <div v-if="mensagem" class="mt-5 w-full flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3">
+            <span class="text-emerald-400 text-sm font-medium">✓ {{ mensagem }}</span>
           </div>
-          <div v-if="erro" class="alert-error">
-            <span class="alert-icon">⚠</span> {{ erro }}
+          <div v-if="erro" class="mt-5 w-full flex items-center justify-center gap-2 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+            <span class="text-red-400 text-sm">⚠ {{ erro }}</span>
           </div>
         </div>
 
-        <div class="list-panel clean-card">
-          <h3 class="section-title">Turmas Ativas</h3>
-          
-          <div v-if="carregando" class="skeleton-list">
-            <div class="shimmer-box" v-for="n in 3" :key="n"></div>
-          </div>
-          
-          <div v-else-if="turmas.length === 0" class="empty-list">
-            <div class="empty-icon-muted">🏫</div>
-            <p>Você ainda não está vinculado a nenhuma sala de comando.</p>
+        <!-- Lista de turmas -->
+        <div class="card">
+          <h3 class="font-display font-bold text-slate-50 mb-5">Turmas Ativas</h3>
+
+          <div v-if="carregando" class="space-y-3">
+            <div class="shimmer h-16 rounded-xl" v-for="n in 3" :key="n" />
           </div>
 
-          <div v-else class="turmas-list">
-            <div v-for="t in turmas" :key="t.id" class="turma-card">
-              <div class="turma-meta">
-                <div class="turma-avatar">{{ t.nome.charAt(0).toUpperCase() }}</div>
-                <div class="turma-info">
-                  <span class="turma-nome">{{ t.nome }}</span>
-                  <span class="turma-prof">Professor: {{ t.professor_nome }}</span>
+          <div v-else-if="turmas.length === 0" class="flex flex-col items-center text-center py-8 gap-3">
+            <span class="text-4xl opacity-30">🏫</span>
+            <p class="text-slate-500 text-sm">Você ainda não está vinculado a nenhuma sala de comando.</p>
+          </div>
+
+          <div v-else class="space-y-3">
+            <div v-for="t in turmas" :key="t.id"
+                 class="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-simus-purple/10 border border-simus-purple/20 rounded-xl flex items-center justify-center
+                            text-simus-purple font-display font-bold">
+                  {{ t.nome.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <p class="text-slate-200 font-semibold text-sm">{{ t.nome }}</p>
+                  <p class="text-slate-500 text-xs mt-0.5">Prof: {{ t.professor_nome }}</p>
                 </div>
               </div>
-              <div class="turma-status">
-                <span class="status-badge">Acesso Liberado</span>
-              </div>
+              <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20
+                           text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wide">
+                Acesso Liberado
+              </span>
             </div>
           </div>
         </div>
@@ -96,11 +90,11 @@
       </div>
     </main>
 
-    <nav class="mobile-bottom-nav">
-      <router-link to="/dashboard" class="mnav-item"><span class="mnav-icon">📊</span><span>Dashboard</span></router-link>
-      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
-      <router-link to="/turmas" class="mnav-item"><span class="mnav-icon">👥</span><span>Turmas</span></router-link>
-      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
+    <nav class="mobile-nav">
+      <router-link to="/dashboard" class="mnav-item"><span class="text-xl">📊</span><span>Dashboard</span></router-link>
+      <router-link to="/simulados" class="mnav-item"><span class="text-xl">🎯</span><span>Avaliações</span></router-link>
+      <router-link to="/turmas" class="mnav-item"><span class="text-xl">👥</span><span>Turmas</span></router-link>
+      <router-link to="/ranking" class="mnav-item"><span class="text-xl">🏆</span><span>Ranking</span></router-link>
     </nav>
   </div>
 </template>
@@ -119,7 +113,7 @@ const carregando = ref(true)
 
 async function entrarNaTurma() {
   try {
-    const res = await api.post('/api/escolas/entrar/', { codigo: codigoInput.value }) // Ajustado para /api/
+    const res = await api.post('/api/escolas/entrar/', { codigo: codigoInput.value })
     mensagem.value = res.data.message
     erro.value = ''
     codigoInput.value = ''
@@ -133,7 +127,7 @@ async function entrarNaTurma() {
 async function carregarTurmas() {
   carregando.value = true
   try {
-    const res = await api.get('/api/escolas/minhas-turmas/') // Ajustado para /api/
+    const res = await api.get('/api/escolas/minhas-turmas/')
     turmas.value = res.data
   } catch (error) {
     console.error("Erro ao carregar turmas", error)
@@ -151,93 +145,65 @@ onMounted(carregarTurmas)
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@reference "../assets/main.css";
 
-/* Base & Layout */
-.dashboard-layout { display: flex; min-height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; background-color: #F1F5F9; font-family: 'Inter', sans-serif; }
-.sidebar { width: 220px; background: linear-gradient(180deg, #0A2540 0%, #0052FF 100%); color: white; display: flex; flex-direction: column; padding: 30px 20px; position: fixed; height: 100vh; z-index: 100; }
-.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
-.logo-accent { color: #00D09C; font-weight: 800; font-size: 1.3rem; }
-.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; margin-top: 2px; }
-.sidebar-nav { margin-top: 40px; flex: 1; }
-.nav-link { display: flex; align-items: center; gap: 10px; color: rgba(255, 255, 255, 0.8); text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
-.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; }
-.btn-logout-clean { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+.page-layout { @apply flex min-h-screen bg-simus-bg font-body; }
+.sidebar {
+  @apply fixed top-0 left-0 h-screen w-[220px] bg-simus-surface border-r border-white/5
+         flex flex-col px-5 py-8 z-50;
+}
+.tagline-text { @apply text-[0.6rem] uppercase tracking-widest text-slate-500 mt-0.5; }
+.nav-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+         text-slate-400 no-underline transition-all duration-150;
+}
+.nav-link:hover { @apply text-slate-50 bg-white/5; }
+.nav-link.router-link-exact-active {
+  @apply text-simus-cyan bg-simus-cyan/10;
+  border-left: 2px solid #00E5FF;
+  padding-left: calc(0.75rem - 2px);
+}
+.logout-btn {
+  @apply w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl
+         border border-white/10 text-slate-400 text-sm font-semibold cursor-pointer transition-colors bg-transparent;
+}
+.logout-btn:hover { @apply border-red-500/30 text-red-400 bg-red-500/5; }
+.main-content { @apply flex-1 ml-[220px] px-8 py-8; }
+.card { @apply bg-simus-surface border border-white/5 rounded-simus p-6; }
 
-/* Main Content */
-.main-content { flex: 1; margin-left: 220px; padding: 40px 50px; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.welcome-msg h2 { font-size: 1.7rem; font-weight: 700; color: #0F172A; margin: 0; }
-.text-secondary { color: #475569; font-size: 0.9rem; margin-top: 4px; }
-
-/* Grids e Cards */
-.portal-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; }
-.clean-card { background: white; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 30px; }
-.section-title { font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-top: 0; margin-bottom: 20px; }
-
-/* Painel de Ação (Código) */
-.action-panel { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.panel-icon { width: 60px; height: 60px; background: #EFF6FF; color: #0052FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 20px; }
-.panel-title { font-size: 1.2rem; font-weight: 700; color: #0F172A; margin-bottom: 10px; }
-.panel-desc { color: #64748B; font-size: 0.9rem; line-height: 1.5; margin-bottom: 25px; }
-
-.input-action-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-.code-input { padding: 14px; border: 2px dashed #CBD5E1; border-radius: 8px; font-size: 1.1rem; font-weight: 600; text-align: center; color: #0F172A; text-transform: uppercase; outline: none; transition: all 0.2s; }
-.code-input:focus { border-color: #0052FF; background: #F8FAFC; }
-.code-input::placeholder { font-weight: 500; color: #94A3B8; text-transform: none; }
-
-.btn-primary-action { background: #0052FF; color: white; padding: 14px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
-.btn-primary-action:hover:not(:disabled) { background: #0043D1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2); }
-.btn-primary-action:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* Alertas */
-.alert-success { width: 100%; margin-top: 20px; background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.alert-error { width: 100%; margin-top: 20px; background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.alert-icon { font-weight: 800; }
-
-/* Painel da Lista */
-.empty-list { text-align: center; padding: 40px 20px; color: #94A3B8; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-.empty-icon-muted { font-size: 2.5rem; opacity: 0.5; }
-.turmas-list { display: flex; flex-direction: column; gap: 12px; }
-
-.turma-card { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border: 1px solid #E2E8F0; border-radius: 12px; transition: all 0.2s; background: #F8FAFC; }
-.turma-card:hover { border-color: #CBD5E1; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-
-.turma-meta { display: flex; align-items: center; gap: 15px; }
-.turma-avatar { width: 40px; height: 40px; background: #E0E7FF; color: #4338CA; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; }
-.turma-info { display: flex; flex-direction: column; gap: 4px; }
-.turma-nome { font-weight: 700; color: #1E293B; font-size: 1rem; }
-.turma-prof { font-size: 0.8rem; color: #64748B; font-weight: 500; }
-
-.status-badge { background: #DCFCE7; color: #16A34A; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-
-/* Skeleton */
-.skeleton-list { display: flex; flex-direction: column; gap: 12px; }
-.shimmer-box { height: 75px; background: #E2E8F0; border-radius: 12px; position: relative; overflow: hidden; }
-.shimmer-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); animation: loading 1.5s infinite; }
-@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-/* Responsivo */
-@media (max-width: 1000px) {
-  .sidebar { width: 70px; padding: 30px 10px; }
-  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
-  .portal-grid { grid-template-columns: 1fr; }
+.code-input {
+  @apply w-full bg-white/5 border-2 border-dashed border-white/10 rounded-xl px-4 py-3.5
+         text-slate-50 text-center text-lg font-display font-bold uppercase placeholder:text-slate-600 placeholder:font-normal placeholder:normal-case
+         outline-none transition-all;
+}
+.code-input:focus {
+  @apply border-simus-cyan bg-simus-cyan/5;
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
 }
 
-/* Mobile Bottom Navigation */
-.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
-.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
-.mnav-icon { font-size: 1.2rem; line-height: 1; }
-.mnav-item.router-link-active { color: #0052FF; }
+.shimmer { @apply bg-white/5 relative overflow-hidden; }
+.shimmer::after { content: ''; @apply absolute inset-0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); animation: shimmer 1.5s infinite; }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+.mobile-nav {
+  @apply hidden fixed bottom-0 left-0 right-0 bg-simus-surface border-t border-white/5 z-50;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.mnav-item {
+  @apply flex-1 flex flex-col items-center gap-1 py-2.5 px-1
+         text-slate-500 no-underline text-[0.6rem] font-semibold transition-colors;
+}
+.mnav-item.router-link-exact-active { @apply text-simus-cyan; }
 
 @media (max-width: 768px) {
-  .mobile-bottom-nav { display: flex; }
+  .mobile-nav { display: flex; }
   .sidebar { display: none !important; }
   .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
-  .portal-grid { grid-template-columns: 1fr; }
-  .welcome-msg h2 { font-size: 1.4rem; }
-  .turma-card { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .turma-meta { width: 100%; }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 72px; }
+  .nav-label, .tagline-text, .logout-btn span { display: none; }
+  .nav-link { justify-content: center; }
+  .main-content { margin-left: 72px; }
 }
 </style>

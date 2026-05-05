@@ -1,124 +1,170 @@
 <template>
-  <div class="prova-foco">
+  <div class="min-h-screen bg-simus-bg font-body flex flex-col">
 
-    <div v-if="mostrarConfirmacaoSaida" class="modal-overlay">
-      <div class="modal-clean">
-        <div class="modal-icon text-red">⚠️</div>
-        <h3>Abandonar Missão?</h3>
-        <p>Seus dados de performance serão perdidos. Você terá que recomeçar esta simulação do zero.</p>
-        <div class="modal-actions">
-          <button @click="mostrarConfirmacaoSaida = false" class="btn-cancel-clean">
+    <!-- ── Modal de confirmação de saída ──────────────────────── -->
+    <div v-if="mostrarConfirmacaoSaida"
+         class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[999]">
+      <div class="bg-simus-surface border border-white/10 rounded-simus p-10 max-w-sm w-[90%] text-center shadow-2xl">
+        <div class="text-4xl mb-5">⚠️</div>
+        <h3 class="font-display text-xl font-bold text-slate-50 mb-3">Abandonar Missão?</h3>
+        <p class="text-slate-400 text-sm leading-relaxed mb-8">
+          Seus dados de performance serão perdidos. Você terá que recomeçar esta simulação do zero.
+        </p>
+        <div class="flex gap-3 justify-center">
+          <button @click="mostrarConfirmacaoSaida = false"
+                  class="px-6 py-2.5 rounded-xl border border-white/10 text-slate-300 text-sm font-semibold
+                         hover:bg-white/5 transition-colors">
             Retomar Foco
           </button>
-          <button @click="confirmarSaida" class="btn-danger-clean">
+          <button @click="confirmarSaida"
+                  class="px-6 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-semibold
+                         hover:bg-red-500/20 transition-colors">
             Abortar
           </button>
         </div>
       </div>
     </div>
 
-    <nav class="focus-bar">
-      <div class="focus-logo">
-        <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
+    <!-- ── Barra de foco (topo) ───────────────────────────────── -->
+    <nav class="sticky top-0 z-50 bg-simus-surface/80 backdrop-blur-md border-b border-white/5
+                h-16 px-6 flex items-center justify-between gap-4">
+      <div class="font-display font-bold text-lg">
+        <span class="text-simus-cyan">SIMUS</span><span class="text-slate-50">LAB</span>
       </div>
-      
-      <div class="focus-center">
-        <span class="progress-text">Progresso Tático: {{ questaoAtual + 1 }} / {{ simulado?.questoes?.length || 0 }}</span>
-        <div class="progress-bar-thin">
-          <div 
-            class="progress-fill-thin" 
-            :style="{ width: ((questaoAtual + 1) / (simulado?.questoes?.length || 1) * 100) + '%' }"
-          ></div>
+
+      <div class="flex-1 max-w-md hidden sm:flex flex-col items-center gap-1.5">
+        <span class="text-[0.65rem] font-semibold text-slate-500 uppercase tracking-widest">
+          Progresso Tático: {{ questaoAtual + 1 }} / {{ simulado?.questoes?.length || 0 }}
+        </span>
+        <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+          <div class="h-full bg-simus-cyan transition-all duration-400 ease-out"
+               :style="{ width: ((questaoAtual + 1) / (simulado?.questoes?.length || 1) * 100) + '%' }" />
         </div>
       </div>
 
-      <div class="focus-right">
-        <button @click="mostrarConfirmacaoSaida = true" class="btn-exit-focus">
-          Sair
-        </button>
-      </div>
+      <button @click="mostrarConfirmacaoSaida = true"
+              class="px-4 py-1.5 rounded-lg border border-white/10 text-slate-400 text-sm font-semibold
+                     hover:border-red-500/40 hover:text-red-400 hover:bg-red-500/5 transition-all">
+        Sair
+      </button>
     </nav>
 
-    <div v-if="carregando" class="loading-state">
-      <div class="shimmer-card"></div>
-      <p>Decodificando ambiente de prova...</p>
+    <!-- ── Loading ────────────────────────────────────────────── -->
+    <div v-if="carregando" class="flex-1 flex flex-col items-center justify-center gap-4 text-slate-400">
+      <div class="w-40 h-48 bg-white/5 rounded-simus shimmer" />
+      <p class="text-sm">Decodificando ambiente de prova...</p>
     </div>
 
-    <div v-else-if="erro" class="error-state">
-      <div class="error-icon">⚠️</div>
-      <p>{{ erro }}</p>
-      <button @click="$router.push('/simulados')" class="btn-primary-action mt-4">Retornar à Base</button>
+    <!-- ── Erro ───────────────────────────────────────────────── -->
+    <div v-else-if="erro" class="flex-1 flex flex-col items-center justify-center gap-4">
+      <div class="text-5xl">⚠️</div>
+      <p class="text-slate-400">{{ erro }}</p>
+      <button @click="$router.push('/simulados')"
+              class="mt-2 px-6 py-3 rounded-xl bg-simus-cyan text-simus-bg font-display font-semibold text-sm uppercase tracking-widest
+                     hover:shadow-[0_0_20px_rgba(0,229,255,0.3)] transition-all">
+        Retornar à Base
+      </button>
     </div>
 
-    <div v-else class="exam-container">
-      
-      <header class="exam-header">
-        <h2 class="exam-title">{{ simulado.titulo }}</h2>
-        <div class="exam-badge" v-if="simulado.questoes[questaoAtual]">
-          <span class="badge-materia">{{ simulado.questoes[questaoAtual].materia || 'Questão' }}</span>
-          <span class="badge-dificuldade">{{ simulado.questoes[questaoAtual].dificuldade === 'F' ? 'Básica' : simulado.questoes[questaoAtual].dificuldade === 'M' ? 'Intermediária' : simulado.questoes[questaoAtual].dificuldade === 'D' ? 'Avançada' : '' }}</span>
+    <!-- ── Ambiente de prova ──────────────────────────────────── -->
+    <div v-else class="max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 pb-20">
+
+      <!-- Header da questão -->
+      <header class="flex items-end justify-between mb-6 pb-5 border-b border-white/5">
+        <h2 class="font-display text-lg font-semibold text-slate-50">{{ simulado.titulo }}</h2>
+        <div class="flex gap-2" v-if="simulado.questoes[questaoAtual]">
+          <span class="px-2.5 py-1 rounded-lg bg-simus-purple/10 border border-simus-purple/20
+                       text-simus-purple text-xs font-semibold">
+            {{ simulado.questoes[questaoAtual].materia || 'Questão' }}
+          </span>
+          <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-400 text-xs font-medium">
+            {{ { F: 'Básica', M: 'Intermediária', D: 'Avançada' }[simulado.questoes[questaoAtual].dificuldade] || '' }}
+          </span>
         </div>
       </header>
 
-      <div class="question-paper" v-if="simulado.questoes[questaoAtual]">
-        
-        <div class="q-statement">
-          <p class="q-number-tag">Q. {{ questaoAtual + 1 }}</p>
-          <p class="q-text">{{ simulado.questoes[questaoAtual].enunciado }}</p>
+      <!-- Papel da questão -->
+      <div v-if="simulado.questoes[questaoAtual]" class="bg-simus-surface border border-white/5 rounded-simus p-6 sm:p-8 mb-6">
+
+        <div class="mb-8">
+          <p class="text-simus-cyan text-xs font-display font-bold uppercase tracking-widest mb-4">
+            Q. {{ questaoAtual + 1 }}
+          </p>
+          <p class="text-slate-200 text-base sm:text-lg leading-relaxed">
+            {{ simulado.questoes[questaoAtual].enunciado }}
+          </p>
         </div>
 
-        <img
-          v-if="simulado.questoes[questaoAtual].imagem_enunciado"
-          :src="simulado.questoes[questaoAtual].imagem_enunciado"
-          class="q-image"
-          alt="Material de apoio"
-        />
+        <img v-if="simulado.questoes[questaoAtual].imagem_enunciado"
+             :src="simulado.questoes[questaoAtual].imagem_enunciado"
+             class="max-w-full rounded-xl mb-8 border border-white/5" alt="Material de apoio" />
 
-        <div class="options-group">
-          <div
-            v-for="opcao in opcoesDaQuestao(simulado.questoes[questaoAtual])"
-            :key="opcao.letra"
-            class="option-row"
-            :class="{ 'selected': respostas[simulado.questoes[questaoAtual].id] === opcao.letra }"
-            @click="selecionar(simulado.questoes[questaoAtual].id, opcao.letra)"
-          >
-            <div class="opt-indicator">
-              <span class="opt-letter">{{ opcao.letra }}</span>
+        <div class="space-y-3">
+          <div v-for="opcao in opcoesDaQuestao(simulado.questoes[questaoAtual])" :key="opcao.letra"
+               class="flex items-stretch rounded-xl border-2 cursor-pointer transition-all duration-150 overflow-hidden"
+               :class="respostas[simulado.questoes[questaoAtual].id] === opcao.letra
+                 ? 'border-simus-cyan bg-simus-cyan/5'
+                 : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]'"
+               @click="selecionar(simulado.questoes[questaoAtual].id, opcao.letra)">
+            <div class="w-12 shrink-0 flex items-center justify-center border-r"
+                 :class="respostas[simulado.questoes[questaoAtual].id] === opcao.letra
+                   ? 'border-simus-cyan/30 bg-simus-cyan/10'
+                   : 'border-white/5 bg-white/[0.03]'">
+              <span class="font-display font-bold text-sm"
+                    :class="respostas[simulado.questoes[questaoAtual].id] === opcao.letra
+                      ? 'text-simus-cyan' : 'text-slate-500'">
+                {{ opcao.letra }}
+              </span>
             </div>
-            <div class="opt-content">
-              <span class="opt-text">{{ opcao.texto }}</span>
+            <div class="flex-1 px-5 py-4 flex items-center">
+              <span class="text-slate-200 text-sm leading-snug">{{ opcao.texto }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="exam-controls">
-        <div class="status-counter">
-          <span class="dot-indicator" :class="{ 'active': totalRespondidas === simulado.questoes.length }"></span>
+      <!-- Controles de rodapé -->
+      <div class="bg-simus-surface border border-white/5 rounded-simus px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-2 text-sm font-semibold text-slate-400">
+          <span class="w-2 h-2 rounded-full transition-colors"
+                :class="totalRespondidas === simulado.questoes.length ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)]' : 'bg-white/20'" />
           {{ totalRespondidas }} de {{ simulado.questoes.length }} mapeadas
         </div>
 
-        <div class="nav-buttons">
-          <button @click="anterior" :disabled="questaoAtual === 0" class="btn-nav-secondary">
+        <div class="flex gap-3">
+          <button @click="anterior" :disabled="questaoAtual === 0"
+                  class="px-5 py-2.5 rounded-xl border border-white/10 text-slate-300 text-sm font-semibold
+                         hover:bg-white/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
             Anterior
           </button>
 
-          <button v-if="questaoAtual < simulado.questoes.length - 1" @click="proxima" class="btn-nav-primary">
+          <button v-if="questaoAtual < simulado.questoes.length - 1" @click="proxima"
+                  class="px-6 py-2.5 rounded-xl bg-simus-cyan text-simus-bg text-sm font-display font-semibold uppercase tracking-wider
+                         hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all">
             Avançar
           </button>
 
-          <button v-else @click="enviar" :disabled="enviando || totalRespondidas < simulado.questoes.length" class="btn-nav-submit">
+          <button v-else @click="enviar"
+                  :disabled="enviando || totalRespondidas < simulado.questoes.length"
+                  class="px-6 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-display font-semibold uppercase tracking-wider
+                         hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(52,211,153,0.3)] transition-all
+                         disabled:bg-emerald-500/40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none">
+            <span v-if="enviando" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block mr-2" />
             {{ enviando ? 'Compilando...' : 'Finalizar Simulação' }}
           </button>
         </div>
       </div>
 
-      <div v-if="questaoAtual === simulado.questoes.length - 1 && totalRespondidas < simulado.questoes.length" class="alert-warning">
-        <span class="alert-icon">⚠️</span> Existem {{ simulado.questoes.length - totalRespondidas }} pontos cegos (questões sem resposta).
+      <div v-if="questaoAtual === simulado.questoes.length - 1 && totalRespondidas < simulado.questoes.length"
+           class="mt-4 flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
+        <span class="text-amber-400 text-sm">
+          ⚠️ Existem {{ simulado.questoes.length - totalRespondidas }} pontos cegos (questões sem resposta).
+        </span>
       </div>
 
-      <div v-if="erroEnvio" class="alert-error">
-        {{ erroEnvio }}
+      <div v-if="erroEnvio"
+           class="mt-4 flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+        <span class="text-red-400 text-sm">{{ erroEnvio }}</span>
       </div>
 
     </div>
@@ -147,7 +193,7 @@ const totalRespondidas = computed(() => Object.keys(respostas.value).length)
 onMounted(async () => {
   try {
     const id = route.params.id
-    const response = await api.get(`/api/simulados/${id}/`) // Atualizado para /api/
+    const response = await api.get(`/api/simulados/${id}/`)
     simulado.value = response.data
   } catch (error) {
     erro.value = 'Falha de comunicação com o servidor de provas.'
@@ -192,7 +238,7 @@ async function enviar() {
       opcao_escolhida: opcao,
     }))
 
-    const response = await api.post('/api/responder/', { // Atualizado para /api/
+    const response = await api.post('/api/responder/', {
       simulado_id: parseInt(route.params.id),
       respostas: listaRespostas,
     })
@@ -215,119 +261,19 @@ async function enviar() {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@reference "../assets/main.css";
 
-/* Focus Layout Base */
-.prova-foco { min-height: 100vh; background-color: #F8FAFC; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; }
-
-/* Modal Clean */
-.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 999; }
-.modal-clean { background: white; border-radius: 16px; padding: 40px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-.modal-icon { font-size: 3rem; margin-bottom: 20px; }
-.text-red { color: #EF4444; }
-.modal-clean h3 { font-size: 1.4rem; color: #0F172A; margin-bottom: 10px; font-weight: 700; }
-.modal-clean p { color: #64748B; font-size: 0.95rem; margin-bottom: 30px; line-height: 1.5; }
-.modal-actions { display: flex; gap: 15px; justify-content: center; }
-.btn-cancel-clean { padding: 12px 24px; border-radius: 8px; border: 1px solid #CBD5E1; background: white; color: #334155; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.btn-cancel-clean:hover { background: #F1F5F9; border-color: #94A3B8; }
-.btn-danger-clean { padding: 12px 24px; border-radius: 8px; border: none; background: #EF4444; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.btn-danger-clean:hover { background: #DC2626; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
-
-/* Focus Bar Topo */
-.focus-bar { background: #0A2540; color: white; padding: 0 30px; height: 64px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-.logo-white { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.5px; }
-.logo-accent { color: #00D09C; font-weight: 800; font-size: 1.2rem; }
-
-.focus-center { flex: 1; max-width: 500px; display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 0 20px; }
-.progress-text { font-size: 0.75rem; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; }
-.progress-bar-thin { width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; }
-.progress-fill-thin { height: 100%; background: #00D09C; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-
-.btn-exit-focus { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #94A3B8; padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.btn-exit-focus:hover { border-color: #EF4444; color: #EF4444; background: rgba(239, 68, 68, 0.1); }
-
-/* Status States */
-.loading-state, .error-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 64px); color: #64748B; }
-.shimmer-card { width: min(600px, calc(100vw - 40px)); height: 400px; background: #E2E8F0; border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 20px; }
-.shimmer-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); animation: loading 1.5s infinite; }
-@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-.error-icon { font-size: 3rem; margin-bottom: 15px; }
-.btn-primary-action { background: #0052FF; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; }
-.mt-4 { margin-top: 20px; }
-
-/* AMBIENTE DE PROVA (Folha Digital) */
-.exam-container { max-width: 800px; margin: 40px auto 80px auto; padding: 0 20px; }
-.exam-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #E2E8F0; }
-.exam-title { font-size: 1.5rem; color: #0F172A; font-weight: 700; margin: 0; }
-.exam-badge { display: flex; gap: 8px; }
-.badge-materia { background: #E0E7FF; color: #4338CA; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
-.badge-dificuldade { background: #F1F5F9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
-
-.question-paper { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03); border: 1px solid #E2E8F0; margin-bottom: 30px; }
-.q-statement { margin-bottom: 30px; }
-.q-number-tag { color: #0052FF; font-weight: 800; font-size: 0.9rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-.q-text { font-size: 1.15rem; color: #1E293B; line-height: 1.7; font-weight: 400; margin: 0; }
-.q-image { max-width: 100%; border-radius: 8px; margin-bottom: 30px; border: 1px solid #E2E8F0; }
-
-/* Alternativas */
-.options-group { display: flex; flex-direction: column; gap: 12px; }
-.option-row { display: flex; align-items: stretch; border: 2px solid #F1F5F9; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; overflow: hidden; background: white; }
-.option-row:hover { border-color: #CBD5E1; background: #F8FAFC; }
-.option-row.selected { border-color: #0052FF; background: #EFF6FF; box-shadow: 0 4px 12px rgba(0, 82, 255, 0.05); }
-
-.opt-indicator { width: 50px; display: flex; align-items: center; justify-content: center; background: #F8FAFC; border-right: 2px solid #F1F5F9; transition: all 0.2s; }
-.option-row.selected .opt-indicator { background: #0052FF; border-right-color: #0052FF; }
-
-.opt-letter { font-weight: 800; font-size: 1rem; color: #64748B; }
-.option-row.selected .opt-letter { color: white; }
-
-.opt-content { flex: 1; padding: 16px 20px; display: flex; align-items: center; }
-.opt-text { font-size: 1rem; color: #334155; line-height: 1.5; }
-.option-row.selected .opt-text { font-weight: 500; color: #0F172A; }
-
-/* Controles de Rodapé */
-.exam-controls { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px 30px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-.status-counter { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 600; color: #64748B; }
-.dot-indicator { width: 8px; height: 8px; border-radius: 50%; background: #CBD5E1; transition: background 0.3s; }
-.dot-indicator.active { background: #10B981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
-
-.nav-buttons { display: flex; gap: 15px; }
-.btn-nav-secondary { padding: 12px 24px; border-radius: 8px; border: 1px solid #CBD5E1; background: white; color: #334155; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.btn-nav-secondary:hover:not(:disabled) { background: #F1F5F9; }
-.btn-nav-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.btn-nav-primary { padding: 12px 30px; border-radius: 8px; border: none; background: #0052FF; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.btn-nav-primary:hover { background: #0043D1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2); }
-
-.btn-nav-submit { padding: 12px 30px; border-radius: 8px; border: none; background: #10B981; color: white; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-.btn-nav-submit:hover:not(:disabled) { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
-.btn-nav-submit:disabled { background: #A7F3D0; cursor: not-allowed; color: #064E3B; }
-
-/* Alertas */
-.alert-warning { background: #FFF7ED; border: 1px solid #FED7AA; color: #9A3412; padding: 15px; border-radius: 12px; margin-top: 20px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 10px; justify-content: center; }
-.alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 15px; border-radius: 12px; margin-top: 20px; font-size: 0.9rem; font-weight: 500; text-align: center; }
-
-@media (max-width: 768px) {
-  .focus-center { display: none; }
-  .focus-bar { padding: 0 16px; }
-  .exam-container { margin: 20px auto 60px; padding: 0 12px; }
-  .exam-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
-  .exam-title { font-size: 1.2rem; }
-  .exam-controls { flex-direction: column; gap: 20px; padding: 16px 20px; }
-  .nav-buttons { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .btn-nav-submit { grid-column: 1 / -1; }
-  .question-paper { padding: 20px 16px; }
-  .q-text { font-size: 1rem; }
-  .opt-content { padding: 12px 14px; }
-  .btn-nav-primary, .btn-nav-secondary { padding: 14px 20px; }
+.shimmer {
+  @apply relative overflow-hidden;
 }
-
-@media (max-width: 480px) {
-  .exam-title { font-size: 1.05rem; }
-  .opt-indicator { width: 44px; min-width: 44px; }
-  .modal-clean { padding: 28px 20px; }
-  .modal-actions { flex-direction: column; gap: 10px; }
-  .btn-cancel-clean, .btn-danger-clean { width: 100%; }
-  .q-number-tag { font-size: 0.8rem; }
+.shimmer::after {
+  content: '';
+  @apply absolute inset-0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 </style>

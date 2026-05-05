@@ -1,139 +1,139 @@
 <template>
-  <div class="dashboard-layout">
-    
+  <div class="page-layout">
+
     <aside class="sidebar">
-      <div class="sidebar-header">
-        <h1 class="logo-text">
-          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
+      <div class="mb-8">
+        <h1 class="font-display text-xl font-bold">
+          <span class="text-simus-cyan">SIMUS</span><span class="text-slate-50">LAB</span>
         </h1>
-        <p class="tagline">Performance Lab</p>
+        <p class="tagline-text">Performance Lab</p>
       </div>
-
-      <nav class="sidebar-nav">
-        <router-link to="/dashboard" class="nav-link">
-          <span class="icon">📊</span> Dashboard
-        </router-link>
-        <router-link to="/simulados" class="nav-link active">
-          <span class="icon">🎯</span> Avaliações
-        </router-link>
-        <router-link to="/turmas" class="nav-link">
-          <span class="icon">👥</span> Minhas Turmas
-        </router-link>
-        <router-link to="/ranking" class="nav-link">
-          <span class="icon">🏆</span> Ranking
-        </router-link>
+      <nav class="flex-1 space-y-1">
+        <router-link to="/dashboard" class="nav-link"><span>📊</span><span class="nav-label">Dashboard</span></router-link>
+        <router-link to="/simulados" class="nav-link"><span>🎯</span><span class="nav-label">Avaliações</span></router-link>
+        <router-link to="/turmas" class="nav-link"><span>👥</span><span class="nav-label">Minhas Turmas</span></router-link>
+        <router-link to="/ranking" class="nav-link"><span>🏆</span><span class="nav-label">Ranking</span></router-link>
       </nav>
-
-      <div class="sidebar-footer">
-        <button @click="logout" class="btn-logout-clean">Sair</button>
-      </div>
+      <button @click="logout" class="logout-btn"><span class="nav-label">Sair</span></button>
     </aside>
 
     <main class="main-content">
-      <header class="top-bar">
-        <div class="welcome-msg">
-          <h2>Central de Avaliações</h2>
-          <p class="text-secondary">Escolha uma bateria de testes e inicie o mapeamento.</p>
-        </div>
+      <header class="mb-8">
+        <h2 class="font-display text-2xl font-bold text-slate-50">Central de Avaliações</h2>
+        <p class="text-slate-400 text-sm mt-1">Escolha uma bateria de testes e inicie o mapeamento.</p>
       </header>
 
-      <div class="tabs-container">
-        <button 
-          class="tab-btn" 
-          :class="{ active: activeTab === 'globais' }" 
-          @click="activeTab = 'globais'"
-        >
-          <span class="tab-icon">🌍</span> Banco Global
+      <!-- Tabs -->
+      <div class="flex gap-1 mb-8 border-b border-white/5 pb-px">
+        <button class="tab-btn" :class="{ 'tab-active': activeTab === 'globais' }" @click="activeTab = 'globais'">
+          🌍 Banco Global
         </button>
-        <button 
-          class="tab-btn tab-exclusiva" 
-          :class="{ active: activeTab === 'exclusivos' }" 
-          @click="activeTab = 'exclusivos'"
-        >
-          <span class="tab-icon">🔒</span> Missões de Turma
-          <span v-if="simuladosExclusivos.length" class="badge-count">{{ simuladosExclusivos.length }}</span>
+        <button class="tab-btn tab-vip" :class="{ 'tab-active-vip': activeTab === 'exclusivos' }" @click="activeTab = 'exclusivos'">
+          🔒 Missões de Turma
+          <span v-if="simuladosExclusivos.length"
+                class="ml-2 px-2 py-0.5 rounded-full bg-simus-purple text-white text-[0.65rem] font-bold">
+            {{ simuladosExclusivos.length }}
+          </span>
         </button>
       </div>
 
-      <div v-if="carregando" class="skeleton-wrapper">
-        <div class="grid-simulados">
-          <div class="skeleton-card shimmer" v-for="n in 3" :key="n"></div>
-        </div>
+      <!-- Skeleton -->
+      <div v-if="carregando" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div class="shimmer h-52 rounded-simus" v-for="n in 3" :key="n" />
       </div>
-      
-      <div v-else class="tab-content">
-        
-        <div v-if="activeTab === 'globais'" class="grid-simulados">
-          <div v-if="simuladosGlobais.length === 0" class="empty-state-card clean-card">
-            <div class="empty-icon-wrapper"><span class="empty-icon">🌍</span></div>
-            <h3 class="empty-title">Banco Global Vazio</h3>
-            <p class="empty-subtitle">Nenhuma avaliação pública disponível no momento. O laboratório está preparando novos materiais.</p>
+
+      <div v-else>
+
+        <!-- Global -->
+        <div v-if="activeTab === 'globais'" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div v-if="simuladosGlobais.length === 0"
+               class="col-span-full card flex flex-col items-center text-center py-14 border-dashed">
+            <div class="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center text-3xl mb-5">🌍</div>
+            <h3 class="font-display text-lg font-bold text-slate-50 mb-2">Banco Global Vazio</h3>
+            <p class="text-slate-400 text-sm max-w-sm">Nenhuma avaliação pública disponível no momento. O laboratório está preparando novos materiais.</p>
           </div>
-          
-          <div v-for="simulado in simuladosGlobais" :key="simulado.id" class="eval-card clean-card">
-            <div class="card-body">
-              <div class="card-badge">Simulação Global</div>
-              <h3 class="card-title">{{ simulado.titulo }}</h3>
-              <p class="card-desc">{{ simulado.descricao || 'Bateria padrão para nivelamento de conhecimento.' }}</p>
+
+          <div v-for="simulado in simuladosGlobais" :key="simulado.id"
+               class="card flex flex-col justify-between hover:border-white/10 transition-colors">
+            <div>
+              <span class="inline-block px-2.5 py-1 rounded-lg bg-white/5 text-slate-500 text-[0.65rem] font-bold uppercase tracking-wider mb-4">
+                Simulação Global
+              </span>
+              <h3 class="font-display text-base font-bold text-slate-50 mb-3">{{ simulado.titulo }}</h3>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                {{ simulado.descricao || 'Bateria padrão para nivelamento de conhecimento.' }}
+              </p>
             </div>
-            <div class="card-footer">
-              <button @click="$router.push(`/simulado/${simulado.id}`)" class="btn-primary-action w-100">
-                Iniciar Avaliação
-              </button>
-            </div>
+            <button @click="$router.push(`/simulado/${simulado.id}`)"
+                    class="mt-6 w-full py-3 rounded-xl bg-simus-cyan text-simus-bg font-display font-semibold text-sm uppercase tracking-wider
+                           hover:shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:scale-[1.01] transition-all">
+              Iniciar Avaliação
+            </button>
           </div>
         </div>
 
-        <div v-if="activeTab === 'exclusivos'" class="grid-simulados">
-          <div v-if="simuladosExclusivos.length === 0" class="empty-state-card clean-card">
-            <div class="empty-icon-wrapper"><span class="empty-icon">👥</span></div>
-            <h3 class="empty-title">Acesso Restrito</h3>
-            <p class="empty-subtitle">Você ainda não possui missões fechadas. Junte-se a uma turma usando um código de convite do seu professor.</p>
-            <button @click="$router.push('/turmas')" class="btn-secondary-action mt-4">Procurar Turmas</button>
+        <!-- Exclusivos -->
+        <div v-if="activeTab === 'exclusivos'" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div v-if="simuladosExclusivos.length === 0"
+               class="col-span-full card flex flex-col items-center text-center py-14 border-dashed">
+            <div class="w-14 h-14 bg-simus-purple/10 rounded-full flex items-center justify-center text-3xl mb-5">👥</div>
+            <h3 class="font-display text-lg font-bold text-slate-50 mb-2">Acesso Restrito</h3>
+            <p class="text-slate-400 text-sm max-w-sm mb-6">
+              Você ainda não possui missões fechadas. Junte-se a uma turma usando um código de convite do seu professor.
+            </p>
+            <button @click="$router.push('/turmas')"
+                    class="px-6 py-2.5 rounded-xl border border-simus-purple/30 text-simus-purple text-sm font-semibold hover:bg-simus-purple/10 transition-colors">
+              Procurar Turmas
+            </button>
           </div>
-          
-          <div v-for="simulado in simuladosExclusivos" :key="simulado.id" class="eval-card vip-card">
-            <div class="vip-glow"></div>
-            <div class="vip-tag">⭐ Exclusivo da Turma</div>
-            <div class="card-body">
-              <h3 class="card-title text-vip">{{ simulado.titulo }}</h3>
-              <p class="card-desc">{{ simulado.descricao || 'Simulação tática direcionada especificamente para o seu grupo de estudos.' }}</p>
+
+          <div v-for="simulado in simuladosExclusivos" :key="simulado.id"
+               class="card relative overflow-hidden flex flex-col justify-between border-simus-purple/20 hover:border-simus-purple/40 transition-colors">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-simus-purple/[0.06] rounded-full blur-2xl pointer-events-none -translate-y-1/2 translate-x-1/2" />
+            <div class="absolute top-4 right-4">
+              <span class="px-2.5 py-1 rounded-full bg-simus-purple text-white text-[0.65rem] font-bold uppercase shadow-[0_0_10px_rgba(138,43,226,0.3)]">
+                ⭐ Exclusivo
+              </span>
             </div>
-            <div class="card-footer">
-              <button @click="$router.push(`/simulado/${simulado.id}`)" class="btn-vip-action w-100">
-                Acessar Missão Fechada
-              </button>
+            <div class="mt-8">
+              <h3 class="font-display text-base font-bold text-slate-50 mb-3">{{ simulado.titulo }}</h3>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                {{ simulado.descricao || 'Simulação tática direcionada especificamente para o seu grupo de estudos.' }}
+              </p>
             </div>
+            <button @click="$router.push(`/simulado/${simulado.id}`)"
+                    class="mt-6 w-full py-3 rounded-xl bg-simus-purple text-white font-display font-semibold text-sm uppercase tracking-wider
+                           hover:shadow-[0_0_15px_rgba(138,43,226,0.3)] hover:scale-[1.01] transition-all">
+              Acessar Missão Fechada
+            </button>
           </div>
         </div>
-
       </div>
     </main>
 
-    <nav class="mobile-bottom-nav">
-      <router-link to="/dashboard" class="mnav-item"><span class="mnav-icon">📊</span><span>Dashboard</span></router-link>
-      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
-      <router-link to="/turmas" class="mnav-item"><span class="mnav-icon">👥</span><span>Turmas</span></router-link>
-      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
+    <nav class="mobile-nav">
+      <router-link to="/dashboard" class="mnav-item"><span class="text-xl">📊</span><span>Dashboard</span></router-link>
+      <router-link to="/simulados" class="mnav-item"><span class="text-xl">🎯</span><span>Avaliações</span></router-link>
+      <router-link to="/turmas" class="mnav-item"><span class="text-xl">👥</span><span>Turmas</span></router-link>
+      <router-link to="/ranking" class="mnav-item"><span class="text-xl">🏆</span><span>Ranking</span></router-link>
     </nav>
   </div>
 </template>
 
 <script setup>
-// LÓGICA INTACTA
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
 
 const router = useRouter()
 const carregando = ref(true)
-const activeTab = ref('globais') 
+const activeTab = ref('globais')
 const simuladosGlobais = ref([])
 const simuladosExclusivos = ref([])
 
 onMounted(async () => {
   try {
-    const res = await api.get('/api/simulados/') // Garantindo a rota /api/
+    const res = await api.get('/api/simulados/')
     simuladosGlobais.value = res.data.globais || []
     simuladosExclusivos.value = res.data.exclusivos || []
   } catch (error) {
@@ -150,99 +150,72 @@ function logout() {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@reference "../assets/main.css";
 
-/* Base & Layout */
-.dashboard-layout { display: flex; min-height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; background-color: #F1F5F9; font-family: 'Inter', sans-serif; }
-.sidebar { width: 220px; background: linear-gradient(180deg, #0A2540 0%, #0052FF 100%); color: white; display: flex; flex-direction: column; padding: 30px 20px; position: fixed; height: 100vh; z-index: 100; }
-.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
-.logo-accent { color: #00D09C; font-weight: 800; font-size: 1.3rem; }
-.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; margin-top: 2px; }
-.sidebar-nav { margin-top: 40px; flex: 1; }
-.nav-link { display: flex; align-items: center; gap: 10px; color: rgba(255, 255, 255, 0.8); text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
-.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; }
-.btn-logout-clean { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+.page-layout { @apply flex min-h-screen bg-simus-bg font-body; }
 
-/* Main Content */
-.main-content { flex: 1; margin-left: 220px; padding: 40px 50px; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.welcome-msg h2 { font-size: 1.7rem; font-weight: 700; color: #0F172A; margin: 0; }
-.text-secondary { color: #475569; font-size: 0.9rem; margin-top: 4px; }
-
-/* Tabs */
-.tabs-container { display: flex; gap: 30px; margin-bottom: 30px; border-bottom: 1px solid #E2E8F0; padding-bottom: 0; }
-.tab-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: #64748B; padding: 12px 0; cursor: pointer; position: relative; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
-.tab-icon { font-size: 1.1rem; }
-.tab-btn:hover { color: #0F172A; }
-.tab-btn.active { color: #0052FF; }
-.tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: #0052FF; border-radius: 3px 3px 0 0; }
-.tab-exclusiva.active { color: #7C3AED; }
-.tab-exclusiva.active::after { background: #7C3AED; }
-.badge-count { background: #7C3AED; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; margin-left: 4px; font-weight: 800; }
-
-/* Utilitários & Botoes */
-.clean-card { background: white; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-.w-100 { width: 100%; }
-.mt-4 { margin-top: 20px; }
-.btn-primary-action { background: #0052FF; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
-.btn-primary-action:hover { background: #0043D1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2); }
-.btn-secondary-action { background: white; border: 1px solid #CBD5E1; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: #334155; }
-.btn-secondary-action:hover { border-color: #0052FF; color: #0052FF; }
-
-/* Skeleton */
-.skeleton-wrapper { width: 100%; }
-.shimmer { position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 16px; }
-.shimmer::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); animation: loading 1.5s infinite; }
-@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-.skeleton-card { height: 200px; }
-
-/* Empty States */
-.empty-state-card { grid-column: 1 / -1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; }
-.empty-icon-wrapper { width: 80px; height: 80px; background: #F1F5F9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
-.empty-icon { font-size: 2.5rem; }
-.empty-title { font-size: 1.4rem; font-weight: 700; color: #0F172A; margin-bottom: 12px; }
-.empty-subtitle { color: #64748B; max-width: 500px; font-size: 0.95rem; line-height: 1.5; }
-
-/* Cards de Avaliação */
-.grid-simulados { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
-.eval-card { display: flex; flex-direction: column; justify-content: space-between; padding: 25px; transition: transform 0.2s, box-shadow 0.2s; }
-.eval-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08); }
-.card-badge { display: inline-block; background: #F1F5F9; color: #475569; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; margin-bottom: 15px; letter-spacing: 0.5px; }
-.card-title { font-size: 1.2rem; font-weight: 700; color: #0F172A; margin: 0 0 10px 0; }
-.card-desc { color: #64748B; font-size: 0.9rem; line-height: 1.5; margin: 0 0 25px 0; flex-grow: 1; }
-
-/* VIP Card (Missão da Turma) */
-.vip-card { background: white; border: 1px solid #DDD6FE; border-radius: 16px; position: relative; overflow: hidden; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.05); }
-.vip-glow { position: absolute; top: 0; right: 0; width: 150px; height: 150px; background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%); border-radius: 50%; transform: translate(30%, -30%); }
-.vip-tag { position: absolute; top: 15px; right: 15px; background: #7C3AED; color: white; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; z-index: 2; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3); }
-.text-vip { color: #5B21B6; }
-.btn-vip-action { background: #7C3AED; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; position: relative; z-index: 2; }
-.btn-vip-action:hover { background: #6D28D9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
-
-/* Responsivo */
-@media (max-width: 1000px) {
-  .sidebar { width: 70px; padding: 30px 10px; }
-  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
+.sidebar {
+  @apply fixed top-0 left-0 h-screen w-[220px] bg-simus-surface border-r border-white/5
+         flex flex-col px-5 py-8 z-50;
 }
+.tagline-text { @apply text-[0.6rem] uppercase tracking-widest text-slate-500 mt-0.5; }
+.nav-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+         text-slate-400 no-underline transition-all duration-150;
+}
+.nav-link:hover { @apply text-slate-50 bg-white/5; }
+.nav-link.router-link-exact-active {
+  @apply text-simus-cyan bg-simus-cyan/10;
+  border-left: 2px solid #00E5FF;
+  padding-left: calc(0.75rem - 2px);
+}
+.logout-btn {
+  @apply w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl
+         border border-white/10 text-slate-400 text-sm font-semibold
+         cursor-pointer transition-colors bg-transparent;
+}
+.logout-btn:hover { @apply border-red-500/30 text-red-400 bg-red-500/5; }
 
-/* Mobile Bottom Navigation */
-.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
-.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
-.mnav-icon { font-size: 1.2rem; line-height: 1; }
-.mnav-item.router-link-active { color: #0052FF; }
+.main-content { @apply flex-1 ml-[220px] px-8 py-8; }
+
+.card { @apply bg-simus-surface border border-white/5 rounded-simus p-5; }
+
+.tab-btn {
+  @apply flex items-center px-4 py-3 text-sm font-semibold text-slate-500
+         border-b-2 border-transparent cursor-pointer transition-all duration-150 bg-transparent;
+}
+.tab-btn:hover { @apply text-slate-300; }
+.tab-active { @apply text-simus-cyan border-b-simus-cyan; }
+.tab-vip.tab-active-vip { @apply text-simus-purple border-b-simus-purple; }
+
+.shimmer { @apply bg-white/5 relative overflow-hidden; }
+.shimmer::after {
+  content: '';
+  @apply absolute inset-0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+.mobile-nav {
+  @apply hidden fixed bottom-0 left-0 right-0 bg-simus-surface border-t border-white/5 z-50;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.mnav-item {
+  @apply flex-1 flex flex-col items-center gap-1 py-2.5 px-1
+         text-slate-500 no-underline text-[0.6rem] font-semibold transition-colors;
+}
+.mnav-item.router-link-exact-active { @apply text-simus-cyan; }
 
 @media (max-width: 768px) {
-  .mobile-bottom-nav { display: flex; }
+  .mobile-nav { display: flex; }
   .sidebar { display: none !important; }
   .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
-  .tabs-container { gap: 15px; overflow-x: auto; padding-bottom: 1px; }
-  .tab-btn { white-space: nowrap; }
-  .welcome-msg h2 { font-size: 1.4rem; }
 }
-
-@media (max-width: 480px) {
-  .grid-simulados { grid-template-columns: 1fr; }
-  .eval-card { padding: 20px; }
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 72px; }
+  .nav-label, .tagline-text, .logout-btn span { display: none; }
+  .nav-link { justify-content: center; }
+  .main-content { margin-left: 72px; }
 }
 </style>
