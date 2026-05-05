@@ -248,7 +248,7 @@ async function enviar() {
 
 /* Status States */
 .loading-state, .error-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 64px); color: #64748B; }
-.shimmer-card { width: 600px; height: 400px; background: #E2E8F0; border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 20px; }
+.shimmer-card { width: min(600px, calc(100vw - 40px)); height: 400px; background: #E2E8F0; border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 20px; }
 .shimmer-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); animation: loading 1.5s infinite; }
 @keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 .error-icon { font-size: 3rem; margin-bottom: 15px; }
@@ -309,9 +309,25 @@ async function enviar() {
 
 @media (max-width: 768px) {
   .focus-center { display: none; }
-  .exam-controls { flex-direction: column; gap: 20px; }
-  .nav-buttons { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .focus-bar { padding: 0 16px; }
+  .exam-container { margin: 20px auto 60px; padding: 0 12px; }
+  .exam-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
+  .exam-title { font-size: 1.2rem; }
+  .exam-controls { flex-direction: column; gap: 20px; padding: 16px 20px; }
+  .nav-buttons { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn-nav-submit { grid-column: 1 / -1; }
-  .question-paper { padding: 25px 20px; }
+  .question-paper { padding: 20px 16px; }
+  .q-text { font-size: 1rem; }
+  .opt-content { padding: 12px 14px; }
+  .btn-nav-primary, .btn-nav-secondary { padding: 14px 20px; }
+}
+
+@media (max-width: 480px) {
+  .exam-title { font-size: 1.05rem; }
+  .opt-indicator { width: 44px; min-width: 44px; }
+  .modal-clean { padding: 28px 20px; }
+  .modal-actions { flex-direction: column; gap: 10px; }
+  .btn-cancel-clean, .btn-danger-clean { width: 100%; }
+  .q-number-tag { font-size: 0.8rem; }
 }
 </style>

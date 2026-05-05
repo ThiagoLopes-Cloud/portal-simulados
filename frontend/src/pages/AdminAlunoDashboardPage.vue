@@ -182,6 +182,13 @@
         </div>
       </div>
     </main>
+
+    <nav class="mobile-bottom-nav">
+      <router-link to="/admin/alunos" class="mnav-item"><span class="mnav-icon">👥</span><span>Alunos</span></router-link>
+      <router-link to="/admin/importar" class="mnav-item"><span class="mnav-icon">📥</span><span>Importar</span></router-link>
+      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
+      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
+    </nav>
   </div>
 </template>
 
@@ -362,5 +369,37 @@ function logout() {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .subj-stats { flex-direction: column; align-items: flex-end; gap: 5px; }
   .progress-bar-thin { display: none; }
+}
+
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
+.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
+.mnav-icon { font-size: 1.2rem; line-height: 1; }
+.mnav-item.router-link-active { color: #0052FF; }
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav { display: flex; }
+  .admin-sidebar { display: none !important; }
+  .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
+  .top-bar { flex-wrap: wrap; gap: 10px; }
+  .admin-badge { display: none; }
+  .aluno-profile-card { flex-wrap: wrap; gap: 12px; padding: 20px 16px; }
+  .profile-status { flex: 0 0 auto; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .kpi-card { padding: 18px 12px; }
+  .kpi-value { font-size: 1.8rem; }
+  .subject-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .subj-stats { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
+  .theme-charts { width: 100%; }
+  .theme-row { flex-direction: column; gap: 8px; }
+  .themes-breakdown { padding: 12px 16px 20px; }
+}
+
+@media (max-width: 480px) {
+  .kpi-value { font-size: 1.6rem; }
+  .kpi-label { font-size: 0.65rem; }
+  .data-table thead { display: none; }
+  .data-table tbody tr { display: flex; flex-direction: column; padding: 12px 16px; border-bottom: 1px solid #E2E8F0; }
+  .data-table td { padding: 3px 0; text-align: left !important; border: none; font-size: 0.85rem; }
 }
 </style>

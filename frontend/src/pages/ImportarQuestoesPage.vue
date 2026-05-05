@@ -196,6 +196,13 @@
 
       </div>
     </main>
+
+    <nav class="mobile-bottom-nav">
+      <router-link to="/admin/alunos" class="mnav-item"><span class="mnav-icon">👥</span><span>Alunos</span></router-link>
+      <router-link to="/admin/importar" class="mnav-item"><span class="mnav-icon">📥</span><span>Importar</span></router-link>
+      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
+      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
+    </nav>
   </div>
 </template>
 
@@ -487,5 +494,29 @@ function logout() {
   .import-grid { grid-template-columns: 1fr; }
   .pipeline-card { order: 1; }
   .terminal-card { order: 2; }
+}
+
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
+.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
+.mnav-icon { font-size: 1.2rem; line-height: 1; }
+.mnav-item.router-link-active { color: #0052FF; }
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav { display: flex; }
+  .admin-sidebar { display: none !important; }
+  .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
+  .top-bar { flex-wrap: wrap; gap: 10px; }
+  .admin-badge { display: none; }
+  .welcome-msg h2 { font-size: 1.3rem; }
+  .ai-buttons { flex-direction: column; }
+  .btn-ai { justify-content: center; }
+  .code-textarea { height: 250px; }
+}
+
+@media (max-width: 480px) {
+  .clean-card { padding: 20px 16px; }
+  .step-box { gap: 12px; }
+  .step-indicator { width: 26px; height: 26px; font-size: 0.75rem; }
 }
 </style>

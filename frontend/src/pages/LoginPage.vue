@@ -234,6 +234,16 @@ async function handleLogin() {
   .login-split-layout { position: relative; width: 100%; }
 }
 
+@media (max-width: 480px) {
+  .form-side { padding: 16px; align-items: flex-start; padding-top: 40px; }
+  .logo-area { margin-bottom: 28px; }
+  .welcome-text { margin-bottom: 20px; }
+  .welcome-text h2 { font-size: 1.35rem; }
+  .login-form { gap: 16px; }
+  .input-group input { padding: 13px 14px; }
+  .btn-login { padding: 14px; font-size: 0.95rem; }
+}
+
 .logo-area { margin-bottom: 40px; }
 .logo-text { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
 .color-primary { color: #0052FF; } 

@@ -264,6 +264,16 @@ async function register() {
   .password-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
 }
 
+@media (max-width: 480px) {
+  .form-side { padding: 16px; align-items: flex-start; padding-top: 40px; }
+  .logo-area { margin-bottom: 22px; }
+  .welcome-text { margin-bottom: 18px; }
+  .welcome-text h2 { font-size: 1.35rem; }
+  .register-form { gap: 14px; }
+  .input-group input { padding: 12px 14px; }
+  .btn-register { padding: 13px; font-size: 0.95rem; }
+}
+
 .logo-area { margin-bottom: 30px; }
 .logo-text { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
 .color-primary { color: #0052FF; } 

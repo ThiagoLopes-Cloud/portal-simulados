@@ -202,6 +202,13 @@
 
       </div>
     </main>
+
+    <nav class="mobile-bottom-nav">
+      <router-link to="/dashboard" class="mnav-item"><span class="mnav-icon">📊</span><span>Dashboard</span></router-link>
+      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
+      <router-link to="/turmas" class="mnav-item"><span class="mnav-icon">👥</span><span>Turmas</span></router-link>
+      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
+    </nav>
   </div>
 </template>
 
@@ -487,5 +494,37 @@ onMounted(async () => {
   .metrics-grid { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); }
   .q-meta { flex-direction: column; align-items: flex-start; }
   .q-compact-res { display: none; }
+}
+
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
+.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
+.mnav-icon { font-size: 1.2rem; line-height: 1; }
+.mnav-item.router-link-active { color: #0052FF; }
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav { display: flex; }
+  .sidebar { display: none !important; }
+  .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
+  .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .btn-secondary-action { align-self: stretch; text-align: center; }
+  .welcome-msg h2 { font-size: 1.4rem; }
+  .score-hero { padding: 20px !important; }
+  .hero-title { font-size: 1.4rem; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); width: 100%; }
+  .metric-box { min-width: 0; padding: 12px 10px; }
+  .skeleton-grid { grid-template-columns: repeat(2, 1fr); }
+  .subjects-grid { grid-template-columns: 1fr 1fr; }
+  .filter-header { flex-direction: column; align-items: flex-start; }
+  .filter-group { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .subjects-grid { grid-template-columns: 1fr; }
+  .metric-value { font-size: 1.5rem; }
+  .q-header { padding: 12px 14px; gap: 8px; }
+  .q-body { padding: 16px; }
+  .opt-card { padding: 10px 12px; gap: 10px; }
+  .revision-header { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 </style>

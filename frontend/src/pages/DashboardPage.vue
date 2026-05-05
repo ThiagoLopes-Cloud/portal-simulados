@@ -187,6 +187,14 @@
         </div>
       </div>
     </main>
+
+    <nav class="mobile-bottom-nav">
+      <router-link to="/dashboard" class="mnav-item"><span class="mnav-icon">📊</span><span>Dashboard</span></router-link>
+      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
+      <router-link to="/turmas" class="mnav-item"><span class="mnav-icon">👥</span><span>Turmas</span></router-link>
+      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
+      <router-link v-if="isAdmin" to="/admin/alunos" class="mnav-item"><span class="mnav-icon">🛡️</span><span>Admin</span></router-link>
+    </nav>
   </div>
 </template>
 
@@ -396,5 +404,34 @@ function logout() { localStorage.clear(); router.push('/login'); }
   .data-split { grid-template-columns: 1fr; }
   .admin-banner { flex-direction: column; text-align: center; gap: 20px; }
   .banner-info { flex-direction: column; }
+}
+
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
+.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
+.mnav-icon { font-size: 1.2rem; line-height: 1; }
+.mnav-item.router-link-active { color: #0052FF; }
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav { display: flex; }
+  .sidebar { display: none !important; }
+  .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
+  .top-bar { flex-wrap: wrap; gap: 10px; }
+  .user-stats-top { flex-wrap: wrap; gap: 10px; }
+  .welcome-msg h2 { font-size: 1.4rem; }
+  .intel-content { flex-direction: column; align-items: flex-start; gap: 15px; }
+  .btn-intel-action { width: 100%; text-align: center; }
+  .admin-banner { padding: 20px; }
+  .banner-buttons { flex-direction: column; width: 100%; gap: 10px; }
+  .btn-outline-admin, .btn-primary-admin { width: 100%; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .quick-stats { gap: 10px; }
+  .stat-card { padding: 15px 8px; }
+  .stat-value { font-size: 1.7rem; }
+  .materia-main { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .materia-stats { width: 100%; }
+  .progress-container { flex: 1; width: auto; max-width: none; margin-right: 10px; }
 }
 </style>
