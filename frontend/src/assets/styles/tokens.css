@@ -1,0 +1,149 @@
+/* ═══════════════════════════════════════════════════════════════
+   ORBYN DESIGN SYSTEM — TOKENS v1.0
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Colors: Background Layers ── */
+  --color-cosmos:        #08091A;
+  --color-nebula:        #0D1024;
+  --color-void:          #111428;
+  --color-horizon:       #1A1D38;
+  --color-eclipse:       #222645;
+
+  /* ── Colors: Brand Primary (Orbit Cyan) ── */
+  --color-orbit:         #00E5FF;
+  --color-orbit-bright:  #40EEFF;
+  --color-orbit-glow:    rgba(0, 229, 255, 0.25);
+  --color-orbit-mid:     rgba(0, 229, 255, 0.15);
+  --color-orbit-dim:     rgba(0, 229, 255, 0.08);
+  --color-orbit-border:  rgba(0, 229, 255, 0.25);
+
+  /* ── Colors: Brand Secondary (Pulsar Purple) ── */
+  --color-pulsar:        #7C6EFF;
+  --color-pulsar-bright: #9D92FF;
+  --color-pulsar-glow:   rgba(124, 110, 255, 0.25);
+  --color-pulsar-dim:    rgba(124, 110, 255, 0.08);
+  --color-pulsar-border: rgba(124, 110, 255, 0.25);
+
+  /* ── Colors: Semantic ── */
+  --color-nova:          #FF4D6D;
+  --color-nova-glow:     rgba(255, 77, 109, 0.25);
+  --color-nova-dim:      rgba(255, 77, 109, 0.08);
+  --color-nova-border:   rgba(255, 77, 109, 0.25);
+
+  --color-stellar:       #00D68F;
+  --color-stellar-glow:  rgba(0, 214, 143, 0.25);
+  --color-stellar-dim:   rgba(0, 214, 143, 0.08);
+  --color-stellar-border:rgba(0, 214, 143, 0.25);
+
+  --color-flare:         #FFB830;
+  --color-flare-glow:    rgba(255, 184, 48, 0.25);
+  --color-flare-dim:     rgba(255, 184, 48, 0.08);
+  --color-flare-border:  rgba(255, 184, 48, 0.25);
+
+  --color-info:          #3D8EFF;
+  --color-info-dim:      rgba(61, 142, 255, 0.08);
+  --color-info-border:   rgba(61, 142, 255, 0.25);
+
+  /* ── Colors: Text ── */
+  --color-star:          #F0F2FF;
+  --color-comet:         #8892B0;
+  --color-dust:          #4A5278;
+
+  /* ── Colors: Border & Surface ── */
+  --color-border:        rgba(255, 255, 255, 0.06);
+  --color-border-hover:  rgba(255, 255, 255, 0.12);
+  --color-surface-hover: rgba(255, 255, 255, 0.03);
+
+  /* ── Typography: Families ── */
+  --font-display:   'Syne', sans-serif;
+  --font-body:      'DM Sans', sans-serif;
+  --font-mono:      'JetBrains Mono', monospace;
+
+  /* ── Typography: Scale ── */
+  --text-2xs:  0.625rem;
+  --text-xs:   0.6875rem;
+  --text-sm:   0.75rem;
+  --text-base: 0.875rem;
+  --text-md:   1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+
+  /* ── Typography: Weight ── */
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
+
+  /* ── Typography: Line Height ── */
+  --leading-tight:   1.2;
+  --leading-snug:    1.35;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.7;
+
+  /* ── Space Scale ── */
+  --space-0:  0px;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  28px;
+  --space-8:  32px;
+  --space-9:  36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* ── Border Radius ── */
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-2xl:  28px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-sm:     0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md:     0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg:     0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-card:   0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 4px 24px rgba(0, 0, 0, 0.35);
+  --shadow-orbit:  0 0 20px rgba(0, 229, 255, 0.2), 0 0 60px rgba(0, 229, 255, 0.06);
+  --shadow-pulsar: 0 0 20px rgba(124, 110, 255, 0.2), 0 0 60px rgba(124, 110, 255, 0.06);
+  --shadow-nova:   0 0 20px rgba(255, 77, 109, 0.2);
+
+  /* ── Transitions ── */
+  --transition-fast:   100ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow:   350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Z-Index Layers ── */
+  --z-base:    1;
+  --z-dropdown: 30;
+  --z-sidebar:  50;
+  --z-topbar:   60;
+  --z-modal:    100;
+  --z-toast:    110;
+  --z-tooltip:  120;
+
+  /* ── Blur ── */
+  --blur-sm: 8px;
+  --blur-md: 12px;
+  --blur-lg: 20px;
+
+  /* ── Layout: Sidebar ── */
+  --sidebar-width:           220px;
+  --sidebar-width-collapsed: 68px;
+  --topbar-height:           60px;
+}

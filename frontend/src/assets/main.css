@@ -1,27 +1,38 @@
-/* ── Google Fonts — deve vir antes de qualquer regra CSS ──────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-
 @import "tailwindcss";
 @config "../../tailwind.config.js";
 
-/* ── SIMUS-DS v1 · Design Tokens ─────────────────────────────── */
+/* ── Tailwind theme bridge: Orbyn tokens → Tailwind utilities ── */
 @theme {
-  --color-simus-bg:      #0B0D17;
-  --color-simus-surface: #1A1D27;
+  /* Backgrounds */
+  --color-simus-bg:      #08091A;
+  --color-simus-surface: #0D1024;
   --color-simus-cyan:    #00E5FF;
-  --color-simus-purple:  #8A2BE2;
+  --color-simus-purple:  #7C6EFF;
 
-  --font-family-display: 'Space Grotesk', sans-serif;
-  --font-family-body:    'Inter', sans-serif;
+  /* Orbyn palette disponível via Tailwind */
+  --color-cosmos:  #08091A;
+  --color-nebula:  #0D1024;
+  --color-orbit:   #00E5FF;
+  --color-pulsar:  #7C6EFF;
+  --color-nova:    #FF4D6D;
+  --color-stellar: #00D68F;
+  --color-flare:   #FFB830;
+  --color-star:    #F0F2FF;
+  --color-comet:   #8892B0;
 
-  --radius-simus: 16px;
+  /* Fonts */
+  --font-family-display: 'Syne', sans-serif;
+  --font-family-body:    'DM Sans', sans-serif;
+  --font-family-mono:    'JetBrains Mono', monospace;
+
+  /* Radius */
+  --radius-simus:  14px;
+  --radius-orbyn:  14px;
 }
 
-/* ── Base ─────────────────────────────────────────────────────── */
+/* ── Base body ── */
 body {
-  @apply bg-simus-bg text-slate-50 font-body;
-  margin: 0;
-  padding: 0;
+  @apply bg-cosmos text-star font-body;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

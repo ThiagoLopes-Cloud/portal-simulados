@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════════════════
+   ORBYN DESIGN SYSTEM — UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Glow effects ── */
+.glow-orbit   { box-shadow: var(--shadow-orbit); }
+.glow-pulsar  { box-shadow: var(--shadow-pulsar); }
+.glow-nova    { box-shadow: var(--shadow-nova); }
+
+/* ── Text colors ── */
+.text-orbit   { color: var(--color-orbit); }
+.text-pulsar  { color: var(--color-pulsar); }
+.text-nova    { color: var(--color-nova); }
+.text-stellar { color: var(--color-stellar); }
+.text-flare   { color: var(--color-flare); }
+.text-star    { color: var(--color-star); }
+.text-comet   { color: var(--color-comet); }
+.text-dust    { color: var(--color-dust); }
+
+/* ── Font families ── */
+.font-syne    { font-family: var(--font-display); }
+.font-dm      { font-family: var(--font-body); }
+.font-mono    { font-family: var(--font-mono); }
+
+/* ── Backgrounds ── */
+.bg-cosmos    { background-color: var(--color-cosmos); }
+.bg-nebula    { background-color: var(--color-nebula); }
+.bg-void      { background-color: var(--color-void); }
+.bg-horizon   { background-color: var(--color-horizon); }
+
+/* ── Glass effect ── */
+.glass {
+  background: rgba(13, 16, 36, 0.72);
+  backdrop-filter: blur(var(--blur-md));
+  -webkit-backdrop-filter: blur(var(--blur-md));
+  border: 1px solid var(--color-border);
+}
+
+/* ── Surface card ── */
+.surface {
+  background: var(--color-nebula);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Skeleton shimmer ── */
+.skeleton {
+  background: var(--color-void);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Gradient text ── */
+.gradient-orbit {
+  background: linear-gradient(135deg, var(--color-orbit), var(--color-pulsar));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Label mono style ── */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-comet);
+}
+
+/* ── Star field background ── */
+.starfield {
+  background-image:
+    radial-gradient(1px 1px at 15% 25%, rgba(255, 255, 255, 0.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 15%, rgba(255, 255, 255, 0.55) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 40% 60%, rgba(0, 229, 255, 0.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 75%, rgba(255, 255, 255, 0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 80%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 55% 40%, rgba(124, 110, 255, 0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 50%, rgba(255, 255, 255, 0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 10% 55%, rgba(255, 255, 255, 0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 65% 85%, rgba(0, 229, 255, 0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 10%, rgba(255, 255, 255, 0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 70%, rgba(255, 255, 255, 0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 30%, rgba(124, 110, 255, 0.25) 0%, transparent 100%);
+}
+
+/* ── Cosmic glow decorations ── */
+.cosmic-glow-cyan {
+  background: radial-gradient(circle at center, var(--color-orbit-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cosmic-glow-purple {
+  background: radial-gradient(circle at center, var(--color-pulsar-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Transitions ── */
+.transition-fast   { transition: all var(--transition-fast); }
+.transition-normal { transition: all var(--transition-normal); }
+.transition-slow   { transition: all var(--transition-slow); }

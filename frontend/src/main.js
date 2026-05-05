@@ -1,24 +1,19 @@
-// Importa a função createApp do Vue — responsável por criar a aplicação
-import { createApp } from 'vue'
+// Orbyn Design System — fundação CSS (ordem importa)
+import './assets/styles/tokens.css'
+import './assets/styles/base.css'
+import './assets/styles/utilities.css'
 
-// Importa o componente raiz da aplicação
-// App.vue é o componente principal que contém todos os outros
-import App from './App.vue'
-
-//
+// Tailwind + SIMUS bridge
 import './assets/main.css'
 
-// Importa o router que configuramos
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
 import router from './router/index.js'
 
-// Cria a aplicação Vue
-// createApp(App) — inicializa o Vue com o componente App como raiz
 const app = createApp(App)
 
-// Registra o router na aplicação
-// Isso disponibiliza o <router-view> e <router-link> em todos os componentes
+app.use(createPinia())
 app.use(router)
 
-// Monta a aplicação no elemento com id="app" do index.html
-// A partir daqui o Vue controla tudo dentro desse elemento
 app.mount('#app')

@@ -194,7 +194,7 @@ function logout() {
 .main-content { @apply flex-1 ml-[220px] px-8 py-8; }
 .card { @apply bg-simus-surface border border-white/5 rounded-simus p-5; }
 .th { @apply px-5 py-3.5 text-left text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider; }
-.td { @apply px-5 py-4 vertical-align-middle; }
+.td { @apply px-5 py-4; vertical-align: middle; }
 
 .shimmer { @apply bg-white/5 relative overflow-hidden; }
 .shimmer::after { content: ''; @apply absolute inset-0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); animation: shimmer 1.5s infinite; }

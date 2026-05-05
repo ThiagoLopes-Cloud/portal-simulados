@@ -1,27 +1,32 @@
 {
   "name": "portal-simulados",
   "version": "1.0.0",
-  "description": "<div align=\"center\">",
-  "main": "index.js",
+  "description": "Portal de simulados educacionais",
+  "type": "module",
+
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+
+    "type-check": "tsc --noEmit"
   },
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ThiagoLopes-Cloud/portal-simulados.git"
   },
-  "keywords": [],
-  "author": "",
+
   "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/ThiagoLopes-Cloud/portal-simulados/issues"
-  },
-  "homepage": "https://github.com/ThiagoLopes-Cloud/portal-simulados#readme",
+
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.3.0",
     "eslint-plugin-vue": "^10.9.1",
-    "globals": "^17.6.0"
+    "globals": "^17.6.0",
+    "typescript": "^6.0.3"
   }
 }
