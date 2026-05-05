@@ -1,14 +1,23 @@
-# Importa o módulo de views do Django REST Framework
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-# Importa a permissão que permite acesso sem autenticação
-# Necessário para as rotas de login e registro
 from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-# Importa os serializers de usuário
 from .serializers import RegisterSerializer, UserSerializer
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['role'] = self.user.role
+        data['username'] = self.user.username
+        return data
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 
 class RegisterView(APIView):

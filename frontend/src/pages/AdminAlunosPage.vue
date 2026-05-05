@@ -1,136 +1,121 @@
 <template>
-  <div class="dashboard-layout">
-    
-    <aside class="sidebar admin-sidebar">
-      <div class="sidebar-header">
-        <h1 class="logo-text">
-          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
-        </h1>
-        <p class="tagline">Comando Admin</p>
+  <DashboardLayout :username="username" :is-admin="true">
+    <header class="page-header">
+      <div>
+        <h2 class="page-title">Gestão de Alunos</h2>
+        <p class="page-sub">Visão geral e acesso aos relatórios individuais de performance.</p>
+      </div>
+      <OrbynBadge variant="pulsar">Admin</OrbynBadge>
+    </header>
+
+    <!-- Skeleton -->
+    <div v-if="carregando" class="skeleton-list">
+      <div v-for="n in 7" :key="n" class="skeleton-row" />
+    </div>
+
+    <!-- Erro -->
+    <div v-else-if="erro" class="empty-state">
+      <div class="empty-icon nova">⚠</div>
+      <h3 class="empty-title">Falha de Conexão</h3>
+      <p class="empty-sub">{{ erro }}</p>
+      <OrbynButton variant="primary" size="sm" class="mt-5" @click="carregarAlunos">Tentar Novamente</OrbynButton>
+    </div>
+
+    <div v-else>
+      <!-- Vazio -->
+      <div v-if="alunos.length === 0" class="empty-state">
+        <div class="empty-icon">◉</div>
+        <h3 class="empty-title">Nenhum Registro</h3>
+        <p class="empty-sub">O banco de dados de alunos está vazio no momento.</p>
       </div>
 
-      <nav class="sidebar-nav">
-        <router-link to="/admin/alunos" class="nav-link active">
-          <span class="icon">👥</span> Gestão de Alunos
-        </router-link>
-        <router-link to="/admin/importar" class="nav-link">
-          <span class="icon">📥</span> Importar Questões
-        </router-link>
-        <router-link to="/simulados" class="nav-link">
-          <span class="icon">🎯</span> Ver Avaliações
-        </router-link>
-        <router-link to="/ranking" class="nav-link">
-          <span class="icon">🏆</span> Ranking Geral
-        </router-link>
-      </nav>
-
-      <div class="sidebar-footer">
-        <button @click="logout" class="btn-logout-clean">Sair do Sistema</button>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <header class="top-bar">
-        <div class="welcome-msg">
-          <h2>Gestão de Alunos</h2>
-          <p class="text-secondary">Visão geral e acesso aos relatórios individuais de performance.</p>
-        </div>
-        <div class="admin-badge">Modo Administrador</div>
-      </header>
-
-      <div v-if="carregando" class="skeleton-wrapper">
-        <div class="skeleton-box shimmer" style="height: 60px; margin-bottom: 10px;"></div>
-        <div class="skeleton-box shimmer" style="height: 60px; margin-bottom: 10px;" v-for="n in 6" :key="n"></div>
-      </div>
-
-      <div v-else-if="erro" class="empty-state-card clean-card">
-        <div class="empty-icon-wrapper error-wrapper"><span class="empty-icon">⚠️</span></div>
-        <h3 class="empty-title">Falha de Conexão</h3>
-        <p class="empty-subtitle">{{ erro }}</p>
-        <button @click="recarregar" class="btn-primary-action">Tentar Novamente</button>
-      </div>
-
-      <div v-else class="data-container">
-        
-        <div v-if="alunos.length === 0" class="empty-state-card clean-card">
-          <div class="empty-icon-wrapper"><span class="empty-icon">👥</span></div>
-          <h3 class="empty-title">Nenhum Registro</h3>
-          <p class="empty-subtitle">O banco de dados de alunos está vazio no momento.</p>
+      <!-- Tabela -->
+      <div v-else class="table-card">
+        <div class="table-header">
+          <h3 class="table-title">Base de Candidatos</h3>
+          <span class="count-badge">{{ alunos.length }} alunos</span>
         </div>
 
-        <div class="table-wrapper clean-card" v-else>
-          <div class="table-header">
-            <h3 class="table-title">Base de Candidatos Cadastrados</h3>
-            <span class="total-badge">{{ alunos.length }} alunos</span>
-          </div>
-
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Candidato</th>
-                <th class="th-center">Avaliações</th>
-                <th class="th-center">Desempenho Geral</th>
-                <th class="th-right">Relatório Tático</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="aluno in alunos" :key="aluno.id">
-                
-                <td class="td-profile">
-                  <div class="profile-meta">
-                    <div class="profile-avatar">{{ aluno.username.charAt(0).toUpperCase() }}</div>
-                    <div class="profile-text">
-                      <span class="profile-name">{{ aluno.username }}</span>
-                      <span class="profile-email">{{ aluno.email }}</span>
-                    </div>
+        <!-- Desktop -->
+        <table class="data-table">
+          <thead>
+            <tr class="thead-row">
+              <th class="th">Candidato</th>
+              <th class="th text-center">Avaliações</th>
+              <th class="th text-center">Desempenho</th>
+              <th class="th text-right">Relatório</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="aluno in alunos" :key="aluno.id" class="tbody-row">
+              <td class="td">
+                <div class="user-cell">
+                  <div class="user-avatar">{{ aluno.username.charAt(0).toUpperCase() }}</div>
+                  <div>
+                    <p class="user-name">{{ aluno.username }}</p>
+                    <p class="user-email">{{ aluno.email }}</p>
                   </div>
-                </td>
+                </div>
+              </td>
+              <td class="td text-center">
+                <span class="sim-count" :class="{ 'sim-count--zero': aluno.total_simulados === 0 }">
+                  {{ aluno.total_simulados }}
+                </span>
+              </td>
+              <td class="td text-center">
+                <span v-if="aluno.total_simulados > 0" class="score-badge" :class="scoreBg(aluno.score_medio)">
+                  {{ aluno.score_medio }}%
+                </span>
+                <span v-else class="no-data">Sem dados</span>
+              </td>
+              <td class="td text-right">
+                <OrbynButton
+                  variant="ghost"
+                  size="sm"
+                  :disabled="aluno.total_simulados === 0"
+                  @click="verDashboard(aluno.id)"
+                >
+                  Ver Relatório
+                </OrbynButton>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-                <td class="td-center">
-                  <span class="simulados-count" :class="{ 'zero-count': aluno.total_simulados === 0 }">
-                    {{ aluno.total_simulados }}
-                  </span>
-                </td>
-
-                <td class="td-center">
-                  <span v-if="aluno.total_simulados > 0" class="score-pill" :class="corScoreBg(aluno.score_medio)">
-                    {{ aluno.score_medio }}%
-                  </span>
-                  <span v-else class="text-gray italic">Sem dados</span>
-                </td>
-
-                <td class="td-right">
-                  <button
-                    @click="verDashboard(aluno.id)"
-                    class="btn-report"
-                    :disabled="aluno.total_simulados === 0"
-                  >
-                    Ver Relatório
-                  </button>
-                </td>
-
-              </tr>
-            </tbody>
-          </table>
+        <!-- Mobile cards -->
+        <div class="mobile-cards">
+          <div v-for="aluno in alunos" :key="aluno.id" class="mobile-aluno">
+            <div class="user-cell">
+              <div class="user-avatar">{{ aluno.username.charAt(0).toUpperCase() }}</div>
+              <div>
+                <p class="user-name">{{ aluno.username }}</p>
+                <p class="user-email">{{ aluno.email }}</p>
+              </div>
+            </div>
+            <div class="mobile-row-stats">
+              <span class="stat-label">{{ aluno.total_simulados }} avaliações</span>
+              <span v-if="aluno.total_simulados > 0" class="score-badge" :class="scoreBg(aluno.score_medio)">{{ aluno.score_medio }}%</span>
+              <OrbynButton variant="ghost" size="sm" :disabled="aluno.total_simulados === 0" @click="verDashboard(aluno.id)">
+                Relatório
+              </OrbynButton>
+            </div>
+          </div>
         </div>
       </div>
-    </main>
-
-    <nav class="mobile-bottom-nav">
-      <router-link to="/admin/alunos" class="mnav-item"><span class="mnav-icon">👥</span><span>Alunos</span></router-link>
-      <router-link to="/admin/importar" class="mnav-item"><span class="mnav-icon">📥</span><span>Importar</span></router-link>
-      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
-      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
-    </nav>
-  </div>
+    </div>
+  </DashboardLayout>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
+import DashboardLayout from '../layouts/DashboardLayout.vue'
+import OrbynButton from '../components/ui/OrbynButton.vue'
+import OrbynBadge from '../components/ui/OrbynBadge.vue'
 
 const router = useRouter()
+const username = localStorage.getItem('username') || ''
 const alunos = ref([])
 const carregando = ref(true)
 const erro = ref('')
@@ -139,10 +124,9 @@ async function carregarAlunos() {
   carregando.value = true
   erro.value = ''
   try {
-    // ATUALIZADO: Rota API com /api/
     const response = await api.get('/api/resultados/admin/alunos/')
     alunos.value = response.data
-  } catch (error) {
+  } catch {
     erro.value = 'Falha ao sincronizar o banco de dados de alunos.'
   } finally {
     carregando.value = false
@@ -151,133 +135,72 @@ async function carregarAlunos() {
 
 onMounted(carregarAlunos)
 
-function recarregar() {
-  carregarAlunos()
-}
-
 function verDashboard(id) {
   router.push({ name: 'admin-aluno-dashboard', params: { id } })
 }
 
-function corScoreBg(valor) {
-  if (valor >= 70) return 'bg-green'
-  if (valor >= 50) return 'bg-orange'
-  return 'bg-red'
-}
-
-function logout() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user_role')
-  router.push({ name: 'login' })
+function scoreBg(v) {
+  if (v >= 70) return 'score--stellar'
+  if (v >= 50) return 'score--flare'
+  return 'score--nova'
 }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-/* Base & Layout */
-.dashboard-layout { display: flex; min-height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; background-color: #F8FAFC; font-family: 'Inter', sans-serif; }
-
-/* Sidebar do Admin */
-.admin-sidebar { width: 220px; background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%); color: white; display: flex; flex-direction: column; padding: 30px 20px; position: fixed; height: 100vh; z-index: 100; border-right: 1px solid #334155; }
-.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
-.logo-accent { color: #38BDF8; font-weight: 800; font-size: 1.3rem; }
-.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; color: #94A3B8; margin-top: 2px; }
-.sidebar-nav { margin-top: 40px; flex: 1; }
-.nav-link { display: flex; align-items: center; gap: 10px; color: #94A3B8; text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
-.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
-.btn-logout-clean { background: transparent; border: 1px solid #475569; color: #CBD5E1; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
-.btn-logout-clean:hover { background: #EF4444; border-color: #EF4444; color: white; }
-
-/* Main Content */
-.main-content { flex: 1; margin-left: 220px; padding: 30px 50px; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-.welcome-msg h2 { font-size: 1.7rem; font-weight: 700; color: #0F172A; margin: 0; }
-.text-secondary { color: #475569; font-size: 0.9rem; margin-top: 4px; }
-.admin-badge { background: #1E293B; color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 12px; border-radius: 20px; }
-
-/* Utils */
-.clean-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03); }
-.text-gray { color: #94A3B8; } .italic { font-style: italic; }
-.bg-green { background-color: #10B981; } .bg-orange { background-color: #F59E0B; } .bg-red { background-color: #EF4444; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-8); }
+.page-title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--weight-bold); color: var(--color-star); }
+.page-sub { font-size: var(--text-sm); color: var(--color-comet); margin-top: var(--space-1); }
 
 /* Skeleton */
-.skeleton-wrapper { width: 100%; }
-.shimmer { position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 12px; }
-.shimmer::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); animation: loading 1.5s infinite; }
-@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.skeleton-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.skeleton-row { height: 60px; background: var(--color-nebula); border-radius: var(--radius-md); position: relative; overflow: hidden; }
+.skeleton-row::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); animation: shimmer 1.5s infinite; }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
-/* Empty State & Error */
-.empty-state-card { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; margin-top: 20px; }
-.empty-icon-wrapper { width: 80px; height: 80px; background: #F1F5F9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-.error-wrapper { background: #FEF2F2 !important; }
-.empty-icon { font-size: 2.5rem; }
-.empty-title { font-size: 1.3rem; font-weight: 700; color: #0F172A; margin-bottom: 10px; }
-.empty-subtitle { color: #64748B; font-size: 0.95rem; }
-.btn-primary-action { background: #0052FF; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; margin-top: 20px; transition: all 0.2s; }
-.btn-primary-action:hover { background: #0043D1; transform: translateY(-2px); }
+/* Empty */
+.empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-14) var(--space-8); background: var(--color-nebula); border: 1px dashed var(--color-border); border-radius: var(--radius-xl); }
+.empty-icon { font-size: 2.5rem; color: var(--color-orbit); margin-bottom: var(--space-5); }
+.empty-icon.nova { color: var(--color-nova); }
+.empty-title { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-star); margin-bottom: var(--space-2); }
+.empty-sub { font-size: var(--text-sm); color: var(--color-comet); }
+.mt-5 { margin-top: var(--space-5); }
 
-/* Tabela de Alunos */
-.table-wrapper { overflow-x: auto; }
-.table-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid #E2E8F0; }
-.table-title { font-size: 1.1rem; font-weight: 700; color: #0F172A; margin: 0; }
-.total-badge { background: #F1F5F9; color: #475569; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+/* Table card */
+.table-card { background: var(--color-nebula); border: 1px solid var(--color-border); border-radius: var(--radius-xl); overflow: hidden; }
+.table-header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-border); }
+.table-title { font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--weight-bold); color: var(--color-star); }
+.count-badge { padding: 3px var(--space-3); border-radius: var(--radius-full); background: rgba(255,255,255,0.05); color: var(--color-dust); font-size: var(--text-xs); font-family: var(--font-mono); font-weight: var(--weight-bold); }
 
-.data-table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-.data-table thead { background: #F8FAFC; border-bottom: 2px solid #E2E8F0; }
-.data-table th { padding: 16px 25px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
-.data-table tbody tr { border-bottom: 1px solid #F1F5F9; transition: background 0.2s; }
-.data-table tbody tr:hover { background: #F8FAFC; }
-.data-table td { padding: 16px 25px; vertical-align: middle; }
+.data-table { width: 100%; border-collapse: collapse; }
+.thead-row { border-bottom: 1px solid var(--color-border); }
+.th { padding: var(--space-3) var(--space-5); text-align: left; font-size: var(--text-2xs); font-family: var(--font-mono); font-weight: var(--weight-bold); color: var(--color-dust); text-transform: uppercase; letter-spacing: 0.08em; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.td { padding: var(--space-4) var(--space-5); border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
+.tbody-row { transition: background var(--transition-fast); }
+.tbody-row:hover { background: rgba(255,255,255,0.02); }
 
-.th-center, .td-center { text-align: center !important; }
-.th-right, .td-right { text-align: right !important; }
+.user-cell { display: flex; align-items: center; gap: var(--space-3); }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.2); display: flex; align-items: center; justify-content: center; color: var(--color-orbit); font-weight: var(--weight-bold); font-size: var(--text-base); flex-shrink: 0; }
+.user-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-star); }
+.user-email { font-size: var(--text-xs); color: var(--color-dust); margin-top: 2px; }
 
-/* Profile na Tabela */
-.td-profile { width: 40%; }
-.profile-meta { display: flex; align-items: center; gap: 15px; }
-.profile-avatar { width: 40px; height: 40px; background: #E0E7FF; color: #4338CA; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; }
-.profile-text { display: flex; flex-direction: column; gap: 2px; }
-.profile-name { font-weight: 600; color: #1E293B; font-size: 0.95rem; }
-.profile-email { font-size: 0.8rem; color: #64748B; }
+.sim-count { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-star); }
+.sim-count--zero { color: var(--color-dust); }
+.no-data { font-size: var(--text-sm); color: var(--color-dust); font-style: italic; }
 
-/* Badges e Botões na Tabela */
-.simulados-count { font-weight: 700; color: #0F172A; font-size: 0.95rem; }
-.zero-count { color: #94A3B8; }
-.score-pill { color: white; font-weight: 700; font-size: 0.85rem; padding: 4px 12px; border-radius: 20px; }
+.score-badge { display: inline-block; padding: 3px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-xs); font-family: var(--font-mono); font-weight: var(--weight-bold); color: white; }
+.score--stellar { background: var(--color-stellar); }
+.score--flare   { background: var(--color-flare); }
+.score--nova    { background: var(--color-nova); }
 
-.btn-report { background: #EFF6FF; color: #0052FF; border: 1px solid #BFDBFE; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
-.btn-report:hover:not(:disabled) { background: #0052FF; color: white; border-color: #0052FF; }
-.btn-report:disabled { background: #F1F5F9; color: #94A3B8; border-color: #E2E8F0; cursor: not-allowed; }
-
-@media (max-width: 1000px) {
-  .admin-sidebar { width: 70px; padding: 30px 10px; }
-  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
-}
-
-/* Mobile Bottom Navigation */
-.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
-.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
-.mnav-icon { font-size: 1.2rem; line-height: 1; }
-.mnav-item.router-link-active { color: #0052FF; }
-
-@media (max-width: 768px) {
-  .mobile-bottom-nav { display: flex; }
-  .admin-sidebar { display: none !important; }
-  .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
-  .top-bar { flex-wrap: wrap; gap: 10px; }
-  .admin-badge { display: none; }
-  .welcome-msg h2 { font-size: 1.4rem; }
-  .table-header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 15px 16px; }
-}
-
-@media (max-width: 600px) {
-  .data-table thead { display: none; }
-  .data-table tbody tr { display: flex; flex-direction: column; padding: 16px; border-bottom: 1px solid #E2E8F0; white-space: normal; }
-  .data-table td { padding: 4px 0; text-align: left !important; border: none; white-space: normal; }
-  .td-profile { width: 100%; }
-  .btn-report { width: 100%; margin-top: 8px; }
+/* Mobile */
+.mobile-cards { display: none; }
+@media (max-width: 640px) {
+  .data-table { display: none; }
+  .mobile-cards { display: flex; flex-direction: column; }
+  .mobile-aluno { padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border); display: flex; flex-direction: column; gap: var(--space-3); }
+  .mobile-row-stats { display: flex; align-items: center; gap: var(--space-3); justify-content: space-between; }
+  .stat-label { font-size: var(--text-xs); color: var(--color-dust); }
 }
 </style>

@@ -13,7 +13,8 @@ import AdminAlunoDashboardPage from '../pages/AdminAlunoDashboardPage.vue'
 import ImportarQuestoesPage from '../pages/ImportarQuestoesPage.vue'
 
 // Importamos a página correta que você acabou de criar
-import TurmaPortal from '../pages/TurmaPortal.vue' 
+import TurmaPortal from '../pages/TurmaPortal.vue'
+import NotFoundPage from '../pages/NotFoundPage.vue'
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
@@ -52,6 +53,7 @@ const routes = [
     component: ImportarQuestoesPage,
     meta: { requiresAuth: true, requiresAdmin: true }
   },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundPage },
 ]
 
 const router = createRouter({

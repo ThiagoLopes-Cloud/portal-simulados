@@ -1,405 +1,310 @@
 <template>
-  <div class="dashboard-layout">
-    
-    <aside class="sidebar admin-sidebar">
-      <div class="sidebar-header">
-        <h1 class="logo-text">
-          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
-        </h1>
-        <p class="tagline">Comando Admin</p>
+  <DashboardLayout :username="username" :is-admin="true">
+
+    <!-- Skeleton -->
+    <div v-if="carregando" class="skeleton-stack">
+      <div class="sk-row"><div class="sk-box" style="width:160px;height:36px;" /></div>
+      <div class="sk-box sk-profile" />
+      <div class="sk-kpis">
+        <div v-for="n in 4" :key="n" class="sk-box sk-kpi" />
+      </div>
+    </div>
+
+    <!-- Erro -->
+    <div v-else-if="erro" class="empty-state">
+      <div class="empty-icon nova">⚠</div>
+      <h3 class="empty-title">Falha de Leitura</h3>
+      <p class="empty-sub">{{ erro }}</p>
+      <OrbynButton variant="primary" size="sm" class="mt-5" @click="$router.push('/admin/alunos')">
+        Voltar para Base de Alunos
+      </OrbynButton>
+    </div>
+
+    <div v-else>
+      <!-- Breadcrumb -->
+      <div class="page-header">
+        <OrbynButton variant="ghost" size="sm" @click="$router.push('/admin/alunos')">← Voltar para Base</OrbynButton>
+        <OrbynBadge variant="pulsar">Admin</OrbynBadge>
       </div>
 
-      <nav class="sidebar-nav">
-        <router-link to="/admin/alunos" class="nav-link active">
-          <span class="icon">👥</span> Gestão de Alunos
-        </router-link>
-        <router-link to="/simulados" class="nav-link">
-          <span class="icon">🎯</span> Ver Avaliações
-        </router-link>
-        <router-link to="/ranking" class="nav-link">
-          <span class="icon">🏆</span> Ranking Geral
-        </router-link>
-      </nav>
-
-      <div class="sidebar-footer">
-        <button @click="logout" class="btn-logout-clean">Sair do Sistema</button>
+      <!-- Perfil do aluno -->
+      <div class="profile-card">
+        <div class="profile-avatar">{{ dados.aluno.username.charAt(0).toUpperCase() }}</div>
+        <div class="profile-info">
+          <h2 class="profile-name">{{ dados.aluno.username }}</h2>
+          <p class="profile-email">{{ dados.aluno.email }}</p>
+        </div>
+        <OrbynBadge variant="stellar" dot>Ativo no Laboratório</OrbynBadge>
       </div>
-    </aside>
 
-    <main class="main-content">
-      
-      <div v-if="carregando" class="skeleton-wrapper">
-        <header class="top-bar">
-          <div class="skeleton-box shimmer" style="width: 200px; height: 40px;"></div>
-        </header>
-        <div class="skeleton-box shimmer" style="height: 100px; margin-bottom: 30px;"></div>
-        <div class="kpi-grid">
-          <div class="skeleton-box shimmer" style="height: 120px;" v-for="n in 4" :key="n"></div>
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-val" :class="scoreColor(dados.score_geral)">{{ dados.score_geral }}%</span>
+          <span class="kpi-label">Aproveitamento Geral</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-val orbit">{{ dados.total_simulados }}</span>
+          <span class="kpi-label">Avaliações Realizadas</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-val pulsar">{{ dados.por_materia.length }}</span>
+          <span class="kpi-label">Disciplinas Mapeadas</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-val nova">{{ pontoFraco }}</span>
+          <span class="kpi-label">Ponto de Atenção</span>
         </div>
       </div>
 
-      <div v-else-if="erro" class="empty-state-card clean-card">
-        <div class="empty-icon-wrapper error-wrapper"><span class="empty-icon">⚠️</span></div>
-        <h3 class="empty-title">Falha de Leitura</h3>
-        <p class="empty-subtitle">{{ erro }}</p>
-        <button @click="$router.push('/admin/alunos')" class="btn-primary-action">Voltar para Base de Alunos</button>
-      </div>
+      <!-- Split: análise + histórico -->
+      <div class="data-split">
 
-      <div v-else class="analytics-container">
+        <!-- Disciplinas -->
+        <section>
+          <h3 class="section-title">Análise de Disciplinas</h3>
 
-        <header class="top-bar">
-          <div class="breadcrumb">
-            <button @click="$router.push('/admin/alunos')" class="btn-back">
-              <span class="back-icon">←</span> Voltar para Base
-            </button>
+          <div v-if="dados.por_materia.length === 0" class="empty-list">
+            Sem dados suficientes para gerar relatório tático.
           </div>
-          <div class="admin-badge">Modo Administrador</div>
-        </header>
 
-        <div class="aluno-profile-card clean-card">
-          <div class="profile-avatar">{{ dados.aluno.username.charAt(0).toUpperCase() }}</div>
-          <div class="profile-info">
-            <h2 class="profile-name">{{ dados.aluno.username }}</h2>
-            <p class="profile-email">{{ dados.aluno.email }}</p>
-          </div>
-          <div class="profile-status">
-            <span class="status-indicator">Ativo no Laboratório</span>
-          </div>
-        </div>
-
-        <div class="kpi-grid">
-          <div class="kpi-card clean-card">
-            <span class="kpi-value" :class="corScoreText(dados.score_geral)">{{ dados.score_geral }}%</span>
-            <span class="kpi-label">Aproveitamento Geral</span>
-          </div>
-          <div class="kpi-card clean-card">
-            <span class="kpi-value text-primary">{{ dados.total_simulados }}</span>
-            <span class="kpi-label">Avaliações Realizadas</span>
-          </div>
-          <div class="kpi-card clean-card">
-            <span class="kpi-value text-purple">{{ dados.por_materia.length }}</span>
-            <span class="kpi-label">Disciplinas Mapeadas</span>
-          </div>
-          <div class="kpi-card clean-card">
-            <span class="kpi-value" :class="corScoreText(dados.por_materia.length > 0 ? dados.por_materia[0].percentual : 0)">
-              {{ pontoFraco }}
-            </span>
-            <span class="kpi-label">Ponto de Atenção Crítico</span>
-          </div>
-        </div>
-
-        <div class="data-split">
-          
-          <section class="analysis-section">
-            <h3 class="section-title">Análise de Disciplinas</h3>
-            
-            <div v-if="dados.por_materia.length === 0" class="empty-list-card clean-card">
-              Sem dados suficientes para gerar relatório tático.
+          <div v-for="mat in dados.por_materia" :key="mat.codigo" class="subject-card">
+            <div class="subject-header" @click="toggleMateria(mat.codigo)">
+              <div class="subj-left">
+                <span class="subj-tag">{{ mat.codigo }}</span>
+                <span class="subj-name">{{ mat.materia }}</span>
+                <span class="subj-vol">{{ mat.acertos }}/{{ mat.total_questoes }} corretas</span>
+              </div>
+              <div class="subj-right">
+                <div class="mini-bar">
+                  <div class="mini-fill" :class="scoreBg(mat.percentual)" :style="{ width: mat.percentual + '%' }" />
+                </div>
+                <span class="subj-score" :class="scoreColor(mat.percentual)">{{ mat.percentual }}%</span>
+                <span class="trend" :class="mat.diferenca_media >= 0 ? 'trend--up' : 'trend--down'">
+                  {{ mat.diferenca_media >= 0 ? '▲ +' : '▼ ' }}{{ mat.diferenca_media }}%
+                </span>
+                <span class="toggle-icon">{{ materiasAbertas.includes(mat.codigo) ? '▲' : '▼' }}</span>
+              </div>
             </div>
 
-            <div v-for="materia in dados.por_materia" :key="materia.codigo" class="subject-analysis-card clean-card">
-              
-              <div class="subject-header" @click="toggleMateria(materia.codigo)">
-                <div class="subj-meta">
-                  <span class="subj-badge">{{ materia.codigo }}</span>
-                  <span class="subj-name">{{ materia.materia }}</span>
-                  <span class="subj-volume">{{ materia.acertos }}/{{ materia.total_questoes }} corretas</span>
-                </div>
-                <div class="subj-stats">
-                  <div class="progress-bar-thin">
-                    <div class="progress-fill-thin" :class="corScoreBg(materia.percentual)" :style="{ width: materia.percentual + '%' }"></div>
-                  </div>
-                  <span class="subj-score" :class="corScoreText(materia.percentual)">{{ materia.percentual }}%</span>
-                  <span class="subj-trend" :class="materia.diferenca_media >= 0 ? 'trend-up' : 'trend-down'">
-                    {{ materia.diferenca_media >= 0 ? '▲ +' : '▼ ' }}{{ materia.diferenca_media }}% vs média
-                  </span>
-                  <span class="toggle-icon">{{ materiasAbertas.includes(materia.codigo) ? '▲' : '▼' }}</span>
-                </div>
+            <div v-if="materiasAbertas.includes(mat.codigo)" class="temas-breakdown">
+              <div class="temas-legend">
+                <span>Aluno</span><span>Média Base</span>
               </div>
-
-              <div v-if="materiasAbertas.includes(materia.codigo)" class="themes-breakdown">
-                <div class="themes-legend">
-                  <span>Métrica do Aluno</span>
-                  <span>Média da Base</span>
+              <div v-for="tema in mat.temas" :key="tema.tema" class="tema-row">
+                <div class="tema-info">
+                  <span class="tema-name">{{ tema.tema }}</span>
+                  <span class="tema-vol">{{ tema.acertos }}/{{ tema.total }}</span>
                 </div>
-                
-                <div v-for="tema in materia.temas" :key="tema.tema" class="theme-row">
-                  <div class="theme-info">
-                    <span class="theme-name">{{ tema.tema }}</span>
-                    <span class="theme-vol">{{ tema.acertos }}/{{ tema.total }} acertos</span>
+                <div class="tema-charts">
+                  <div class="chart-line">
+                    <span class="chart-label orbit">Aluno</span>
+                    <div class="chart-bg"><div class="chart-fill" :class="scoreBg(tema.percentual)" :style="{ width: tema.percentual + '%' }" /></div>
+                    <span class="chart-val" :class="scoreColor(tema.percentual)">{{ tema.percentual }}%</span>
                   </div>
-                  
-                  <div class="theme-charts">
-                    <div class="chart-line">
-                      <span class="chart-label text-primary">Aluno</span>
-                      <div class="chart-bar-bg">
-                        <div class="chart-bar-fill" :class="corScoreBg(tema.percentual)" :style="{ width: tema.percentual + '%' }"></div>
-                      </div>
-                      <span class="chart-value" :class="corScoreText(tema.percentual)">{{ tema.percentual }}%</span>
-                    </div>
-                    <div class="chart-line">
-                      <span class="chart-label text-gray">Média</span>
-                      <div class="chart-bar-bg">
-                        <div class="chart-bar-fill bg-gray" :style="{ width: tema.media_plataforma + '%' }"></div>
-                      </div>
-                      <span class="chart-value text-gray">{{ tema.media_plataforma }}%</span>
-                    </div>
+                  <div class="chart-line">
+                    <span class="chart-label dust">Média</span>
+                    <div class="chart-bg"><div class="chart-fill bg-dust" :style="{ width: tema.media_plataforma + '%' }" /></div>
+                    <span class="chart-val dust">{{ tema.media_plataforma }}%</span>
                   </div>
                 </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="history-section">
-            <h3 class="section-title">Registro de Atividades</h3>
-            
-            <div v-if="dados.historico.length === 0" class="empty-list-card clean-card">
-              Nenhum registro de avaliação no banco de dados.
-            </div>
-            
-            <div class="table-wrapper clean-card" v-else>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Simulação</th>
-                    <th class="th-center">Acertos</th>
-                    <th class="th-center">Precisão</th>
-                    <th class="th-right">Data</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in dados.historico" :key="item.simulado_id">
-                    <td class="td-title">{{ item.simulado }}</td>
-                    <td class="td-center">{{ item.acertos }}/{{ item.total }}</td>
-                    <td class="td-center"><span class="score-pill" :class="corScoreBg(item.score)">{{ item.score }}%</span></td>
-                    <td class="td-right td-date">{{ item.data }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-        </div>
+        <!-- Histórico -->
+        <section>
+          <h3 class="section-title">Registro de Atividades</h3>
+          <div v-if="dados.historico.length === 0" class="empty-list">Nenhum registro de avaliação.</div>
+          <div v-else class="hist-card">
+            <table class="hist-table">
+              <thead>
+                <tr class="thead-row">
+                  <th class="th">Simulação</th>
+                  <th class="th text-center">Acertos</th>
+                  <th class="th text-center">Score</th>
+                  <th class="th text-right">Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in dados.historico" :key="item.simulado_id" class="tbody-row">
+                  <td class="td td-title">{{ item.simulado }}</td>
+                  <td class="td text-center">{{ item.acertos }}/{{ item.total }}</td>
+                  <td class="td text-center"><span class="score-badge" :class="scoreBg(item.score)">{{ item.score }}%</span></td>
+                  <td class="td text-right dust">{{ item.data }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
-    </main>
-
-    <nav class="mobile-bottom-nav">
-      <router-link to="/admin/alunos" class="mnav-item"><span class="mnav-icon">👥</span><span>Alunos</span></router-link>
-      <router-link to="/admin/importar" class="mnav-item"><span class="mnav-icon">📥</span><span>Importar</span></router-link>
-      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
-      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
-    </nav>
-  </div>
+    </div>
+  </DashboardLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api.js'
+import DashboardLayout from '../layouts/DashboardLayout.vue'
+import OrbynButton from '../components/ui/OrbynButton.vue'
+import OrbynBadge from '../components/ui/OrbynBadge.vue'
 
 const router = useRouter()
 const route = useRoute()
+const username = localStorage.getItem('username') || ''
 const carregando = ref(true)
 const erro = ref('')
 const materiasAbertas = ref([])
 
 const dados = ref({
   aluno: { username: '', email: '' },
-  score_geral: 0,
-  total_simulados: 0,
-  por_materia: [],
-  historico: [],
+  score_geral: 0, total_simulados: 0, por_materia: [], historico: [],
 })
 
-const pontoFraco = computed(() => {
-  if (dados.value.por_materia.length === 0) return 'N/A'
-  return dados.value.por_materia[0].codigo
-})
+const pontoFraco = computed(() =>
+  dados.value.por_materia.length === 0 ? 'N/A' : dados.value.por_materia[0].codigo
+)
 
 onMounted(async () => {
   try {
-    const response = await api.get(`/api/resultados/admin/alunos/${route.params.id}/`)
-    dados.value = response.data
-
-    if (dados.value.por_materia.length > 0) {
-      materiasAbertas.value = [dados.value.por_materia[0].codigo]
-    }
-  } catch (error) {
-    erro.value = 'Falha ao extrair dados do candidato. Verifique a conexão.'
+    const res = await api.get(`/api/resultados/admin/alunos/${route.params.id}/`)
+    dados.value = res.data
+    if (dados.value.por_materia.length > 0) materiasAbertas.value = [dados.value.por_materia[0].codigo]
+  } catch {
+    erro.value = 'Falha ao extrair dados do candidato.'
   } finally {
     carregando.value = false
   }
 })
 
 function toggleMateria(codigo) {
-  const index = materiasAbertas.value.indexOf(codigo)
-  if (index === -1) materiasAbertas.value.push(codigo)
-  else materiasAbertas.value.splice(index, 1)
+  const i = materiasAbertas.value.indexOf(codigo)
+  if (i === -1) materiasAbertas.value.push(codigo)
+  else materiasAbertas.value.splice(i, 1)
 }
 
-function corScoreText(v) { return v >= 70 ? 'text-green' : v >= 50 ? 'text-orange' : 'text-red'; }
-function corScoreBg(v) { return v >= 70 ? 'bg-green' : v >= 50 ? 'bg-orange' : 'bg-red'; }
-
-function logout() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user_role')
-  router.push({ name: 'login' })
-}
+function scoreColor(v) { return v >= 70 ? 'stellar' : v >= 50 ? 'flare' : 'nova' }
+function scoreBg(v)    { return v >= 70 ? 'bg-stellar' : v >= 50 ? 'bg-flare' : 'bg-nova' }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Skeleton */
+.skeleton-stack { display: flex; flex-direction: column; gap: var(--space-5); }
+.sk-row { display: flex; }
+.sk-box { background: var(--color-nebula); border-radius: var(--radius-md); position: relative; overflow: hidden; }
+.sk-box::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); animation: shimmer 1.5s infinite; }
+.sk-profile { height: 100px; }
+.sk-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+.sk-kpi { height: 100px; }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
-/* Base & Layout */
-.dashboard-layout { display: flex; min-height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; background-color: #F8FAFC; font-family: 'Inter', sans-serif; }
+/* Empty */
+.empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-14) var(--space-8); background: var(--color-nebula); border: 1px dashed var(--color-border); border-radius: var(--radius-xl); }
+.empty-icon { font-size: 2.5rem; color: var(--color-orbit); margin-bottom: var(--space-5); }
+.empty-icon.nova { color: var(--color-nova); }
+.empty-title { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-star); margin-bottom: var(--space-2); }
+.empty-sub { font-size: var(--text-sm); color: var(--color-comet); }
+.mt-5 { margin-top: var(--space-5); }
 
-/* Sidebar do Admin (Mais Sóbria) */
-.admin-sidebar { width: 220px; background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%); color: white; display: flex; flex-direction: column; padding: 30px 20px; position: fixed; height: 100vh; z-index: 100; border-right: 1px solid #334155; }
-.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
-.logo-accent { color: #38BDF8; font-weight: 800; font-size: 1.3rem; } 
-.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; color: #94A3B8; margin-top: 2px; }
-.sidebar-nav { margin-top: 40px; flex: 1; }
-.nav-link { display: flex; align-items: center; gap: 10px; color: #94A3B8; text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
-.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
-.btn-logout-clean { background: transparent; border: 1px solid #475569; color: #CBD5E1; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
-.btn-logout-clean:hover { background: #EF4444; border-color: #EF4444; color: white; }
+/* Layout */
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); }
+.section-title { font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--weight-bold); color: var(--color-star); margin-bottom: var(--space-4); }
 
-/* Main Content */
-.main-content { flex: 1; margin-left: 220px; padding: 30px 50px; }
-
-/* Top Bar */
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-.btn-back { background: white; border: 1px solid #E2E8F0; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; color: #475569; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-.btn-back:hover { border-color: #0052FF; color: #0052FF; }
-.admin-badge { background: #1E293B; color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 12px; border-radius: 20px; }
-
-/* Utils */
-.clean-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03); }
-.section-title { font-size: 1.1rem; font-weight: 700; color: #0F172A; margin: 0 0 20px 0; }
-.text-green { color: #10B981; } .text-orange { color: #F59E0B; } .text-red { color: #EF4444; } .text-primary { color: #0052FF; } .text-purple { color: #7C3AED; } .text-gray { color: #64748B; }
-.bg-green { background-color: #10B981; } .bg-orange { background-color: #F59E0B; } .bg-red { background-color: #EF4444; } .bg-gray { background-color: #CBD5E1; }
-
-/* Skeleton & Errors */
-.skeleton-wrapper { width: 100%; }
-.shimmer { position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 12px; }
-.shimmer::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); animation: loading 1.5s infinite; }
-@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-.empty-state-card { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; margin-top: 20px; }
-.empty-icon-wrapper { width: 80px; height: 80px; background: #F1F5F9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-.error-wrapper { background: #FEF2F2 !important; }
-.empty-icon { font-size: 2.5rem; }
-.empty-title { font-size: 1.3rem; font-weight: 700; color: #0F172A; margin-bottom: 10px; }
-.empty-subtitle { color: #64748B; font-size: 0.95rem; }
-.btn-primary-action { background: #0052FF; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; margin-top: 20px; transition: all 0.2s; }
-.btn-primary-action:hover { background: #0043D1; transform: translateY(-2px); }
-
-/* Aluno Profile */
-.aluno-profile-card { display: flex; align-items: center; gap: 20px; padding: 25px 30px; margin-bottom: 25px; position: relative; overflow: hidden; }
-.aluno-profile-card::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: #0052FF; }
-.profile-avatar { width: 60px; height: 60px; background: #EFF6FF; color: #0052FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; border: 2px solid #DBEAFE; }
+/* Profile */
+.profile-card {
+  background: var(--color-nebula);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-orbit);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6) var(--space-7);
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+.profile-avatar { width: 60px; height: 60px; border-radius: 50%; background: rgba(0,229,255,0.1); border: 2px solid rgba(0,229,255,0.2); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl); font-weight: var(--weight-extrabold); color: var(--color-orbit); flex-shrink: 0; }
 .profile-info { flex: 1; }
-.profile-name { font-size: 1.4rem; font-weight: 700; color: #0F172A; margin: 0 0 4px 0; }
-.profile-email { color: #64748B; font-size: 0.95rem; margin: 0; }
-.profile-status { background: #ECFDF5; border: 1px solid #A7F3D0; color: #059669; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.profile-name { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--weight-bold); color: var(--color-star); }
+.profile-email { font-size: var(--text-sm); color: var(--color-comet); margin-top: 3px; }
 
 /* KPIs */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-.kpi-card { padding: 25px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; }
-.kpi-value { font-size: 2.2rem; font-weight: 800; line-height: 1; margin-bottom: 8px; }
-.kpi-label { font-size: 0.75rem; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-7); }
+.kpi-card { background: var(--color-nebula); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-6) var(--space-4); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.kpi-val { font-size: var(--text-3xl); font-weight: var(--weight-extrabold); line-height: 1.1; margin-bottom: var(--space-2); }
+.kpi-label { font-size: var(--text-2xs); font-family: var(--font-mono); color: var(--color-dust); text-transform: uppercase; letter-spacing: 0.08em; }
+.stellar { color: var(--color-stellar); }
+.nova    { color: var(--color-nova); }
+.orbit   { color: var(--color-orbit); }
+.pulsar  { color: var(--color-pulsar); }
+.flare   { color: var(--color-flare); }
+.dust    { color: var(--color-dust); }
+.bg-stellar { background: var(--color-stellar); }
+.bg-flare   { background: var(--color-flare); }
+.bg-nova    { background: var(--color-nova); }
+.bg-dust    { background: var(--color-dust); opacity: 0.4; }
 
-/* Data Split */
-.data-split { display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px; }
-.empty-list-card { padding: 30px; text-align: center; color: #94A3B8; font-size: 0.9rem; font-style: italic; }
+/* Split */
+.data-split { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-7); }
+.empty-list { background: var(--color-nebula); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-6); text-align: center; color: var(--color-dust); font-size: var(--text-sm); font-style: italic; }
 
-/* Análise de Disciplinas */
-.subject-analysis-card { margin-bottom: 15px; overflow: hidden; }
-.subject-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 25px; cursor: pointer; transition: background 0.2s; background: white; }
-.subject-header:hover { background: #F8FAFC; }
-.subj-meta { display: flex; align-items: center; gap: 12px; }
-.subj-badge { background: #0052FF; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; }
-.subj-name { font-weight: 700; color: #1E293B; font-size: 0.95rem; }
-.subj-volume { font-size: 0.8rem; color: #94A3B8; font-weight: 500; }
+/* Subject cards */
+.subject-card { background: var(--color-nebula); border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-3); overflow: hidden; }
+.subject-header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-4) var(--space-5); cursor: pointer; transition: background var(--transition-fast); gap: var(--space-3); }
+.subject-header:hover { background: rgba(255,255,255,0.02); }
+.subj-left { display: flex; align-items: center; gap: var(--space-3); }
+.subj-tag { background: var(--color-orbit); color: var(--color-cosmos); padding: 2px var(--space-2); border-radius: var(--radius-sm); font-size: var(--text-2xs); font-family: var(--font-mono); font-weight: var(--weight-bold); }
+.subj-name { font-weight: var(--weight-bold); color: var(--color-star); font-size: var(--text-sm); }
+.subj-vol { font-size: var(--text-xs); color: var(--color-dust); }
+.subj-right { display: flex; align-items: center; gap: var(--space-3); }
+.mini-bar { width: 70px; height: 5px; background: rgba(255,255,255,0.08); border-radius: var(--radius-full); overflow: hidden; }
+.mini-fill { height: 100%; border-radius: var(--radius-full); }
+.subj-score { font-weight: var(--weight-extrabold); font-size: var(--text-sm); }
+.trend { font-size: var(--text-2xs); font-weight: var(--weight-bold); padding: 2px var(--space-2); border-radius: 3px; }
+.trend--up   { background: rgba(0,214,143,0.1); color: var(--color-stellar); }
+.trend--down { background: var(--color-nova-dim); color: var(--color-nova); }
+.toggle-icon { color: var(--color-dust); font-size: var(--text-xs); }
 
-.subj-stats { display: flex; align-items: center; gap: 15px; }
-.progress-bar-thin { width: 80px; height: 6px; background: #E2E8F0; border-radius: 10px; overflow: hidden; }
-.progress-fill-thin { height: 100%; border-radius: 10px; }
-.subj-score { font-weight: 800; font-size: 1rem; width: 45px; text-align: right; }
-.subj-trend { font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
-.trend-up { background: #ECFDF5; color: #059669; }
-.trend-down { background: #FEF2F2; color: #DC2626; }
-.toggle-icon { color: #94A3B8; font-size: 0.7rem; margin-left: 5px; }
+/* Temas breakdown */
+.temas-breakdown { border-top: 1px solid var(--color-border); background: rgba(255,255,255,0.02); padding: var(--space-4) var(--space-5) var(--space-5); }
+.temas-legend { display: flex; justify-content: flex-end; gap: var(--space-7); font-size: var(--text-2xs); font-family: var(--font-mono); color: var(--color-dust); text-transform: uppercase; margin-bottom: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border); }
+.tema-row { display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) 0; border-bottom: 1px dashed var(--color-border); }
+.tema-row:last-child { border-bottom: none; }
+.tema-info { display: flex; flex-direction: column; gap: 2px; }
+.tema-name { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-comet); }
+.tema-vol { font-size: var(--text-xs); color: var(--color-dust); }
+.tema-charts { display: flex; flex-direction: column; gap: var(--space-2); width: 200px; }
+.chart-line { display: flex; align-items: center; gap: var(--space-2); }
+.chart-label { font-size: var(--text-2xs); font-family: var(--font-mono); font-weight: var(--weight-bold); text-transform: uppercase; width: 36px; }
+.chart-bg { flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: var(--radius-full); overflow: hidden; }
+.chart-fill { height: 100%; border-radius: var(--radius-full); }
+.chart-val { font-size: var(--text-xs); font-weight: var(--weight-bold); width: 34px; text-align: right; }
 
-/* Detalhamento (Temas) */
-.themes-breakdown { border-top: 1px solid #F1F5F9; background: #F8FAFC; padding: 15px 25px 25px 25px; }
-.themes-legend { display: flex; justify-content: flex-end; gap: 30px; font-size: 0.7rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0; }
-.theme-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #E2E8F0; }
-.theme-row:last-child { border-bottom: none; padding-bottom: 0; }
-.theme-info { display: flex; flex-direction: column; gap: 4px; }
-.theme-name { font-size: 0.9rem; font-weight: 600; color: #334155; }
-.theme-vol { font-size: 0.75rem; color: #94A3B8; }
+/* Histórico */
+.hist-card { background: var(--color-nebula); border: 1px solid var(--color-border); border-radius: var(--radius-xl); overflow: hidden; }
+.hist-table { width: 100%; border-collapse: collapse; }
+.thead-row { border-bottom: 1px solid var(--color-border); }
+.th { padding: var(--space-3) var(--space-4); text-align: left; font-size: var(--text-2xs); font-family: var(--font-mono); font-weight: var(--weight-bold); color: var(--color-dust); text-transform: uppercase; letter-spacing: 0.08em; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.td { padding: var(--space-4); border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; font-size: var(--text-sm); color: var(--color-comet); }
+.tbody-row { transition: background var(--transition-fast); }
+.tbody-row:hover { background: rgba(255,255,255,0.02); }
+.td-title { font-weight: var(--weight-semibold); color: var(--color-star); }
+.score-badge { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-xs); font-family: var(--font-mono); font-weight: var(--weight-bold); color: white; }
 
-.theme-charts { display: flex; flex-direction: column; gap: 8px; width: 220px; }
-.chart-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.chart-label { font-size: 0.7rem; font-weight: 700; width: 40px; text-transform: uppercase; }
-.chart-bar-bg { flex: 1; height: 6px; background: #E2E8F0; border-radius: 10px; overflow: hidden; }
-.chart-bar-fill { height: 100%; border-radius: 10px; }
-.chart-value { font-size: 0.8rem; font-weight: 700; width: 35px; text-align: right; }
-
-/* Tabela Histórico */
-.table-wrapper { overflow-x: auto; }
-.data-table { width: 100%; border-collapse: collapse; }
-.data-table thead { background: #F8FAFC; border-bottom: 1px solid #E2E8F0; }
-.data-table th { padding: 15px 20px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
-.data-table tbody tr { border-bottom: 1px solid #F1F5F9; transition: background 0.2s; }
-.data-table tbody tr:hover { background: #F8FAFC; }
-.data-table td { padding: 15px 20px; font-size: 0.9rem; color: #1E293B; vertical-align: middle; }
-.td-title { font-weight: 600; }
-.td-center, .th-center { text-align: center !important; }
-.td-right, .th-right { text-align: right !important; }
-.td-date { color: #64748B; font-size: 0.8rem; }
-.score-pill { color: white; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; }
-
+/* Responsive */
 @media (max-width: 1100px) {
-  .admin-sidebar { width: 70px; padding: 30px 10px; }
-  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
   .data-split { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .subj-stats { flex-direction: column; align-items: flex-end; gap: 5px; }
-  .progress-bar-thin { display: none; }
 }
-
-/* Mobile Bottom Navigation */
-.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
-.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
-.mnav-icon { font-size: 1.2rem; line-height: 1; }
-.mnav-item.router-link-active { color: #0052FF; }
-
 @media (max-width: 768px) {
-  .mobile-bottom-nav { display: flex; }
-  .admin-sidebar { display: none !important; }
-  .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
-  .top-bar { flex-wrap: wrap; gap: 10px; }
-  .admin-badge { display: none; }
-  .aluno-profile-card { flex-wrap: wrap; gap: 12px; padding: 20px 16px; }
-  .profile-status { flex: 0 0 auto; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .kpi-card { padding: 18px 12px; }
-  .kpi-value { font-size: 1.8rem; }
-  .subject-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .subj-stats { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
-  .theme-charts { width: 100%; }
-  .theme-row { flex-direction: column; gap: 8px; }
-  .themes-breakdown { padding: 12px 16px 20px; }
-}
-
-@media (max-width: 480px) {
-  .kpi-value { font-size: 1.6rem; }
-  .kpi-label { font-size: 0.65rem; }
-  .data-table thead { display: none; }
-  .data-table tbody tr { display: flex; flex-direction: column; padding: 12px 16px; border-bottom: 1px solid #E2E8F0; }
-  .data-table td { padding: 3px 0; text-align: left !important; border: none; font-size: 0.85rem; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .profile-card { flex-wrap: wrap; }
+  .tema-charts { width: 100%; }
+  .subj-right { flex-direction: column; align-items: flex-end; gap: var(--space-2); }
+  .mini-bar { display: none; }
 }
 </style>

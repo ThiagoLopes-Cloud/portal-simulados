@@ -84,6 +84,7 @@ async function handleLogin() {
     localStorage.setItem('access_token', response.data.access)
     if (response.data.refresh) localStorage.setItem('refresh_token', response.data.refresh)
     localStorage.setItem('user_role', response.data.role || 'student')
+    if (response.data.username) localStorage.setItem('username', response.data.username)
 
     router.push({ name: 'dashboard' }).then(() => window.location.reload())
   } catch {

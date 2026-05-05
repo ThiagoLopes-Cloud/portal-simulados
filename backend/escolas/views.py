@@ -42,6 +42,69 @@ class EntrarNaTurmaView(views.APIView):
             )
 
 
+class TurmasAlunoView(views.APIView):
+    """GET /api/escolas/minhas-turmas-aluno/ — turmas em que o aluno está matriculado."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        turmas = Turma.objects.filter(alunos=request.user).prefetch_related("alunos")
+        data = [
+            {
+                "id": t.id,
+                "nome": t.nome,
+                "codigo": t.codigo_convite,
+                "total_alunos": t.alunos.count(),
+            }
+            for t in turmas
+        ]
+        return Response(data)
+
+
+class TurmasAlunoOuProfessorView(views.APIView):
+    """GET /api/escolas/minhas-turmas/ — compatibilidade: admin vê turmas que criou, aluno vê turmas que entrou."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role == "admin":
+            turmas = Turma.objects.filter(professor=request.user).prefetch_related("alunos")
+        else:
+            turmas = Turma.objects.filter(alunos=request.user).prefetch_related("alunos")
+        data = [
+            {
+                "id": t.id,
+                "nome": t.nome,
+                "codigo": t.codigo_convite,
+                "total_alunos": t.alunos.count(),
+            }
+            for t in turmas
+        ]
+        return Response(data)
+
+
+class TurmasAdminCreateView(views.APIView):
+    """POST /api/escolas/turmas/ — admin cria uma nova turma."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != "admin":
+            return Response({"error": "Acesso restrito."}, status=status.HTTP_403_FORBIDDEN)
+
+        nome = request.data.get("nome", "").strip()
+        if not nome:
+            return Response({"error": "Nome da turma é obrigatório."}, status=status.HTTP_400_BAD_REQUEST)
+
+        import secrets, string
+        codigo = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+        turma = Turma.objects.create(nome=nome, professor=request.user, codigo_convite=codigo)
+        return Response(
+            {"id": turma.id, "nome": turma.nome, "codigo": turma.codigo_convite},
+            status=status.HTTP_201_CREATED,
+        )
+
+
 class TurmasProfessorView(views.APIView):
     """Retorna as turmas que o professor gerencia com estatísticas básicas."""
 

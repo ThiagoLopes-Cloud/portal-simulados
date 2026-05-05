@@ -1,218 +1,150 @@
 <template>
-  <div class="dashboard-layout">
-    
-    <aside class="sidebar admin-sidebar">
-      <div class="sidebar-header">
-        <h1 class="logo-text">
-          <span class="logo-white">SIMUS</span><span class="logo-accent">LAB</span>
-        </h1>
-        <p class="tagline">Comando Admin</p>
+  <DashboardLayout :username="username" :is-admin="true">
+    <header class="page-header">
+      <div>
+        <h2 class="page-title">Motor de Inteligência Artificial</h2>
+        <p class="page-sub">Gere baterias de questões via LLMs e importe os dados estruturados.</p>
       </div>
+      <OrbynBadge variant="pulsar">Admin</OrbynBadge>
+    </header>
 
-      <nav class="sidebar-nav">
-        <router-link to="/admin/alunos" class="nav-link">
-          <span class="icon">👥</span> Gestão de Alunos
-        </router-link>
-        <router-link to="/admin/importar" class="nav-link active">
-          <span class="icon">📥</span> Importar Questões
-        </router-link>
-        <router-link to="/simulados" class="nav-link">
-          <span class="icon">🎯</span> Ver Avaliações
-        </router-link>
-        <router-link to="/ranking" class="nav-link">
-          <span class="icon">🏆</span> Ranking Geral
-        </router-link>
-      </nav>
+    <div class="import-grid">
 
-      <div class="sidebar-footer">
-        <button @click="logout" class="btn-logout-clean">Sair do Sistema</button>
-      </div>
-    </aside>
+      <!-- Pipeline (esquerda) -->
+      <div class="pipeline-card">
+        <h3 class="card-title">Pipeline de Geração Automática</h3>
 
-    <main class="main-content">
-      
-      <header class="top-bar">
-        <div class="welcome-msg">
-          <h2>Motor de Inteligência Artificial</h2>
-          <p class="text-secondary">Gere baterias de questões utilizando LLMs (ChatGPT/Gemini) e importe os dados estruturados.</p>
-        </div>
-        <div class="admin-badge">Modo Administrador</div>
-      </header>
-
-      <div class="import-grid">
-
-        <div class="pipeline-section">
-          <div class="clean-card pipeline-card">
-            <h3 class="section-title">Pipeline de Geração Automática</h3>
-            
-            <div class="pipeline-steps">
-              <div class="step-box">
-                <div class="step-indicator">1</div>
-                <div class="step-content">
-                  <h4 class="step-title">Selecionar Motor LLM</h4>
-                  <p class="step-desc">Escolha uma inteligência artificial para processar o prompt de formatação.</p>
-                  <div class="ai-buttons">
-                    <a href="https://chat.openai.com" target="_blank" class="btn-ai chatgpt">
-                      <span class="ai-icon">⎔</span> ChatGPT ↗
-                    </a>
-                    <a href="https://gemini.google.com" target="_blank" class="btn-ai gemini">
-                      <span class="ai-icon">✧</span> Gemini ↗
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              <div class="step-box">
-                <div class="step-indicator">2</div>
-                <div class="step-content">
-                  <h4 class="step-title">Copiar Engenharia de Prompt</h4>
-                  <p class="step-desc">Copie o prompt base do sistema. Ele garante que a IA gere as questões no formato JSON exato que o laboratório necessita.</p>
-                  
-                  <div class="prompt-preview">
-                    <div class="prompt-code">Você é um especialista em elaboração de questões no padrão ENEM... Gere [QUANTIDADE] questões da disciplina [MATERIA_NOME]...</div>
-                    <div class="fade-overlay"></div>
-                  </div>
-                  
-                  <button @click="copiarPrompt" class="btn-copy-action" :class="{ 'copy-success': promptCopiado }">
-                    {{ promptCopiado ? '✓ Copiado para Área de Transferência' : '📋 Copiar Prompt Base' }}
-                  </button>
-                </div>
-              </div>
-
-              <div class="step-box">
-                <div class="step-indicator">3</div>
-                <div class="step-content">
-                  <h4 class="step-title">Injetar Parâmetros</h4>
-                  <p class="step-desc">Cole o prompt na IA escolhida e substitua as variáveis <code>[QUANTIDADE]</code> e <code>[MATERIA_NOME]</code> pelos dados da bateria desejada. Execute a geração.</p>
-                </div>
-              </div>
-
-              <div class="step-box">
-                <div class="step-indicator">4</div>
-                <div class="step-content">
-                  <h4 class="step-title">Extração e Importação</h4>
-                  <p class="step-desc">Copie exclusivamente o bloco de código JSON gerado pela IA (do `{` inicial ao `}` final) e cole no terminal de importação ao lado.</p>
-                </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h4 class="step-title">Selecionar Motor LLM</h4>
+              <p class="step-desc">Escolha uma IA para processar o prompt de formatação.</p>
+              <div class="ai-btns">
+                <a href="https://chat.openai.com" target="_blank" class="ai-btn ai-btn--gpt">⎔ ChatGPT ↗</a>
+                <a href="https://gemini.google.com" target="_blank" class="ai-btn ai-btn--gem">✧ Gemini ↗</a>
               </div>
             </div>
+          </div>
 
-            <div class="system-warning">
-              <span class="warning-icon">⚠️</span>
-              <div class="warning-text">
-                <strong>Protocolo de Revisão:</strong> Questões importadas entram no estado "Pendente". A avaliação só ficará visível aos alunos após revisão manual e ativação no painel do Django Admin.
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h4 class="step-title">Copiar Engenharia de Prompt</h4>
+              <p class="step-desc">Copie o prompt base. Ele garante que a IA gere no formato JSON exato.</p>
+              <div class="prompt-preview">
+                <div class="prompt-code">Você é um especialista em elaboração de questões no padrão ENEM... Gere [QUANTIDADE] questões da disciplina [MATERIA_NOME]...</div>
+                <div class="prompt-fade" />
               </div>
+              <button class="btn-copy" :class="{ 'btn-copy--ok': promptCopiado }" @click="copiarPrompt">
+                {{ promptCopiado ? '✓ Copiado!' : '◧ Copiar Prompt Base' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h4 class="step-title">Injetar Parâmetros</h4>
+              <p class="step-desc">Cole na IA e substitua <code>[QUANTIDADE]</code> e <code>[MATERIA_NOME]</code>. Execute.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <h4 class="step-title">Extração e Importação</h4>
+              <p class="step-desc">Copie só o bloco JSON gerado (do <code>{"{{"}</code> ao <code>{"}}"}</code>) e cole no terminal ao lado.</p>
             </div>
           </div>
         </div>
 
-        <div class="terminal-section">
-          <div class="clean-card terminal-card">
-            <h3 class="section-title">Terminal de Inserção JSON</h3>
+        <div class="warning-box">
+          <span class="warning-icon">⚠</span>
+          <p class="warning-text">
+            <strong>Protocolo de Revisão:</strong> Questões importadas entram como "Pendente". A avaliação só ficará visível após revisão manual no Django Admin.
+          </p>
+        </div>
+      </div>
 
-            <div class="editor-wrapper">
-              <div class="editor-header">
-                <span class="editor-tab">data_payload.json</span>
-                <span class="editor-status" :class="statusJson.tipo" v-if="jsonTexto.trim()">
-                  {{ statusJson.mensagem }}
-                </span>
-              </div>
-              <textarea
-                v-model="jsonTexto"
-                class="code-textarea"
-                placeholder='{
+      <!-- Terminal (direita) -->
+      <div class="terminal-card">
+        <h3 class="card-title">Terminal de Inserção JSON</h3>
+
+        <div class="editor-wrap">
+          <div class="editor-bar">
+            <span class="editor-tab">◧ data_payload.json</span>
+            <span v-if="jsonTexto.trim()" class="editor-status" :class="statusJson.tipo === 'valid' ? 'status--ok' : 'status--fail'">
+              {{ statusJson.mensagem }}
+            </span>
+          </div>
+          <textarea
+            v-model="jsonTexto"
+            class="code-editor"
+            spellcheck="false"
+            placeholder='{
   "simulado": {
     "titulo": "Nome da Bateria",
     "descricao": "Detalhes..."
   },
   "questoes": [ ... ]
 }'
-                spellcheck="false"
-              ></textarea>
-            </div>
-
-            <div class="detection-badge" v-if="questoesDetectadas > 0">
-              <span class="detection-icon">📊</span> {{ questoesDetectadas }} questão(ões) estruturada(s) detectada(s).
-            </div>
-
-            <button @click="importar" class="btn-import-action" :disabled="!podeImportar || importando">
-              <span v-if="importando" class="spinner"></span>
-              {{ importando ? 'Compilando Dados...' : '🚀 Iniciar Importação' }}
-            </button>
-
-            <div v-if="erroValidacao" class="alert-box error">
-              <span class="alert-icon">❌</span>
-              <div class="alert-content">
-                <strong>Erro de Sintaxe:</strong>
-                <p>{{ erroValidacao }}</p>
-              </div>
-            </div>
-
-            <div v-if="erroServidor" class="alert-box error">
-              <span class="alert-icon">❌</span>
-              <div class="alert-content">
-                <strong>Rejeitado pelo Servidor:</strong>
-                <p>{{ erroServidor }}</p>
-                <p class="alert-hint">Verifique a formatação do JSON ou regenere a resposta na IA.</p>
-              </div>
-            </div>
-
-            <div v-if="resultado" class="alert-box success">
-              <div class="success-header">
-                <span class="alert-icon">✅</span>
-                <strong>Importação Concluída com Sucesso!</strong>
-              </div>
-
-              <div class="summary-box">
-                <div class="summary-row">
-                  <span class="summary-label">Avaliação:</span>
-                  <span class="summary-value">{{ resultado.simulado_titulo }}</span>
-                </div>
-                <div class="summary-row">
-                  <span class="summary-label">Volume:</span>
-                  <span class="summary-value">{{ resultado.total_importadas }} questões</span>
-                </div>
-                <div class="summary-row">
-                  <span class="summary-label">Status:</span>
-                  <span class="status-pill pending">Aguardando Auditoria</span>
-                </div>
-              </div>
-
-              <div class="next-steps">
-                <strong>Próximas Ações Requeridas:</strong>
-                <ol>
-                  <li>Acesse as <a href="https://portal-simulados-production.up.railway.app/admin/questoes/questao/?revisado__exact=0" target="_blank">Questões Não Revisadas no Admin ↗</a></li>
-                  <li>Realize a auditoria e aprove as questões.</li>
-                  <li>Ative a avaliação na tela de <a href="https://portal-simulados-production.up.railway.app/admin/simulados/simulado/" target="_blank">Simulados ↗</a></li>
-                </ol>
-              </div>
-
-              <button @click="reiniciar" class="btn-reset-action">
-                + Preparar Novo Lote
-              </button>
-            </div>
-
-          </div>
+          />
         </div>
 
-      </div>
-    </main>
+        <div v-if="questoesDetectadas > 0" class="detection-badge">
+          ◈ {{ questoesDetectadas }} questão(ões) detectada(s)
+        </div>
 
-    <nav class="mobile-bottom-nav">
-      <router-link to="/admin/alunos" class="mnav-item"><span class="mnav-icon">👥</span><span>Alunos</span></router-link>
-      <router-link to="/admin/importar" class="mnav-item"><span class="mnav-icon">📥</span><span>Importar</span></router-link>
-      <router-link to="/simulados" class="mnav-item"><span class="mnav-icon">🎯</span><span>Avaliações</span></router-link>
-      <router-link to="/ranking" class="mnav-item"><span class="mnav-icon">🏆</span><span>Ranking</span></router-link>
-    </nav>
-  </div>
+        <OrbynButton
+          variant="primary"
+          size="lg"
+          block
+          :loading="importando"
+          :disabled="!podeImportar || importando"
+          @click="importar"
+        >
+          ◉ Iniciar Importação
+        </OrbynButton>
+
+        <div v-if="erroValidacao" class="alert alert--error">
+          <strong>Erro de Sintaxe:</strong> {{ erroValidacao }}
+        </div>
+        <div v-if="erroServidor" class="alert alert--error">
+          <strong>Rejeitado pelo Servidor:</strong> {{ erroServidor }}
+        </div>
+
+        <div v-if="resultado" class="alert alert--success">
+          <div class="success-header">◆ Importação Concluída!</div>
+          <div class="summary">
+            <div class="summary-row"><span>Avaliação</span><span>{{ resultado.simulado_titulo }}</span></div>
+            <div class="summary-row"><span>Volume</span><span>{{ resultado.total_importadas }} questões</span></div>
+            <div class="summary-row"><span>Status</span><span class="pending-badge">Aguardando Auditoria</span></div>
+          </div>
+          <div class="next-steps">
+            <strong>Próximas Ações:</strong>
+            <ol>
+              <li><a href="https://portal-simulados-production.up.railway.app/admin/questoes/questao/?revisado__exact=0" target="_blank">Questões Não Revisadas ↗</a></li>
+              <li>Audite e aprove as questões.</li>
+              <li><a href="https://portal-simulados-production.up.railway.app/admin/simulados/simulado/" target="_blank">Ative a avaliação ↗</a></li>
+            </ol>
+          </div>
+          <OrbynButton variant="ghost" size="sm" @click="reiniciar" class="mt-4">+ Preparar Novo Lote</OrbynButton>
+        </div>
+      </div>
+
+    </div>
+  </DashboardLayout>
 </template>
 
 <script setup>
-// LÓGICA INTACTA
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import api from '../services/api.js'
+import DashboardLayout from '../layouts/DashboardLayout.vue'
+import OrbynButton from '../components/ui/OrbynButton.vue'
+import OrbynBadge from '../components/ui/OrbynBadge.vue'
 
-const router = useRouter()
+const username = localStorage.getItem('username') || ''
 const jsonTexto = ref('')
 const importando = ref(false)
 const erroValidacao = ref('')
@@ -304,219 +236,118 @@ Gere as questões agora.`
 
 const statusJson = computed(() => {
   if (!jsonTexto.value.trim()) return { tipo: '', mensagem: '' }
-  try {
-    JSON.parse(jsonTexto.value)
-    return { tipo: 'valid', mensagem: 'Sintaxe Válida' }
-  } catch (e) {
-    return { tipo: 'invalid', mensagem: 'Sintaxe Inválida' }
-  }
+  try { JSON.parse(jsonTexto.value); return { tipo: 'valid', mensagem: 'Sintaxe Válida' } }
+  catch { return { tipo: 'invalid', mensagem: 'Sintaxe Inválida' } }
 })
 
 const questoesDetectadas = computed(() => {
-  try {
-    const parsed = JSON.parse(jsonTexto.value)
-    return parsed?.questoes?.length || 0
-  } catch {
-    return 0
-  }
+  try { return JSON.parse(jsonTexto.value)?.questoes?.length || 0 }
+  catch { return 0 }
 })
 
-const podeImportar = computed(() => {
-  return statusJson.value.tipo === 'valid' && !resultado.value
-})
+const podeImportar = computed(() => statusJson.value.tipo === 'valid' && !resultado.value)
 
 async function copiarPrompt() {
-  try {
-    await navigator.clipboard.writeText(PROMPT_COMPLETO)
-    promptCopiado.value = true
-    setTimeout(() => { promptCopiado.value = false }, 3000)
-  } catch (e) {
-    console.error('Erro ao copiar:', e)
-    alert('Não foi possível copiar automaticamente. Selecione o texto do prompt manualmente no código fonte.')
-  }
+  try { await navigator.clipboard.writeText(PROMPT_COMPLETO); promptCopiado.value = true; setTimeout(() => { promptCopiado.value = false }, 3000) }
+  catch { alert('Erro ao copiar. Selecione o prompt manualmente.') }
 }
 
 async function importar() {
-  erroValidacao.value = ''
-  erroServidor.value = ''
-  resultado.value = null
-
-  let parsedJson
-  try {
-    parsedJson = JSON.parse(jsonTexto.value)
-  } catch (e) {
-    erroValidacao.value = 'Estrutura JSON malformada.'
-    return
-  }
-
-  if (!parsedJson.simulado) { erroValidacao.value = 'Chave ausente: "simulado".'; return }
-  if (!parsedJson.simulado.titulo) { erroValidacao.value = 'Chave ausente: "simulado.titulo".'; return }
-  if (!parsedJson.questoes || !Array.isArray(parsedJson.questoes)) { erroValidacao.value = 'Chave ausente: array "questoes".'; return }
-  if (parsedJson.questoes.length === 0) { erroValidacao.value = 'Array "questoes" está vazio.'; return }
-
+  erroValidacao.value = ''; erroServidor.value = ''; resultado.value = null
+  let parsed
+  try { parsed = JSON.parse(jsonTexto.value) }
+  catch { erroValidacao.value = 'Estrutura JSON malformada.'; return }
+  if (!parsed.simulado) { erroValidacao.value = 'Chave ausente: "simulado".'; return }
+  if (!parsed.simulado.titulo) { erroValidacao.value = 'Chave ausente: "simulado.titulo".'; return }
+  if (!Array.isArray(parsed.questoes) || parsed.questoes.length === 0) { erroValidacao.value = 'Array "questoes" ausente ou vazio.'; return }
   importando.value = true
-
   try {
-    const response = await api.post('/api/importar/', parsedJson) // Atualizado para /api/
-    resultado.value = response.data
+    const res = await api.post('/api/importar/', parsed)
+    resultado.value = res.data
   } catch (error) {
-    if (error.response?.data?.error) erroServidor.value = error.response.data.error
-    else if (error.response?.data?.detail) erroServidor.value = error.response.data.detail
-    else if (typeof error.response?.data === 'string') erroServidor.value = error.response.data
-    else erroServidor.value = 'Erro de comunicação com a API.'
-  } finally {
-    importando.value = false
-  }
+    erroServidor.value = error.response?.data?.error || error.response?.data?.detail || 'Erro de comunicação com a API.'
+  } finally { importando.value = false }
 }
 
-function reiniciar() {
-  jsonTexto.value = ''
-  resultado.value = null
-  erroValidacao.value = ''
-  erroServidor.value = ''
-}
-
-function logout() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user_role')
-  router.push({ name: 'login' })
-}
+function reiniciar() { jsonTexto.value = ''; resultado.value = null; erroValidacao.value = ''; erroServidor.value = '' }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-8); }
+.page-title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--weight-bold); color: var(--color-star); }
+.page-sub { font-size: var(--text-sm); color: var(--color-comet); margin-top: var(--space-1); }
 
-/* Base & Layout */
-.dashboard-layout { display: flex; min-height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; background-color: #F8FAFC; font-family: 'Inter', sans-serif; }
-.admin-sidebar { width: 220px; background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%); color: white; display: flex; flex-direction: column; padding: 30px 20px; position: fixed; height: 100vh; z-index: 100; border-right: 1px solid #334155; }
-.logo-white { color: #FFFFFF; font-weight: 800; font-size: 1.3rem; }
-.logo-accent { color: #38BDF8; font-weight: 800; font-size: 1.3rem; }
-.tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; color: #94A3B8; margin-top: 2px; }
-.sidebar-nav { margin-top: 40px; flex: 1; }
-.nav-link { display: flex; align-items: center; gap: 10px; color: #94A3B8; text-decoration: none; padding: 12px 14px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
-.nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
-.btn-logout-clean { background: transparent; border: 1px solid #475569; color: #CBD5E1; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
-.btn-logout-clean:hover { background: #EF4444; border-color: #EF4444; color: white; }
+.import-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-7); align-items: start; }
+@media (max-width: 900px) { .import-grid { grid-template-columns: 1fr; } }
 
-.main-content { flex: 1; margin-left: 220px; padding: 30px 50px; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-.welcome-msg h2 { font-size: 1.7rem; font-weight: 700; color: #0F172A; margin: 0; }
-.text-secondary { color: #475569; font-size: 0.9rem; margin-top: 4px; }
-.admin-badge { background: #1E293B; color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 12px; border-radius: 20px; }
+/* Shared card */
+.pipeline-card, .terminal-card {
+  background: var(--color-nebula);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-7);
+}
+.card-title { font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--weight-bold); color: var(--color-star); margin-bottom: var(--space-6); padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
 
-/* Utils */
-.clean-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03); padding: 30px; }
-.section-title { font-size: 1.2rem; font-weight: 700; color: #0F172A; margin: 0 0 25px 0; padding-bottom: 15px; border-bottom: 1px solid #F1F5F9; }
+/* Steps */
+.steps { display: flex; flex-direction: column; gap: var(--space-5); margin-bottom: var(--space-6); }
+.step { display: flex; gap: var(--space-4); }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--color-orbit); color: var(--color-cosmos); display: flex; align-items: center; justify-content: center; font-weight: var(--weight-extrabold); font-size: var(--text-xs); flex-shrink: 0; margin-top: 2px; box-shadow: 0 0 10px rgba(0,229,255,0.25); }
+.step-body { flex: 1; }
+.step-title { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-star); margin-bottom: var(--space-1); }
+.step-desc { font-size: var(--text-sm); color: var(--color-comet); line-height: var(--leading-relaxed); }
+.step-desc code { background: rgba(0,229,255,0.08); color: var(--color-orbit); padding: 1px var(--space-1); border-radius: 3px; font-family: var(--font-mono); font-size: var(--text-xs); }
 
-/* Grid de Importação */
-.import-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+.ai-btns { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
+.ai-btn { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: var(--weight-semibold); text-decoration: none; transition: all var(--transition-fast); }
+.ai-btn--gpt { background: rgba(0,214,143,0.08); color: var(--color-stellar); border: 1px solid rgba(0,214,143,0.2); }
+.ai-btn--gpt:hover { background: rgba(0,214,143,0.15); }
+.ai-btn--gem { background: rgba(0,229,255,0.08); color: var(--color-orbit); border: 1px solid rgba(0,229,255,0.15); }
+.ai-btn--gem:hover { background: rgba(0,229,255,0.15); }
 
-/* ==================================
-   COLUNA ESQUERDA (Pipeline)
-   ================================== */
-.pipeline-steps { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
-.step-box { display: flex; gap: 15px; }
-.step-indicator { width: 30px; height: 30px; background: #0052FF; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; margin-top: 2px; box-shadow: 0 4px 10px rgba(0, 82, 255, 0.2); }
-.step-content { flex: 1; }
-.step-title { font-size: 1rem; font-weight: 700; color: #1E293B; margin: 0 0 6px 0; }
-.step-desc { color: #475569; font-size: 0.9rem; line-height: 1.5; margin: 0; }
-.step-desc code { background: #F1F5F9; color: #0052FF; padding: 2px 6px; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 600; }
+.prompt-preview { background: rgba(255,255,255,0.03); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--space-3); margin: var(--space-3) 0 var(--space-2); position: relative; overflow: hidden; }
+.prompt-code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-dust); line-height: var(--leading-relaxed); height: 38px; overflow: hidden; }
+.prompt-fade { position: absolute; bottom: 0; left: 0; width: 100%; height: 28px; background: linear-gradient(transparent, var(--color-nebula)); }
 
-.ai-buttons { display: flex; gap: 10px; margin-top: 12px; }
-.btn-ai { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
-.chatgpt { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; } .chatgpt:hover { background: #D1FAE5; }
-.gemini { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; } .gemini:hover { background: #DBEAFE; }
-.ai-icon { font-size: 1.1rem; }
+.btn-copy { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--color-orbit); color: var(--color-orbit); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; transition: all var(--transition-fast); }
+.btn-copy:hover { background: rgba(0,229,255,0.08); }
+.btn-copy--ok { background: var(--color-stellar); border-color: var(--color-stellar); color: white; }
 
-.prompt-preview { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin: 15px 0 10px 0; position: relative; overflow: hidden; }
-.prompt-code { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: #64748B; line-height: 1.6; height: 40px; overflow: hidden; }
-.fade-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 30px; background: linear-gradient(transparent, #F8FAFC); }
+.warning-box { display: flex; gap: var(--space-3); background: rgba(255,184,48,0.06); border: 1px solid rgba(255,184,48,0.2); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); }
+.warning-icon { font-size: 1.1rem; color: var(--color-flare); flex-shrink: 0; }
+.warning-text { font-size: var(--text-sm); color: var(--color-comet); line-height: var(--leading-relaxed); }
 
-.btn-copy-action { width: 100%; background: white; border: 1px solid #0052FF; color: #0052FF; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-.btn-copy-action:hover { background: #EFF6FF; }
-.copy-success { background: #10B981 !important; border-color: #10B981 !important; color: white !important; }
+/* Terminal */
+.editor-wrap { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-4); }
+.editor-bar { background: rgba(255,255,255,0.04); border-bottom: 1px solid var(--color-border); padding: var(--space-2) var(--space-4); display: flex; justify-content: space-between; align-items: center; }
+.editor-tab { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--color-dust); }
+.editor-status { font-size: var(--text-2xs); font-family: var(--font-mono); font-weight: var(--weight-bold); padding: 2px var(--space-2); border-radius: 3px; text-transform: uppercase; }
+.status--ok   { background: var(--color-stellar-dim); border: 1px solid var(--color-stellar-border); color: var(--color-stellar); }
+.status--fail { background: var(--color-nova-dim); border: 1px solid var(--color-nova-border); color: var(--color-nova); }
 
-.system-warning { display: flex; gap: 12px; background: #FFFBEB; border: 1px solid #FDE68A; padding: 15px 20px; border-radius: 8px; align-items: flex-start; }
-.warning-icon { font-size: 1.2rem; }
-.warning-text { font-size: 0.85rem; color: #92400E; line-height: 1.5; }
+.code-editor { width: 100%; height: 340px; padding: var(--space-4); border: none; background: rgba(255,255,255,0.02); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-comet); line-height: var(--leading-relaxed); resize: vertical; outline: none; }
+.code-editor:focus { background: rgba(255,255,255,0.03); }
 
-/* ==================================
-   COLUNA DIREITA (Terminal)
-   ================================== */
-.editor-wrapper { border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
-.editor-header { background: #F1F5F9; border-bottom: 1px solid #CBD5E1; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; }
-.editor-tab { font-family: 'Fira Code', monospace; font-size: 0.75rem; font-weight: 600; color: #475569; }
-.editor-status { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
-.editor-status.valid { background: #DCFCE7; color: #059669; }
-.editor-status.invalid { background: #FEE2E2; color: #DC2626; }
+.detection-badge { background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.15); color: var(--color-orbit); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-family: var(--font-mono); font-weight: var(--weight-semibold); margin-bottom: var(--space-4); display: inline-block; }
 
-.code-textarea { width: 100%; height: 350px; padding: 15px; border: none; background: #FAFAF9; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #1E293B; line-height: 1.6; resize: vertical; outline: none; }
-.code-textarea:focus { background: white; }
+/* Alerts */
+.alert { margin-top: var(--space-5); padding: var(--space-5); border-radius: var(--radius-md); font-size: var(--text-sm); }
+.alert--error { background: var(--color-nova-dim); border: 1px solid var(--color-nova-border); color: var(--color-nova); }
+.alert--error strong { color: var(--color-nova); display: block; margin-bottom: var(--space-1); }
+.alert--success { background: rgba(0,214,143,0.06); border: 1px solid rgba(0,214,143,0.2); color: var(--color-comet); }
 
-.detection-badge { background: #EFF6FF; color: #0052FF; padding: 8px 15px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; display: inline-block; }
+.success-header { font-family: var(--font-display); font-weight: var(--weight-bold); color: var(--color-stellar); font-size: var(--text-base); margin-bottom: var(--space-4); }
+.summary { background: rgba(0,214,143,0.06); border-radius: var(--radius-sm); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+.summary-row { display: flex; justify-content: space-between; font-size: var(--text-sm); }
+.summary-row span:first-child { color: var(--color-comet); }
+.summary-row span:last-child { font-weight: var(--weight-semibold); color: var(--color-star); }
+.pending-badge { background: rgba(255,184,48,0.1); border: 1px solid rgba(255,184,48,0.2); color: var(--color-flare); padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-xs); font-family: var(--font-mono); font-weight: var(--weight-bold); }
 
-.btn-import-action { width: 100%; background: #0052FF; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px; }
-.btn-import-action:hover:not(:disabled) { background: #0043D1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2); }
-.btn-import-action:disabled { background: #94A3B8; cursor: not-allowed; }
-
-.spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Alertas de Resultado */
-.alert-box { margin-top: 20px; padding: 20px; border-radius: 8px; display: flex; gap: 15px; align-items: flex-start; }
-.error { background: #FEF2F2; border: 1px solid #FECACA; }
-.error .alert-content strong { color: #991B1B; font-size: 0.95rem; display: block; margin-bottom: 5px; }
-.error .alert-content p { margin: 0; color: #B91C1C; font-size: 0.85rem; line-height: 1.5; }
-.alert-hint { margin-top: 10px !important; font-size: 0.8rem !important; color: #7F1D1D !important; font-style: italic; }
-
-.success { background: white; border: 1px solid #A7F3D0; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1); flex-direction: column; }
-.success-header { display: flex; align-items: center; gap: 10px; color: #065F46; font-size: 1.1rem; border-bottom: 1px solid #D1FAE5; padding-bottom: 15px; width: 100%; }
-
-.summary-box { background: #F0FDF4; border-radius: 8px; padding: 15px; width: 100%; display: flex; flex-direction: column; gap: 10px; }
-.summary-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
-.summary-label { color: #065F46; font-weight: 500; }
-.summary-value { color: #064E3B; font-weight: 700; }
-.status-pill { background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
-
-.next-steps { font-size: 0.85rem; color: #334155; line-height: 1.6; }
-.next-steps strong { color: #0F172A; }
-.next-steps a { color: #0052FF; font-weight: 600; text-decoration: none; }
+.next-steps { font-size: var(--text-sm); color: var(--color-comet); line-height: var(--leading-relaxed); margin-bottom: var(--space-2); }
+.next-steps strong { color: var(--color-star); }
+.next-steps a { color: var(--color-orbit); font-weight: var(--weight-semibold); text-decoration: none; }
 .next-steps a:hover { text-decoration: underline; }
+.next-steps ol { margin: var(--space-2) 0 0 var(--space-5); display: flex; flex-direction: column; gap: var(--space-1); }
 
-.btn-reset-action { background: transparent; border: 1px solid #10B981; color: #10B981; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; margin-top: 10px; }
-.btn-reset-action:hover { background: #ECFDF5; }
-
-@media (max-width: 1000px) {
-  .admin-sidebar { width: 70px; padding: 30px 10px; }
-  .logo-text, .tagline, .nav-link span:not(.icon), .btn-logout-clean { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
-  .import-grid { grid-template-columns: 1fr; }
-  .pipeline-card { order: 1; }
-  .terminal-card { order: 2; }
-}
-
-/* Mobile Bottom Navigation */
-.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); padding-bottom: env(safe-area-inset-bottom, 0); }
-.mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; color: #64748B; text-decoration: none; font-size: 0.6rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.2s; }
-.mnav-icon { font-size: 1.2rem; line-height: 1; }
-.mnav-item.router-link-active { color: #0052FF; }
-
-@media (max-width: 768px) {
-  .mobile-bottom-nav { display: flex; }
-  .admin-sidebar { display: none !important; }
-  .main-content { margin-left: 0 !important; padding: 20px 16px 84px !important; }
-  .top-bar { flex-wrap: wrap; gap: 10px; }
-  .admin-badge { display: none; }
-  .welcome-msg h2 { font-size: 1.3rem; }
-  .ai-buttons { flex-direction: column; }
-  .btn-ai { justify-content: center; }
-  .code-textarea { height: 250px; }
-}
-
-@media (max-width: 480px) {
-  .clean-card { padding: 20px 16px; }
-  .step-box { gap: 12px; }
-  .step-indicator { width: 26px; height: 26px; font-size: 0.75rem; }
-}
+.mt-4 { margin-top: var(--space-4); }
 </style>

@@ -21,8 +21,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Define qual model esse serializer representa
         model = User
 
-        # Campos que serão aceitos no JSON de entrada
-        fields = ["username", "email", "password", "password2", "role"]
+        # Campos que serão aceitos no JSON de entrada (role omitido — sempre 'student')
+        fields = ["username", "email", "password", "password2"]
 
         extra_kwargs = {
             # write_only=True — senha não aparece na resposta JSON por segurança
@@ -40,14 +40,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        """
-        Cria o usuário no banco após a validação.
-        Usa create_user para garantir que a senha seja criptografada.
-        """
-        # Remove o password2 pois não existe no model
         validated_data.pop("password2")
-
-        # create_user criptografa a senha automaticamente — nunca salva em texto puro
+        validated_data['role'] = 'student'
         user = User.objects.create_user(**validated_data)
         return user
 
