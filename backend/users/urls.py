@@ -13,14 +13,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # Cada path() define uma URL e qual view ela chama
 urlpatterns = [
     # POST /api/register — cadastro de novo usuário
-    path('register/', RegisterView.as_view(), name='register'),
-
+    path("register/", RegisterView.as_view(), name="register"),
     # POST /api/login — login com username e senha, retorna token JWT
-    path('login/', TokenObtainPairView.as_view(), name='login'),
-
+    path("login/", TokenObtainPairView.as_view(), name="login"),
     # POST /api/token/refresh — gera novo token usando o refresh token
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # GET /api/profile — retorna os dados do usuário autenticado
-    path('profile/', ProfileView.as_view(), name='profile'),
+    path("profile/", ProfileView.as_view(), name="profile"),
 ]

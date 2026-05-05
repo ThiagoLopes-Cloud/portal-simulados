@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny
 # Importa os serializers de usuário
 from .serializers import RegisterSerializer, UserSerializer
 
+
 class RegisterView(APIView):
     """
     View de cadastro de novos usuários.
@@ -39,10 +40,10 @@ class RegisterView(APIView):
             user_data = UserSerializer(user).data
 
             # Retorna os dados do usuário com status 201 (Created)
-            return Response({
-                'message': 'Usuário criado com sucesso!',
-                'user': user_data
-            }, status=status.HTTP_201_CREATED)
+            return Response(
+                {"message": "Usuário criado com sucesso!", "user": user_data},
+                status=status.HTTP_201_CREATED,
+            )
 
         # Se os dados forem inválidos, retorna os erros com status 400 (Bad Request)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

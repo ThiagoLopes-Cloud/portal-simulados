@@ -15,68 +15,56 @@ class Resposta(models.Model):
     """
 
     OPCOES_CHOICES = [
-        ('A', 'Alternativa A'),
-        ('B', 'Alternativa B'),
-        ('C', 'Alternativa C'),
-        ('D', 'Alternativa D'),
-        ('E', 'Alternativa E'),
+        ("A", "Alternativa A"),
+        ("B", "Alternativa B"),
+        ("C", "Alternativa C"),
+        ("D", "Alternativa D"),
+        ("E", "Alternativa E"),
     ]
 
     aluno = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='respostas',
-        verbose_name='Aluno'
+        User, on_delete=models.CASCADE, related_name="respostas", verbose_name="Aluno"
     )
 
     questao = models.ForeignKey(
         Questao,
         on_delete=models.CASCADE,
-        related_name='respostas',
-        verbose_name='Questão'
+        related_name="respostas",
+        verbose_name="Questão",
     )
 
     simulado = models.ForeignKey(
         Simulado,
         on_delete=models.CASCADE,
-        related_name='respostas',
+        related_name="respostas",
         null=True,
         blank=True,
-        verbose_name='Simulado'
+        verbose_name="Simulado",
     )
 
     # Número da tentativa — sincronizado com o campo tentativa do Resultado
     # Permite filtrar todas as respostas de uma tentativa específica
-    tentativa = models.PositiveIntegerField(
-        default=1,
-        verbose_name='Tentativa'
-    )
+    tentativa = models.PositiveIntegerField(default=1, verbose_name="Tentativa")
 
     opcao_escolhida = models.CharField(
-        max_length=1,
-        choices=OPCOES_CHOICES,
-        verbose_name='Opção Escolhida'
+        max_length=1, choices=OPCOES_CHOICES, verbose_name="Opção Escolhida"
     )
 
-    correta = models.BooleanField(
-        default=False,
-        verbose_name='Correta'
-    )
+    correta = models.BooleanField(default=False, verbose_name="Correta")
 
     respondido_em = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Respondido em'
+        auto_now_add=True, verbose_name="Respondido em"
     )
 
     def __str__(self):
         return (
-            f'{self.aluno.username} → Q{self.questao.id} '
-            f'({self.simulado}) T{self.tentativa} → {self.opcao_escolhida}'
+            f"{self.aluno.username} → Q{self.questao.id} "
+            f"({self.simulado}) T{self.tentativa} → {self.opcao_escolhida}"
         )
 
     class Meta:
-        verbose_name = 'Resposta'
-        verbose_name_plural = 'Respostas'
-        ordering = ['-respondido_em']
+        verbose_name = "Resposta"
+        verbose_name_plural = "Respostas"
+        ordering = ["-respondido_em"]
         # tentativa incluída — permite múltiplas tentativas do mesmo simulado
-        unique_together = ['aluno', 'questao', 'simulado', 'tentativa']
+        unique_together = ["aluno", "questao", "simulado", "tentativa"]

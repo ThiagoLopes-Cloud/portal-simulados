@@ -15,14 +15,40 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Turma',
+            name="Turma",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(max_length=100)),
-                ('codigo_convite', models.CharField(blank=True, max_length=12, unique=True)),
-                ('criado_em', models.DateTimeField(auto_now_add=True)),
-                ('alunos', models.ManyToManyField(blank=True, related_name='minhas_turmas', to=settings.AUTH_USER_MODEL)),
-                ('professor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='turmas_gerenciadas', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nome", models.CharField(max_length=100)),
+                (
+                    "codigo_convite",
+                    models.CharField(blank=True, max_length=12, unique=True),
+                ),
+                ("criado_em", models.DateTimeField(auto_now_add=True)),
+                (
+                    "alunos",
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name="minhas_turmas",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "professor",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="turmas_gerenciadas",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

@@ -10,27 +10,72 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('simulados', '0001_initial'),
+        ("simulados", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Resultado',
+            name="Resultado",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('acertos', models.PositiveIntegerField(default=0, verbose_name='Acertos')),
-                ('total_questoes', models.PositiveIntegerField(default=0, verbose_name='Total de Questões')),
-                ('score', models.DecimalField(decimal_places=2, default=0, max_digits=5, verbose_name='Score (%)')),
-                ('realizado_em', models.DateTimeField(auto_now_add=True, verbose_name='Realizado em')),
-                ('aluno', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='resultados', to=settings.AUTH_USER_MODEL, verbose_name='Aluno')),
-                ('simulado', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='resultados', to='simulados.simulado', verbose_name='Simulado')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "acertos",
+                    models.PositiveIntegerField(default=0, verbose_name="Acertos"),
+                ),
+                (
+                    "total_questoes",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="Total de Questões"
+                    ),
+                ),
+                (
+                    "score",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        max_digits=5,
+                        verbose_name="Score (%)",
+                    ),
+                ),
+                (
+                    "realizado_em",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Realizado em"
+                    ),
+                ),
+                (
+                    "aluno",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="resultados",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Aluno",
+                    ),
+                ),
+                (
+                    "simulado",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="resultados",
+                        to="simulados.simulado",
+                        verbose_name="Simulado",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Resultado',
-                'verbose_name_plural': 'Resultados',
-                'ordering': ['-realizado_em'],
-                'unique_together': {('aluno', 'simulado')},
+                "verbose_name": "Resultado",
+                "verbose_name_plural": "Resultados",
+                "ordering": ["-realizado_em"],
+                "unique_together": {("aluno", "simulado")},
             },
         ),
     ]

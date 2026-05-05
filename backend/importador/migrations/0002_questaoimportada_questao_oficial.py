@@ -7,15 +7,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questoes', '0003_questao_importacao_origem_numero_na_prova_and_more'),
-        ('simulados', '0003_simulado_eh_simulado_original_simulado_importacao_origem_and_more'),
-        ('importador', '0001_initial'),
+        ("questoes", "0003_questao_importacao_origem_numero_na_prova_and_more"),
+        (
+            "simulados",
+            "0003_simulado_eh_simulado_original_simulado_importacao_origem_and_more",
+        ),
+        ("importador", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='questaoimportada',
-            name='questao_oficial',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='importacao_publicada', to='questoes.questao', verbose_name='Questão oficial publicada'),
+            model_name="questaoimportada",
+            name="questao_oficial",
+            field=models.OneToOneField(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="importacao_publicada",
+                to="questoes.questao",
+                verbose_name="Questão oficial publicada",
+            ),
         ),
     ]

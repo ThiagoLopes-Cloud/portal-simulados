@@ -40,24 +40,22 @@ class ResponderView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        simulado_id    = serializer.validated_data['simulado_id']
-        respostas_data = serializer.validated_data['respostas']
+        simulado_id = serializer.validated_data["simulado_id"]
+        respostas_data = serializer.validated_data["respostas"]
 
         # Busca o simulado ativo
         try:
             simulado = Simulado.objects.get(pk=simulado_id, ativo=True)
         except Simulado.DoesNotExist:
             return Response(
-                {'error': 'Simulado não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Simulado não encontrado."}, status=status.HTTP_404_NOT_FOUND
             )
 
         # ── Calcula o número da próxima tentativa ─────────────────────────
         # Conta quantas tentativas este aluno já fez neste simulado
         # e soma 1 para obter o número da próxima
         tentativas_anteriores = Resultado.objects.filter(
-            aluno=request.user,
-            simulado=simulado
+            aluno=request.user, simulado=simulado
         ).count()
         proxima_tentativa = tentativas_anteriores + 1
 
@@ -65,28 +63,30 @@ class ResponderView(APIView):
         # dict {questao_id: Questao} para validação e correção eficiente
         questoes_do_simulado = {
             sq.questao_id: sq.questao
-            for sq in SimuladoQuestao.objects.select_related('questao').filter(
+            for sq in SimuladoQuestao.objects.select_related("questao").filter(
                 simulado=simulado
             )
         }
 
         # Valida todas as questões antes de salvar qualquer coisa
         for item in respostas_data:
-            if item['questao_id'] not in questoes_do_simulado:
+            if item["questao_id"] not in questoes_do_simulado:
                 return Response(
-                    {'error': f'Questão {item["questao_id"]} não pertence a este simulado.'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {
+                        "error": f'Questão {item["questao_id"]} não pertence a este simulado.'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
         # ── Processa e salva dentro de uma transação atômica ─────────────
         with transaction.atomic():
 
-            acertos              = 0
+            acertos = 0
             respostas_para_criar = []
 
             for item in respostas_data:
-                questao = questoes_do_simulado[item['questao_id']]
-                correta = item['opcao_escolhida'] == questao.resposta_correta
+                questao = questoes_do_simulado[item["questao_id"]]
+                correta = item["opcao_escolhida"] == questao.resposta_correta
 
                 if correta:
                     acertos += 1
@@ -97,8 +97,8 @@ class ResponderView(APIView):
                         aluno=request.user,
                         questao=questao,
                         simulado=simulado,
-                        tentativa=proxima_tentativa,   # ← Fase 6
-                        opcao_escolhida=item['opcao_escolhida'],
+                        tentativa=proxima_tentativa,  # ← Fase 6
+                        opcao_escolhida=item["opcao_escolhida"],
                         correta=correta,
                     )
                 )
@@ -108,13 +108,15 @@ class ResponderView(APIView):
 
             # Calcula score
             total_questoes = len(questoes_do_simulado)
-            score = round((acertos / total_questoes * 100), 2) if total_questoes > 0 else 0
+            score = (
+                round((acertos / total_questoes * 100), 2) if total_questoes > 0 else 0
+            )
 
             # Cria o Resultado com o número da tentativa
             resultado = Resultado.objects.create(
                 aluno=request.user,
                 simulado=simulado,
-                tentativa=proxima_tentativa,           # ← Fase 6
+                tentativa=proxima_tentativa,  # ← Fase 6
                 acertos=acertos,
                 total_questoes=total_questoes,
                 score=score,
@@ -126,8 +128,8 @@ class ResponderView(APIView):
         try:
             # Regra de pontuação: 10 XP por acerto + 50 XP bônus por entregar a prova
             xp_ganho = (acertos * 10) + 50
-            
-            if hasattr(request.user, 'perfil'):
+
+            if hasattr(request.user, "perfil"):
                 request.user.perfil.registrar_atividade(xp_ganho)
         except Exception as e:
             # Se der erro na gamificação, printa no terminal mas não quebra a tela do aluno
@@ -136,18 +138,21 @@ class ResponderView(APIView):
 
         # Monta mensagem personalizada para tentativas repetidas
         if proxima_tentativa == 1:
-            mensagem = 'Simulado respondido com sucesso!'
+            mensagem = "Simulado respondido com sucesso!"
         else:
-            mensagem = f'Tentativa {proxima_tentativa} registrada com sucesso!'
+            mensagem = f"Tentativa {proxima_tentativa} registrada com sucesso!"
 
-        return Response({
-            'message': mensagem,
-            'resultado': {
-                'resultado_id':   resultado.id,
-                'tentativa':      proxima_tentativa,   # ← Fase 6: informa o frontend
-                'simulado':       simulado.titulo,
-                'acertos':        acertos,
-                'total_questoes': total_questoes,
-                'score':          f'{score:.2f}%',
-            }
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "message": mensagem,
+                "resultado": {
+                    "resultado_id": resultado.id,
+                    "tentativa": proxima_tentativa,  # ← Fase 6: informa o frontend
+                    "simulado": simulado.titulo,
+                    "acertos": acertos,
+                    "total_questoes": total_questoes,
+                    "score": f"{score:.2f}%",
+                },
+            },
+            status=status.HTTP_201_CREATED,
+        )

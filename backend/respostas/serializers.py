@@ -15,15 +15,12 @@ class RespostaItemSerializer(serializers.Serializer):
     """
 
     # ID da questão que o aluno está respondendo
-    questao_id = serializers.IntegerField(
-        label='ID da Questão'
-    )
+    questao_id = serializers.IntegerField(label="ID da Questão")
 
     # Opção escolhida pelo aluno — 5 alternativas padrão ENEM (A, B, C, D ou E)
     # CORRIGIDO: 'E' estava ausente — causava erro 400 em questões com 5 alternativas
     opcao_escolhida = serializers.ChoiceField(
-        choices=['A', 'B', 'C', 'D', 'E'],
-        label='Opção Escolhida'
+        choices=["A", "B", "C", "D", "E"], label="Opção Escolhida"
     )
 
 
@@ -44,16 +41,11 @@ class ResponderSerializer(serializers.Serializer):
     """
 
     # ID do simulado que está sendo respondido
-    simulado_id = serializers.IntegerField(
-        label='ID do Simulado'
-    )
+    simulado_id = serializers.IntegerField(label="ID do Simulado")
 
     # Lista de respostas — usa o RespostaItemSerializer para validar cada item
     # many=True indica que é uma lista de respostas
-    respostas = RespostaItemSerializer(
-        many=True,
-        label='Respostas'
-    )
+    respostas = RespostaItemSerializer(many=True, label="Respostas")
 
 
 class RespostaSerializer(serializers.ModelSerializer):
@@ -64,5 +56,11 @@ class RespostaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Resposta
-        fields = ['id', 'questao', 'opcao_escolhida', 'correta', 'respondido_em']
-        read_only_fields = ['id', 'questao', 'opcao_escolhida', 'correta', 'respondido_em']
+        fields = ["id", "questao", "opcao_escolhida", "correta", "respondido_em"]
+        read_only_fields = [
+            "id",
+            "questao",
+            "opcao_escolhida",
+            "correta",
+            "respondido_em",
+        ]

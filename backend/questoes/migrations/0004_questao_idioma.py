@@ -6,13 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questoes', '0003_questao_importacao_origem_numero_na_prova_and_more'),
+        ("questoes", "0003_questao_importacao_origem_numero_na_prova_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='questao',
-            name='idioma',
-            field=models.CharField(blank=True, choices=[('ingles', 'Ingles'), ('espanhol', 'Espanhol')], max_length=20, null=True, verbose_name='Idioma'),
+            model_name="questao",
+            name="idioma",
+            field=models.CharField(
+                blank=True,
+                choices=[("ingles", "Ingles"), ("espanhol", "Espanhol")],
+                max_length=20,
+                null=True,
+                verbose_name="Idioma",
+            ),
         ),
     ]

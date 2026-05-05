@@ -6,19 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questoes', '0002_questao_revisado_alter_questao_imagem_opcao_a_and_more'),
-        ('simulados', '0001_initial'),
+        ("questoes", "0002_questao_revisado_alter_questao_imagem_opcao_a_and_more"),
+        ("simulados", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='simulado',
-            name='data_fim',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='Data de Encerramento'),
+            model_name="simulado",
+            name="data_fim",
+            field=models.DateTimeField(
+                blank=True, null=True, verbose_name="Data de Encerramento"
+            ),
         ),
         migrations.AlterField(
-            model_name='simulado',
-            name='questoes',
-            field=models.ManyToManyField(related_name='simulados', through='simulados.SimuladoQuestao', to='questoes.questao', verbose_name='Questões'),
+            model_name="simulado",
+            name="questoes",
+            field=models.ManyToManyField(
+                related_name="simulados",
+                through="simulados.SimuladoQuestao",
+                to="questoes.questao",
+                verbose_name="Questões",
+            ),
         ),
     ]

@@ -7,13 +7,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('importador', '0003_questaoprovaoriginal'),
+        ("importador", "0003_questaoprovaoriginal"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='questaoimportada',
-            name='questao_oficial',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='importacoes_publicadas', to='questoes.questao', verbose_name='Questão oficial publicada'),
+            model_name="questaoimportada",
+            name="questao_oficial",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="importacoes_publicadas",
+                to="questoes.questao",
+                verbose_name="Questão oficial publicada",
+            ),
         ),
     ]

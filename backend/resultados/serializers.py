@@ -5,10 +5,10 @@ from rest_framework import serializers
 from .models import Resultado
 from respostas.models import Resposta
 
-
 # ============================================================
 # Serializers existentes — não alterados
 # ============================================================
+
 
 class ResultadoSerializer(serializers.ModelSerializer):
     """
@@ -22,13 +22,13 @@ class ResultadoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resultado
         fields = [
-            'id',
-            'aluno_username',
-            'simulado_titulo',
-            'acertos',
-            'total_questoes',
-            'score',
-            'realizado_em',
+            "id",
+            "aluno_username",
+            "simulado_titulo",
+            "acertos",
+            "total_questoes",
+            "score",
+            "realizado_em",
         ]
 
     def get_aluno_username(self, obj):
@@ -50,12 +50,12 @@ class RankingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resultado
         fields = [
-            'aluno_username',
-            'simulado_titulo',
-            'acertos',
-            'total_questoes',
-            'score',
-            'realizado_em',
+            "aluno_username",
+            "simulado_titulo",
+            "acertos",
+            "total_questoes",
+            "score",
+            "realizado_em",
         ]
 
     def get_aluno_username(self, obj):
@@ -68,6 +68,7 @@ class RankingSerializer(serializers.ModelSerializer):
 # ============================================================
 # NOVO — Fase 5: Gabarito comentado
 # ============================================================
+
 
 class QuestaoGabaritoSerializer(serializers.Serializer):
     """
@@ -85,40 +86,40 @@ class QuestaoGabaritoSerializer(serializers.Serializer):
     """
 
     # Dados da questão
-    ordem           = serializers.IntegerField()
-    enunciado       = serializers.CharField()
+    ordem = serializers.IntegerField()
+    enunciado = serializers.CharField()
     imagem_enunciado = serializers.URLField(allow_null=True)
-    opcao_a         = serializers.CharField()
-    opcao_b         = serializers.CharField()
-    opcao_c         = serializers.CharField()
-    opcao_d         = serializers.CharField()
-    opcao_e         = serializers.CharField(allow_blank=True)
+    opcao_a = serializers.CharField()
+    opcao_b = serializers.CharField()
+    opcao_c = serializers.CharField()
+    opcao_d = serializers.CharField()
+    opcao_e = serializers.CharField(allow_blank=True)
 
     # Gabarito — só exposto APÓS o envio das respostas
     resposta_correta = serializers.CharField()
-    explicacao       = serializers.CharField(allow_blank=True)
-    dificuldade      = serializers.CharField()
+    explicacao = serializers.CharField(allow_blank=True)
+    dificuldade = serializers.CharField()
 
     # Taxonomia — base para recomendação (Fase 7)
-    tema    = serializers.SerializerMethodField()
+    tema = serializers.SerializerMethodField()
     materia = serializers.SerializerMethodField()
 
     # Resposta do aluno — null se não respondeu (questão pulada)
     opcao_escolhida = serializers.CharField(allow_null=True)
-    correta         = serializers.BooleanField(allow_null=True)
+    correta = serializers.BooleanField(allow_null=True)
 
     def get_tema(self, obj):
         """
         Retorna o nome do tema se existir, ou None.
         obj é um dict montado na view — não um model diretamente.
         """
-        return obj.get('tema')
+        return obj.get("tema")
 
     def get_materia(self, obj):
         """
         Retorna o código da matéria se existir, ou None.
         """
-        return obj.get('materia')
+        return obj.get("materia")
 
 
 class GabaritoSerializer(serializers.Serializer):
@@ -136,12 +137,12 @@ class GabaritoSerializer(serializers.Serializer):
     """
 
     # Dados do resultado
-    simulado_id    = serializers.IntegerField()
+    simulado_id = serializers.IntegerField()
     simulado_titulo = serializers.CharField()
-    acertos        = serializers.IntegerField()
+    acertos = serializers.IntegerField()
     total_questoes = serializers.IntegerField()
-    score          = serializers.DecimalField(max_digits=5, decimal_places=2)
-    realizado_em   = serializers.DateTimeField()
+    score = serializers.DecimalField(max_digits=5, decimal_places=2)
+    realizado_em = serializers.DateTimeField()
 
     # Lista completa de questões com gabarito e resposta do aluno
     questoes = QuestaoGabaritoSerializer(many=True)
@@ -149,13 +150,9 @@ class GabaritoSerializer(serializers.Serializer):
     # Resumo por matéria — base para Fase 7
     # Ex: [{"materia": "MAT", "acertos": 3, "total": 5, "percentual": 60.0}]
     resumo_por_materia = serializers.ListField(
-        child=serializers.DictField(),
-        default=list
+        child=serializers.DictField(), default=list
     )
 
     # Temas com erro — base para recomendação (Fase 7)
     # Ex: [{"tema": "Funções", "materia": "MAT", "erros": 2}]
-    temas_com_erro = serializers.ListField(
-        child=serializers.DictField(),
-        default=list
-    )
+    temas_com_erro = serializers.ListField(child=serializers.DictField(), default=list)

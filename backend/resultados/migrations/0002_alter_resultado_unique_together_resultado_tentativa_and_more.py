@@ -7,23 +7,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('resultados', '0001_initial'),
-        ('simulados', '0002_alter_simulado_data_fim_alter_simulado_questoes'),
+        ("resultados", "0001_initial"),
+        ("simulados", "0002_alter_simulado_data_fim_alter_simulado_questoes"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='resultado',
+            name="resultado",
             unique_together=set(),
         ),
         migrations.AddField(
-            model_name='resultado',
-            name='tentativa',
-            field=models.PositiveIntegerField(default=1, verbose_name='Tentativa'),
+            model_name="resultado",
+            name="tentativa",
+            field=models.PositiveIntegerField(default=1, verbose_name="Tentativa"),
         ),
         migrations.AlterUniqueTogether(
-            name='resultado',
-            unique_together={('aluno', 'simulado', 'tentativa')},
+            name="resultado",
+            unique_together={("aluno", "simulado", "tentativa")},
         ),
     ]

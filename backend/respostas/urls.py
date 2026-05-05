@@ -7,5 +7,5 @@ from .views import ResponderView
 # Define as rotas do app respostas
 urlpatterns = [
     # POST /api/responder — envia as respostas do aluno e calcula o score
-    path('', ResponderView.as_view(), name='responder'),
+    path("", ResponderView.as_view(), name="responder"),
 ]

@@ -10,48 +10,113 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('questoes', '0001_initial'),
+        ("questoes", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Simulado',
+            name="Simulado",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titulo', models.CharField(max_length=200, verbose_name='Título')),
-                ('descricao', models.TextField(blank=True, verbose_name='Descrição')),
-                ('criado_em', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('ativo', models.BooleanField(default=True, verbose_name='Ativo')),
-                ('data_inicio', models.DateTimeField(blank=True, null=True, verbose_name='Data de Início')),
-                ('data_fim', models.DateTimeField(blank=True, null=True, verbose_name='Data de Término')),
-                ('criado_por', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='simulados_criados', to=settings.AUTH_USER_MODEL, verbose_name='Criado por')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("titulo", models.CharField(max_length=200, verbose_name="Título")),
+                ("descricao", models.TextField(blank=True, verbose_name="Descrição")),
+                (
+                    "criado_em",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Criado em"),
+                ),
+                ("ativo", models.BooleanField(default=True, verbose_name="Ativo")),
+                (
+                    "data_inicio",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Data de Início"
+                    ),
+                ),
+                (
+                    "data_fim",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Data de Término"
+                    ),
+                ),
+                (
+                    "criado_por",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="simulados_criados",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Criado por",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Simulado',
-                'verbose_name_plural': 'Simulados',
-                'ordering': ['-criado_em'],
+                "verbose_name": "Simulado",
+                "verbose_name_plural": "Simulados",
+                "ordering": ["-criado_em"],
             },
         ),
         migrations.CreateModel(
-            name='SimuladoQuestao',
+            name="SimuladoQuestao",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ordem', models.PositiveIntegerField(default=1, verbose_name='Ordem')),
-                ('peso', models.DecimalField(decimal_places=2, default=1.0, max_digits=4, verbose_name='Peso')),
-                ('questao', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='simulado_questoes', to='questoes.questao', verbose_name='Questão')),
-                ('simulado', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='simulado_questoes', to='simulados.simulado', verbose_name='Simulado')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("ordem", models.PositiveIntegerField(default=1, verbose_name="Ordem")),
+                (
+                    "peso",
+                    models.DecimalField(
+                        decimal_places=2, default=1.0, max_digits=4, verbose_name="Peso"
+                    ),
+                ),
+                (
+                    "questao",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="simulado_questoes",
+                        to="questoes.questao",
+                        verbose_name="Questão",
+                    ),
+                ),
+                (
+                    "simulado",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="simulado_questoes",
+                        to="simulados.simulado",
+                        verbose_name="Simulado",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Questão do Simulado',
-                'verbose_name_plural': 'Questões do Simulado',
-                'ordering': ['ordem'],
-                'unique_together': {('simulado', 'questao')},
+                "verbose_name": "Questão do Simulado",
+                "verbose_name_plural": "Questões do Simulado",
+                "ordering": ["ordem"],
+                "unique_together": {("simulado", "questao")},
             },
         ),
         migrations.AddField(
-            model_name='simulado',
-            name='questoes',
-            field=models.ManyToManyField(related_name='simulados', through='simulados.SimuladoQuestao', through_fields=('simulado', 'questao'), to='questoes.questao', verbose_name='Questões'),
+            model_name="simulado",
+            name="questoes",
+            field=models.ManyToManyField(
+                related_name="simulados",
+                through="simulados.SimuladoQuestao",
+                through_fields=("simulado", "questao"),
+                to="questoes.questao",
+                verbose_name="Questões",
+            ),
         ),
     ]

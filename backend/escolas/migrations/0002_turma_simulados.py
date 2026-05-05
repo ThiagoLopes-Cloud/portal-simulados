@@ -6,14 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('escolas', '0001_initial'),
-        ('simulados', '0003_simulado_eh_simulado_original_simulado_importacao_origem_and_more'),
+        ("escolas", "0001_initial"),
+        (
+            "simulados",
+            "0003_simulado_eh_simulado_original_simulado_importacao_origem_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='turma',
-            name='simulados',
-            field=models.ManyToManyField(blank=True, related_name='turmas', to='simulados.simulado'),
+            model_name="turma",
+            name="simulados",
+            field=models.ManyToManyField(
+                blank=True, related_name="turmas", to="simulados.simulado"
+            ),
         ),
     ]

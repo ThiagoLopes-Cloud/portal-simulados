@@ -8,22 +8,45 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0001_initial'),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Perfil',
+            name="Perfil",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('xp', models.IntegerField(default=0, verbose_name='Pontos de Experiência')),
-                ('ofensiva', models.IntegerField(default=0, verbose_name='Dias Seguidos')),
-                ('ultima_atividade', models.DateField(blank=True, null=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='perfil', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "xp",
+                    models.IntegerField(
+                        default=0, verbose_name="Pontos de Experiência"
+                    ),
+                ),
+                (
+                    "ofensiva",
+                    models.IntegerField(default=0, verbose_name="Dias Seguidos"),
+                ),
+                ("ultima_atividade", models.DateField(blank=True, null=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="perfil",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Perfil Gamificado',
-                'verbose_name_plural': 'Perfis Gamificados',
+                "verbose_name": "Perfil Gamificado",
+                "verbose_name_plural": "Perfis Gamificados",
             },
         ),
     ]

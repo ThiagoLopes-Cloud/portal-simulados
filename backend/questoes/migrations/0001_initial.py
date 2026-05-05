@@ -9,39 +9,148 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('conteudo', '0001_initial'),
+        ("conteudo", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Questao',
+            name="Questao",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enunciado', models.TextField(verbose_name='Enunciado')),
-                ('imagem_enunciado', models.URLField(blank=True, help_text='Cole a URL de uma imagem para ilustrar o enunciado (opcional)', null=True, verbose_name='Imagem do Enunciado (URL)')),
-                ('opcao_a', models.CharField(max_length=500, verbose_name='Alternativa A')),
-                ('opcao_b', models.CharField(max_length=500, verbose_name='Alternativa B')),
-                ('opcao_c', models.CharField(max_length=500, verbose_name='Alternativa C')),
-                ('opcao_d', models.CharField(max_length=500, verbose_name='Alternativa D')),
-                ('opcao_e', models.CharField(blank=True, default='', max_length=500, verbose_name='Alternativa E')),
-                ('imagem_opcao_a', models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa A (URL)')),
-                ('imagem_opcao_b', models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa B (URL)')),
-                ('imagem_opcao_c', models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa C (URL)')),
-                ('imagem_opcao_d', models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa D (URL)')),
-                ('imagem_opcao_e', models.URLField(blank=True, null=True, verbose_name='Imagem Alternativa E (URL)')),
-                ('resposta_correta', models.CharField(choices=[('A', 'Alternativa A'), ('B', 'Alternativa B'), ('C', 'Alternativa C'), ('D', 'Alternativa D'), ('E', 'Alternativa E')], max_length=1, verbose_name='Resposta Correta')),
-                ('dificuldade', models.CharField(choices=[('F', 'Fácil'), ('M', 'Médio'), ('D', 'Difícil')], default='M', max_length=1, verbose_name='Dificuldade')),
-                ('explicacao', models.TextField(blank=True, verbose_name='Explicação do gabarito')),
-                ('ano_origem', models.PositiveIntegerField(blank=True, null=True, verbose_name='Ano de Origem')),
-                ('fonte', models.CharField(blank=True, max_length=200, verbose_name='Fonte')),
-                ('criado_em', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('atualizado_em', models.DateTimeField(auto_now=True, verbose_name='Atualizado em')),
-                ('tema', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='questoes', to='conteudo.tema', verbose_name='Tema')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enunciado", models.TextField(verbose_name="Enunciado")),
+                (
+                    "imagem_enunciado",
+                    models.URLField(
+                        blank=True,
+                        help_text="Cole a URL de uma imagem para ilustrar o enunciado (opcional)",
+                        null=True,
+                        verbose_name="Imagem do Enunciado (URL)",
+                    ),
+                ),
+                (
+                    "opcao_a",
+                    models.CharField(max_length=500, verbose_name="Alternativa A"),
+                ),
+                (
+                    "opcao_b",
+                    models.CharField(max_length=500, verbose_name="Alternativa B"),
+                ),
+                (
+                    "opcao_c",
+                    models.CharField(max_length=500, verbose_name="Alternativa C"),
+                ),
+                (
+                    "opcao_d",
+                    models.CharField(max_length=500, verbose_name="Alternativa D"),
+                ),
+                (
+                    "opcao_e",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        max_length=500,
+                        verbose_name="Alternativa E",
+                    ),
+                ),
+                (
+                    "imagem_opcao_a",
+                    models.URLField(
+                        blank=True, null=True, verbose_name="Imagem Alternativa A (URL)"
+                    ),
+                ),
+                (
+                    "imagem_opcao_b",
+                    models.URLField(
+                        blank=True, null=True, verbose_name="Imagem Alternativa B (URL)"
+                    ),
+                ),
+                (
+                    "imagem_opcao_c",
+                    models.URLField(
+                        blank=True, null=True, verbose_name="Imagem Alternativa C (URL)"
+                    ),
+                ),
+                (
+                    "imagem_opcao_d",
+                    models.URLField(
+                        blank=True, null=True, verbose_name="Imagem Alternativa D (URL)"
+                    ),
+                ),
+                (
+                    "imagem_opcao_e",
+                    models.URLField(
+                        blank=True, null=True, verbose_name="Imagem Alternativa E (URL)"
+                    ),
+                ),
+                (
+                    "resposta_correta",
+                    models.CharField(
+                        choices=[
+                            ("A", "Alternativa A"),
+                            ("B", "Alternativa B"),
+                            ("C", "Alternativa C"),
+                            ("D", "Alternativa D"),
+                            ("E", "Alternativa E"),
+                        ],
+                        max_length=1,
+                        verbose_name="Resposta Correta",
+                    ),
+                ),
+                (
+                    "dificuldade",
+                    models.CharField(
+                        choices=[("F", "Fácil"), ("M", "Médio"), ("D", "Difícil")],
+                        default="M",
+                        max_length=1,
+                        verbose_name="Dificuldade",
+                    ),
+                ),
+                (
+                    "explicacao",
+                    models.TextField(blank=True, verbose_name="Explicação do gabarito"),
+                ),
+                (
+                    "ano_origem",
+                    models.PositiveIntegerField(
+                        blank=True, null=True, verbose_name="Ano de Origem"
+                    ),
+                ),
+                (
+                    "fonte",
+                    models.CharField(blank=True, max_length=200, verbose_name="Fonte"),
+                ),
+                (
+                    "criado_em",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Criado em"),
+                ),
+                (
+                    "atualizado_em",
+                    models.DateTimeField(auto_now=True, verbose_name="Atualizado em"),
+                ),
+                (
+                    "tema",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="questoes",
+                        to="conteudo.tema",
+                        verbose_name="Tema",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Questão',
-                'verbose_name_plural': 'Questões',
-                'ordering': ['-criado_em'],
+                "verbose_name": "Questão",
+                "verbose_name_plural": "Questões",
+                "ordering": ["-criado_em"],
             },
         ),
     ]

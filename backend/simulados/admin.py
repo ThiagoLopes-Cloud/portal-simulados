@@ -15,13 +15,13 @@ class SimuladoQuestaoInline(admin.TabularInline):
     """
 
     model = SimuladoQuestao
-    extra = 3                   # Formulários extras para adicionar novas questões
-    fields = ['ordem', 'questao', 'peso']
-    ordering = ['ordem']
+    extra = 3  # Formulários extras para adicionar novas questões
+    fields = ["ordem", "questao", "peso"]
+    ordering = ["ordem"]
 
     # raw_id_fields — substitui o select por um campo de busca por ID.
     # Essencial quando o banco tem centenas de questões: evita carregar tudo no select.
-    raw_id_fields = ['questao']
+    raw_id_fields = ["questao"]
 
 
 @admin.register(Simulado)
@@ -31,30 +31,50 @@ class SimuladoAdmin(admin.ModelAdmin):
     Permite gerenciar metadados e questões do simulado em uma única tela.
     """
 
-    list_display = ['titulo', 'eh_simulado_original', 'criado_por', 'total_questoes', 'criado_em', 'ativo']
-    list_filter = ['ativo', 'eh_simulado_original', 'criado_em']
-    list_editable = ['ativo']
-    search_fields = ['titulo', 'descricao']
-    ordering = ['-criado_em']
+    list_display = [
+        "titulo",
+        "eh_simulado_original",
+        "criado_por",
+        "total_questoes",
+        "criado_em",
+        "ativo",
+    ]
+    list_filter = ["ativo", "eh_simulado_original", "criado_em"]
+    list_editable = ["ativo"]
+    search_fields = ["titulo", "descricao"]
+    ordering = ["-criado_em"]
 
     # Inclui o inline de questões diretamente no formulário do simulado
     inlines = [SimuladoQuestaoInline]
 
     fieldsets = (
-        ('Informações do Simulado', {
-            'fields': ('titulo', 'descricao', 'criado_por', 'ativo', 'eh_simulado_original', 'prova_original')
-        }),
-        ('Período de Disponibilidade', {
-            'fields': ('data_inicio', 'data_fim'),
-            'classes': ('collapse',),
-        }),
+        (
+            "Informações do Simulado",
+            {
+                "fields": (
+                    "titulo",
+                    "descricao",
+                    "criado_por",
+                    "ativo",
+                    "eh_simulado_original",
+                    "prova_original",
+                )
+            },
+        ),
+        (
+            "Período de Disponibilidade",
+            {
+                "fields": ("data_inicio", "data_fim"),
+                "classes": ("collapse",),
+            },
+        ),
     )
 
     def total_questoes(self, obj):
         """Conta as questões vinculadas ao simulado via tabela intermediária."""
         return obj.simulado_questoes.count()
 
-    total_questoes.short_description = 'Questões'
+    total_questoes.short_description = "Questões"
 
 
 @admin.register(SimuladoQuestao)
@@ -64,12 +84,12 @@ class SimuladoQuestaoAdmin(admin.ModelAdmin):
     Permite visualizar e editar vínculos individualmente.
     """
 
-    list_display = ['simulado', 'ordem', 'questao_resumida', 'peso']
-    list_filter = ['simulado']
-    ordering = ['simulado', 'ordem']
-    raw_id_fields = ['questao']
+    list_display = ["simulado", "ordem", "questao_resumida", "peso"]
+    list_filter = ["simulado"]
+    ordering = ["simulado", "ordem"]
+    raw_id_fields = ["questao"]
 
     def questao_resumida(self, obj):
-        return f'{obj.questao.enunciado[:60]}...'
+        return f"{obj.questao.enunciado[:60]}..."
 
-    questao_resumida.short_description = 'Questão'
+    questao_resumida.short_description = "Questão"

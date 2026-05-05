@@ -7,5 +7,5 @@ from .views import ImportarQuestoesView
 # Define a rota do importador
 urlpatterns = [
     # POST /api/importar/ — recebe JSON e cria simulado + questões
-    path('', ImportarQuestoesView.as_view(), name='importar'),
+    path("", ImportarQuestoesView.as_view(), name="importar"),
 ]

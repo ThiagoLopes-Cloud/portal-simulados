@@ -6,99 +6,99 @@ from users.models import User
 
 
 class ImportacaoProva(models.Model):
-    ENVIADA = 'enviada'
-    PROCESSANDO = 'processando'
-    AGUARDANDO_REVISAO = 'aguardando_revisao'
-    PARCIALMENTE_PUBLICADA = 'parcialmente_publicada'
-    PUBLICADA = 'publicada'
-    FALHOU = 'falhou'
-    ARQUIVADA = 'arquivada'
+    ENVIADA = "enviada"
+    PROCESSANDO = "processando"
+    AGUARDANDO_REVISAO = "aguardando_revisao"
+    PARCIALMENTE_PUBLICADA = "parcialmente_publicada"
+    PUBLICADA = "publicada"
+    FALHOU = "falhou"
+    ARQUIVADA = "arquivada"
 
     STATUS_CHOICES = [
-        (ENVIADA, 'Enviada'),
-        (PROCESSANDO, 'Processando'),
-        (AGUARDANDO_REVISAO, 'Aguardando revisao'),
-        (PARCIALMENTE_PUBLICADA, 'Parcialmente publicada'),
-        (PUBLICADA, 'Publicada'),
-        (FALHOU, 'Falhou'),
-        (ARQUIVADA, 'Arquivada'),
+        (ENVIADA, "Enviada"),
+        (PROCESSANDO, "Processando"),
+        (AGUARDANDO_REVISAO, "Aguardando revisao"),
+        (PARCIALMENTE_PUBLICADA, "Parcialmente publicada"),
+        (PUBLICADA, "Publicada"),
+        (FALHOU, "Falhou"),
+        (ARQUIVADA, "Arquivada"),
     ]
 
-    ENEM = 'enem'
+    ENEM = "enem"
 
     TIPO_EXAME_CHOICES = [
-        (ENEM, 'ENEM'),
+        (ENEM, "ENEM"),
     ]
 
     DIA_1 = 1
     DIA_2 = 2
 
-    COR_AZUL = 'azul'
-    COR_AMARELO = 'amarelo'
-    COR_BRANCO = 'branco'
-    COR_ROSA = 'rosa'
-    COR_CINZA = 'cinza'
+    COR_AZUL = "azul"
+    COR_AMARELO = "amarelo"
+    COR_BRANCO = "branco"
+    COR_ROSA = "rosa"
+    COR_CINZA = "cinza"
 
     COR_CHOICES = [
-        (COR_AZUL, 'Azul'),
-        (COR_AMARELO, 'Amarelo'),
-        (COR_BRANCO, 'Branco'),
-        (COR_ROSA, 'Rosa'),
-        (COR_CINZA, 'Cinza'),
+        (COR_AZUL, "Azul"),
+        (COR_AMARELO, "Amarelo"),
+        (COR_BRANCO, "Branco"),
+        (COR_ROSA, "Rosa"),
+        (COR_CINZA, "Cinza"),
     ]
 
     tipo_exame = models.CharField(
         max_length=20,
         choices=TIPO_EXAME_CHOICES,
         default=ENEM,
-        verbose_name='Tipo de exame',
+        verbose_name="Tipo de exame",
     )
-    ano = models.PositiveIntegerField(verbose_name='Ano')
+    ano = models.PositiveIntegerField(verbose_name="Ano")
     dia = models.PositiveSmallIntegerField(
-        choices=[(DIA_1, 'Dia 1'), (DIA_2, 'Dia 2')],
-        verbose_name='Dia',
+        choices=[(DIA_1, "Dia 1"), (DIA_2, "Dia 2")],
+        verbose_name="Dia",
     )
     cor = models.CharField(
         max_length=20,
         choices=COR_CHOICES,
-        verbose_name='Cor do caderno',
+        verbose_name="Cor do caderno",
     )
     pdf_prova = models.FileField(
-        upload_to='importacoes/provas/',
-        verbose_name='PDF da prova',
+        upload_to="importacoes/provas/",
+        verbose_name="PDF da prova",
     )
     pdf_gabarito = models.FileField(
-        upload_to='importacoes/gabaritos/',
-        verbose_name='PDF do gabarito',
+        upload_to="importacoes/gabaritos/",
+        verbose_name="PDF do gabarito",
     )
     status = models.CharField(
         max_length=30,
         choices=STATUS_CHOICES,
         default=ENVIADA,
-        verbose_name='Status',
+        verbose_name="Status",
     )
     mensagem_erro = models.TextField(
         blank=True,
-        verbose_name='Mensagem de erro',
+        verbose_name="Mensagem de erro",
     )
     criado_por = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='importacoes_prova',
-        verbose_name='Criado por',
+        related_name="importacoes_prova",
+        verbose_name="Criado por",
     )
-    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
-    atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
-        verbose_name = 'Importacao de Prova'
-        verbose_name_plural = 'Importacoes de Prova'
-        ordering = ['-criado_em']
+        verbose_name = "Importacao de Prova"
+        verbose_name_plural = "Importacoes de Prova"
+        ordering = ["-criado_em"]
 
     def __str__(self):
-        return f'ENEM {self.ano} - Dia {self.dia} - {self.get_cor_display()}'
+        return f"ENEM {self.ano} - Dia {self.dia} - {self.get_cor_display()}"
 
     @property
     def total_importadas(self):
@@ -106,7 +106,7 @@ class ImportacaoProva(models.Model):
 
     @property
     def total_numeros_importados(self):
-        return self.questoes_importadas.values('numero_na_prova').distinct().count()
+        return self.questoes_importadas.values("numero_na_prova").distinct().count()
 
     @property
     def total_ocorrencias_com_idioma(self):
@@ -132,11 +132,13 @@ class ImportacaoProva(models.Model):
 
     def clean(self):
         if self.tipo_exame != self.ENEM:
-            raise ValidationError({'tipo_exame': 'Esta importacao aceita apenas provas oficiais do ENEM.'})
+            raise ValidationError(
+                {"tipo_exame": "Esta importacao aceita apenas provas oficiais do ENEM."}
+            )
         if not self.pdf_prova:
-            raise ValidationError({'pdf_prova': 'Envie o PDF da prova.'})
+            raise ValidationError({"pdf_prova": "Envie o PDF da prova."})
         if not self.pdf_gabarito:
-            raise ValidationError({'pdf_gabarito': 'Envie o PDF do gabarito.'})
+            raise ValidationError({"pdf_gabarito": "Envie o PDF do gabarito."})
 
     def delete(self, *args, **kwargs):
         storage = self.pdf_prova.storage if self.pdf_prova else None
@@ -150,239 +152,243 @@ class ImportacaoProva(models.Model):
 
 
 class ProvaOriginal(models.Model):
-    RASCUNHO = 'rascunho'
-    EM_REVISAO = 'em_revisao'
-    PARCIAL = 'parcial'
-    COMPLETA = 'completa'
+    RASCUNHO = "rascunho"
+    EM_REVISAO = "em_revisao"
+    PARCIAL = "parcial"
+    COMPLETA = "completa"
 
     STATUS_CHOICES = [
-        (RASCUNHO, 'Rascunho'),
-        (EM_REVISAO, 'Em revisao'),
-        (PARCIAL, 'Parcial'),
-        (COMPLETA, 'Completa'),
+        (RASCUNHO, "Rascunho"),
+        (EM_REVISAO, "Em revisao"),
+        (PARCIAL, "Parcial"),
+        (COMPLETA, "Completa"),
     ]
 
     importacao = models.OneToOneField(
         ImportacaoProva,
         on_delete=models.CASCADE,
-        related_name='prova_original',
-        verbose_name='Importacao',
+        related_name="prova_original",
+        verbose_name="Importacao",
     )
     descricao = models.CharField(
         max_length=255,
         blank=True,
-        verbose_name='Descricao',
+        verbose_name="Descricao",
     )
     total_questoes_esperado = models.PositiveIntegerField(
         default=0,
-        verbose_name='Total de questoes esperado',
+        verbose_name="Total de questoes esperado",
     )
     status_editorial = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default=EM_REVISAO,
-        verbose_name='Status editorial',
+        verbose_name="Status editorial",
     )
-    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
-    atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
-        verbose_name = 'Prova Original'
-        verbose_name_plural = 'Provas Originais'
-        ordering = ['-criado_em']
+        verbose_name = "Prova Original"
+        verbose_name_plural = "Provas Originais"
+        ordering = ["-criado_em"]
 
     def __str__(self):
         return self.descricao or str(self.importacao)
 
 
 class QuestaoImportada(models.Model):
-    IDIOMA_INGLES = 'ingles'
-    IDIOMA_ESPANHOL = 'espanhol'
+    IDIOMA_INGLES = "ingles"
+    IDIOMA_ESPANHOL = "espanhol"
 
     IDIOMA_CHOICES = [
-        (IDIOMA_INGLES, 'Ingles'),
-        (IDIOMA_ESPANHOL, 'Espanhol'),
+        (IDIOMA_INGLES, "Ingles"),
+        (IDIOMA_ESPANHOL, "Espanhol"),
     ]
 
-    PENDENTE_APROVACAO = 'pendente_aprovacao'
-    CORRECAO_NECESSARIA = 'correcao_necessaria'
-    REJEITADA = 'rejeitada'
-    PUBLICADA = 'publicada'
+    PENDENTE_APROVACAO = "pendente_aprovacao"
+    CORRECAO_NECESSARIA = "correcao_necessaria"
+    REJEITADA = "rejeitada"
+    PUBLICADA = "publicada"
 
     STATUS_CHOICES = [
-        (PENDENTE_APROVACAO, 'Pendente de aprovacao'),
-        (CORRECAO_NECESSARIA, 'Correcao necessaria'),
-        (REJEITADA, 'Rejeitada'),
-        (PUBLICADA, 'Publicada'),
+        (PENDENTE_APROVACAO, "Pendente de aprovacao"),
+        (CORRECAO_NECESSARIA, "Correcao necessaria"),
+        (REJEITADA, "Rejeitada"),
+        (PUBLICADA, "Publicada"),
     ]
 
     DIFICULDADE_CHOICES = [
-        ('F', 'Facil'),
-        ('M', 'Medio'),
-        ('D', 'Dificil'),
+        ("F", "Facil"),
+        ("M", "Medio"),
+        ("D", "Dificil"),
     ]
 
     importacao = models.ForeignKey(
         ImportacaoProva,
         on_delete=models.CASCADE,
-        related_name='questoes_importadas',
-        verbose_name='Importacao',
+        related_name="questoes_importadas",
+        verbose_name="Importacao",
     )
     prova_original = models.ForeignKey(
         ProvaOriginal,
         on_delete=models.CASCADE,
-        related_name='questoes_importadas',
-        verbose_name='Prova original',
+        related_name="questoes_importadas",
+        verbose_name="Prova original",
     )
-    numero_na_prova = models.PositiveIntegerField(verbose_name='Numero na prova')
+    numero_na_prova = models.PositiveIntegerField(verbose_name="Numero na prova")
     pagina_inicial = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name='Pagina inicial',
+        verbose_name="Pagina inicial",
     )
     idioma = models.CharField(
         max_length=20,
         choices=IDIOMA_CHOICES,
         null=True,
         blank=True,
-        verbose_name='Idioma',
+        verbose_name="Idioma",
     )
-    texto_bruto = models.TextField(blank=True, verbose_name='Texto bruto extraido')
-    enunciado = models.TextField(blank=True, verbose_name='Enunciado')
+    texto_bruto = models.TextField(blank=True, verbose_name="Texto bruto extraido")
+    enunciado = models.TextField(blank=True, verbose_name="Enunciado")
     tema = models.ForeignKey(
         Tema,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='questoes_importadas',
-        verbose_name='Tema',
+        related_name="questoes_importadas",
+        verbose_name="Tema",
     )
-    opcao_a = models.TextField(blank=True, verbose_name='Alternativa A')
-    opcao_b = models.TextField(blank=True, verbose_name='Alternativa B')
-    opcao_c = models.TextField(blank=True, verbose_name='Alternativa C')
-    opcao_d = models.TextField(blank=True, verbose_name='Alternativa D')
-    opcao_e = models.TextField(blank=True, verbose_name='Alternativa E')
+    opcao_a = models.TextField(blank=True, verbose_name="Alternativa A")
+    opcao_b = models.TextField(blank=True, verbose_name="Alternativa B")
+    opcao_c = models.TextField(blank=True, verbose_name="Alternativa C")
+    opcao_d = models.TextField(blank=True, verbose_name="Alternativa D")
+    opcao_e = models.TextField(blank=True, verbose_name="Alternativa E")
     dificuldade = models.CharField(
         max_length=1,
         choices=DIFICULDADE_CHOICES,
-        default='M',
-        verbose_name='Dificuldade',
+        default="M",
+        verbose_name="Dificuldade",
     )
     imagem_enunciado_arquivo = models.FileField(
-        upload_to='importacoes/imagens/enunciados/',
+        upload_to="importacoes/imagens/enunciados/",
         null=True,
         blank=True,
-        verbose_name='Imagem extraida do enunciado',
+        verbose_name="Imagem extraida do enunciado",
     )
     imagem_opcao_a_arquivo = models.FileField(
-        upload_to='importacoes/imagens/opcoes/',
+        upload_to="importacoes/imagens/opcoes/",
         null=True,
         blank=True,
-        verbose_name='Imagem extraida da alternativa A',
+        verbose_name="Imagem extraida da alternativa A",
     )
     imagem_opcao_b_arquivo = models.FileField(
-        upload_to='importacoes/imagens/opcoes/',
+        upload_to="importacoes/imagens/opcoes/",
         null=True,
         blank=True,
-        verbose_name='Imagem extraida da alternativa B',
+        verbose_name="Imagem extraida da alternativa B",
     )
     imagem_opcao_c_arquivo = models.FileField(
-        upload_to='importacoes/imagens/opcoes/',
+        upload_to="importacoes/imagens/opcoes/",
         null=True,
         blank=True,
-        verbose_name='Imagem extraida da alternativa C',
+        verbose_name="Imagem extraida da alternativa C",
     )
     imagem_opcao_d_arquivo = models.FileField(
-        upload_to='importacoes/imagens/opcoes/',
+        upload_to="importacoes/imagens/opcoes/",
         null=True,
         blank=True,
-        verbose_name='Imagem extraida da alternativa D',
+        verbose_name="Imagem extraida da alternativa D",
     )
     imagem_opcao_e_arquivo = models.FileField(
-        upload_to='importacoes/imagens/opcoes/',
+        upload_to="importacoes/imagens/opcoes/",
         null=True,
         blank=True,
-        verbose_name='Imagem extraida da alternativa E',
+        verbose_name="Imagem extraida da alternativa E",
     )
     gabarito_oficial = models.CharField(
         max_length=1,
         blank=True,
-        verbose_name='Gabarito oficial',
+        verbose_name="Gabarito oficial",
     )
     questao_oficial = models.ForeignKey(
-        'questoes.Questao',
+        "questoes.Questao",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='importacoes_publicadas',
-        verbose_name='Questao oficial publicada',
+        related_name="importacoes_publicadas",
+        verbose_name="Questao oficial publicada",
     )
     status = models.CharField(
         max_length=30,
         choices=STATUS_CHOICES,
         default=PENDENTE_APROVACAO,
-        verbose_name='Status',
+        verbose_name="Status",
     )
-    motivo_status = models.TextField(blank=True, verbose_name='Motivo do status')
-    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
-    atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+    motivo_status = models.TextField(blank=True, verbose_name="Motivo do status")
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
-        verbose_name = 'Questao Importada'
-        verbose_name_plural = 'Questoes Importadas'
-        ordering = ['numero_na_prova', 'idioma']
-        unique_together = ['importacao', 'numero_na_prova', 'idioma']
+        verbose_name = "Questao Importada"
+        verbose_name_plural = "Questoes Importadas"
+        ordering = ["numero_na_prova", "idioma"]
+        unique_together = ["importacao", "numero_na_prova", "idioma"]
 
     def __str__(self):
-        idioma = f' ({self.get_idioma_display()})' if self.idioma else ''
-        return f'Q{self.numero_na_prova}{idioma} - {self.importacao}'
+        idioma = f" ({self.get_idioma_display()})" if self.idioma else ""
+        return f"Q{self.numero_na_prova}{idioma} - {self.importacao}"
 
     def enunciado_resumido(self):
         if len(self.enunciado) <= 80:
             return self.enunciado
-        return f'{self.enunciado[:80]}...'
+        return f"{self.enunciado[:80]}..."
 
-    enunciado_resumido.short_description = 'Enunciado'
+    enunciado_resumido.short_description = "Enunciado"
 
 
 class QuestaoProvaOriginal(models.Model):
     questao = models.ForeignKey(
-        'questoes.Questao',
+        "questoes.Questao",
         on_delete=models.CASCADE,
-        related_name='ocorrencias_prova',
-        verbose_name='Questao',
+        related_name="ocorrencias_prova",
+        verbose_name="Questao",
     )
     prova_original = models.ForeignKey(
         ProvaOriginal,
         on_delete=models.CASCADE,
-        related_name='ocorrencias_questao',
-        verbose_name='Prova original',
+        related_name="ocorrencias_questao",
+        verbose_name="Prova original",
     )
-    numero_na_prova = models.PositiveIntegerField(verbose_name='Numero na prova')
+    numero_na_prova = models.PositiveIntegerField(verbose_name="Numero na prova")
     idioma = models.CharField(
         max_length=20,
         choices=QuestaoImportada.IDIOMA_CHOICES,
         null=True,
         blank=True,
-        verbose_name='Idioma',
+        verbose_name="Idioma",
     )
     importacao = models.ForeignKey(
         ImportacaoProva,
         on_delete=models.CASCADE,
-        related_name='ocorrencias_questao',
-        verbose_name='Importacao',
+        related_name="ocorrencias_questao",
+        verbose_name="Importacao",
     )
-    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
 
     class Meta:
-        verbose_name = 'Vinculo de Questao Importada Duplicada'
-        verbose_name_plural = 'Vinculos de Questoes Importadas Duplicadas'
-        ordering = ['prova_original__importacao__ano', 'prova_original__importacao__dia', 'numero_na_prova']
+        verbose_name = "Vinculo de Questao Importada Duplicada"
+        verbose_name_plural = "Vinculos de Questoes Importadas Duplicadas"
+        ordering = [
+            "prova_original__importacao__ano",
+            "prova_original__importacao__dia",
+            "numero_na_prova",
+        ]
         unique_together = [
-            ('questao', 'prova_original', 'idioma'),
-            ('prova_original', 'numero_na_prova', 'idioma'),
+            ("questao", "prova_original", "idioma"),
+            ("prova_original", "numero_na_prova", "idioma"),
         ]
 
     def __str__(self):
-        idioma = f' / {self.get_idioma_display()}' if self.idioma else ''
-        return f'{self.questao_id} em {self.prova_original} (Q{self.numero_na_prova}{idioma})'
+        idioma = f" / {self.get_idioma_display()}" if self.idioma else ""
+        return f"{self.questao_id} em {self.prova_original} (Q{self.numero_na_prova}{idioma})"

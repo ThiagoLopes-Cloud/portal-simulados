@@ -8,24 +8,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questoes', '0001_initial'),
-        ('respostas', '0001_initial'),
-        ('simulados', '0001_initial'),
+        ("questoes", "0001_initial"),
+        ("respostas", "0001_initial"),
+        ("simulados", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='resposta',
+            name="resposta",
             unique_together=set(),
         ),
         migrations.AddField(
-            model_name='resposta',
-            name='simulado',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='respostas', to='simulados.simulado', verbose_name='Simulado'),
+            model_name="resposta",
+            name="simulado",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="respostas",
+                to="simulados.simulado",
+                verbose_name="Simulado",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='resposta',
-            unique_together={('aluno', 'questao', 'simulado')},
+            name="resposta",
+            unique_together={("aluno", "questao", "simulado")},
         ),
     ]

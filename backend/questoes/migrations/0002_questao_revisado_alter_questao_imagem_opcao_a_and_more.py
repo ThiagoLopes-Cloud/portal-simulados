@@ -6,38 +6,42 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questoes', '0001_initial'),
+        ("questoes", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='questao',
-            name='revisado',
-            field=models.BooleanField(default=False, help_text='Questões não revisadas não aparecem para os alunos', verbose_name='Revisado'),
+            model_name="questao",
+            name="revisado",
+            field=models.BooleanField(
+                default=False,
+                help_text="Questões não revisadas não aparecem para os alunos",
+                verbose_name="Revisado",
+            ),
         ),
         migrations.AlterField(
-            model_name='questao',
-            name='imagem_opcao_a',
-            field=models.URLField(blank=True, null=True, verbose_name='Imagem A (URL)'),
+            model_name="questao",
+            name="imagem_opcao_a",
+            field=models.URLField(blank=True, null=True, verbose_name="Imagem A (URL)"),
         ),
         migrations.AlterField(
-            model_name='questao',
-            name='imagem_opcao_b',
-            field=models.URLField(blank=True, null=True, verbose_name='Imagem B (URL)'),
+            model_name="questao",
+            name="imagem_opcao_b",
+            field=models.URLField(blank=True, null=True, verbose_name="Imagem B (URL)"),
         ),
         migrations.AlterField(
-            model_name='questao',
-            name='imagem_opcao_c',
-            field=models.URLField(blank=True, null=True, verbose_name='Imagem C (URL)'),
+            model_name="questao",
+            name="imagem_opcao_c",
+            field=models.URLField(blank=True, null=True, verbose_name="Imagem C (URL)"),
         ),
         migrations.AlterField(
-            model_name='questao',
-            name='imagem_opcao_d',
-            field=models.URLField(blank=True, null=True, verbose_name='Imagem D (URL)'),
+            model_name="questao",
+            name="imagem_opcao_d",
+            field=models.URLField(blank=True, null=True, verbose_name="Imagem D (URL)"),
         ),
         migrations.AlterField(
-            model_name='questao',
-            name='imagem_opcao_e',
-            field=models.URLField(blank=True, null=True, verbose_name='Imagem E (URL)'),
+            model_name="questao",
+            name="imagem_opcao_e",
+            field=models.URLField(blank=True, null=True, verbose_name="Imagem E (URL)"),
         ),
     ]

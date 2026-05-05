@@ -7,57 +7,102 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('conteudo', '0001_initial'),
+        ("conteudo", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='materia',
+            name="materia",
             options={},
         ),
         migrations.AlterModelOptions(
-            name='tema',
+            name="tema",
             options={},
         ),
         migrations.AlterField(
-            model_name='materia',
-            name='codigo',
+            model_name="materia",
+            name="codigo",
             field=models.CharField(max_length=20, unique=True),
         ),
         migrations.AlterField(
-            model_name='materia',
-            name='nome',
+            model_name="materia",
+            name="nome",
             field=models.CharField(max_length=100),
         ),
         migrations.AlterField(
-            model_name='tema',
-            name='descricao',
+            model_name="tema",
+            name="descricao",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='tema',
-            name='materia',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='temas', to='conteudo.materia'),
+            model_name="tema",
+            name="materia",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="temas",
+                to="conteudo.materia",
+            ),
         ),
         migrations.AlterField(
-            model_name='tema',
-            name='nome',
+            model_name="tema",
+            name="nome",
             field=models.CharField(max_length=100),
         ),
         migrations.CreateModel(
-            name='MaterialEstudo',
+            name="MaterialEstudo",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titulo', models.CharField(help_text='Ex: Aula 01 - Introdução a Frações', max_length=200)),
-                ('tipo', models.CharField(choices=[('VIDEO', 'Videoaula (Ex: YouTube)'), ('PDF', 'Apostila ou Resumo (PDF)'), ('LINK', 'Artigo ou Link Externo')], default='VIDEO', max_length=10)),
-                ('url', models.URLField(help_text='Link direto para o material', max_length=500)),
-                ('ordem', models.PositiveIntegerField(default=1, help_text='1 aparece primeiro, 2 depois, etc.')),
-                ('tema', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='materiais', to='conteudo.tema')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "titulo",
+                    models.CharField(
+                        help_text="Ex: Aula 01 - Introdução a Frações", max_length=200
+                    ),
+                ),
+                (
+                    "tipo",
+                    models.CharField(
+                        choices=[
+                            ("VIDEO", "Videoaula (Ex: YouTube)"),
+                            ("PDF", "Apostila ou Resumo (PDF)"),
+                            ("LINK", "Artigo ou Link Externo"),
+                        ],
+                        default="VIDEO",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "url",
+                    models.URLField(
+                        help_text="Link direto para o material", max_length=500
+                    ),
+                ),
+                (
+                    "ordem",
+                    models.PositiveIntegerField(
+                        default=1, help_text="1 aparece primeiro, 2 depois, etc."
+                    ),
+                ),
+                (
+                    "tema",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="materiais",
+                        to="conteudo.tema",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Material de Estudo',
-                'verbose_name_plural': 'Materiais de Estudo',
-                'ordering': ['tema', 'ordem'],
+                "verbose_name": "Material de Estudo",
+                "verbose_name_plural": "Materiais de Estudo",
+                "ordering": ["tema", "ordem"],
             },
         ),
     ]

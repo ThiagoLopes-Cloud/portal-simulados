@@ -10,26 +10,68 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('questoes', '0001_initial'),
+        ("questoes", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Resposta',
+            name="Resposta",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('opcao_escolhida', models.CharField(choices=[('A', 'Alternativa A'), ('B', 'Alternativa B'), ('C', 'Alternativa C'), ('D', 'Alternativa D'), ('E', 'Alternativa E')], max_length=1, verbose_name='Opção Escolhida')),
-                ('correta', models.BooleanField(default=False, verbose_name='Correta')),
-                ('respondido_em', models.DateTimeField(auto_now_add=True, verbose_name='Respondido em')),
-                ('aluno', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='respostas', to=settings.AUTH_USER_MODEL, verbose_name='Aluno')),
-                ('questao', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='respostas', to='questoes.questao', verbose_name='Questão')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "opcao_escolhida",
+                    models.CharField(
+                        choices=[
+                            ("A", "Alternativa A"),
+                            ("B", "Alternativa B"),
+                            ("C", "Alternativa C"),
+                            ("D", "Alternativa D"),
+                            ("E", "Alternativa E"),
+                        ],
+                        max_length=1,
+                        verbose_name="Opção Escolhida",
+                    ),
+                ),
+                ("correta", models.BooleanField(default=False, verbose_name="Correta")),
+                (
+                    "respondido_em",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Respondido em"
+                    ),
+                ),
+                (
+                    "aluno",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="respostas",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Aluno",
+                    ),
+                ),
+                (
+                    "questao",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="respostas",
+                        to="questoes.questao",
+                        verbose_name="Questão",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Resposta',
-                'verbose_name_plural': 'Respostas',
-                'ordering': ['-respondido_em'],
-                'unique_together': {('aluno', 'questao')},
+                "verbose_name": "Resposta",
+                "verbose_name_plural": "Respostas",
+                "ordering": ["-respondido_em"],
+                "unique_together": {("aluno", "questao")},
             },
         ),
     ]

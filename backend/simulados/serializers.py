@@ -22,21 +22,21 @@ class QuestaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Questao
         fields = [
-            'id',
-            'ordem',             # Posição da questão neste simulado
-            'enunciado',
-            'imagem_enunciado',
-            'opcao_a',
-            'opcao_b',
-            'opcao_c',
-            'opcao_d',
-            'opcao_e',
-            'imagem_opcao_a',
-            'imagem_opcao_b',
-            'imagem_opcao_c',
-            'imagem_opcao_d',
-            'imagem_opcao_e',
-            'dificuldade',       # Exibido ao aluno para contexto (opcional no front)
+            "id",
+            "ordem",  # Posição da questão neste simulado
+            "enunciado",
+            "imagem_enunciado",
+            "opcao_a",
+            "opcao_b",
+            "opcao_c",
+            "opcao_d",
+            "opcao_e",
+            "imagem_opcao_a",
+            "imagem_opcao_b",
+            "imagem_opcao_c",
+            "imagem_opcao_d",
+            "imagem_opcao_e",
+            "dificuldade",  # Exibido ao aluno para contexto (opcional no front)
         ]
         # Segurança: resposta_correta e explicacao nunca saem neste serializer
 
@@ -54,13 +54,13 @@ class SimuladoListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Simulado
         fields = [
-            'id',
-            'titulo',
-            'descricao',
-            'criado_em',
-            'data_inicio',
-            'data_fim',
-            'total_questoes',
+            "id",
+            "titulo",
+            "descricao",
+            "criado_em",
+            "data_inicio",
+            "data_fim",
+            "total_questoes",
         ]
 
     def get_total_questoes(self, obj):
@@ -73,7 +73,7 @@ class SimuladoDetalheSerializer(serializers.ModelSerializer):
     """
     Serializer completo com todas as questões ordenadas.
     Usado em GET /api/simulados/{id}/ — tela de prova do Vue.js.
-    
+
     A ordem das questões é definida pela tabela SimuladoQuestao.
     Usamos SerializerMethodField para injetar o campo 'ordem' em cada questão.
     """
@@ -84,31 +84,29 @@ class SimuladoDetalheSerializer(serializers.ModelSerializer):
     class Meta:
         model = Simulado
         fields = [
-            'id',
-            'titulo',
-            'descricao',
-            'criado_em',
-            'data_inicio',
-            'data_fim',
-            'total_questoes',
-            'questoes',
+            "id",
+            "titulo",
+            "descricao",
+            "criado_em",
+            "data_inicio",
+            "data_fim",
+            "total_questoes",
+            "questoes",
         ]
 
     def get_questoes(self, obj):
         """
         Retorna as questões ordenadas pelo campo 'ordem' da tabela intermediária.
-        
+
         Estratégia: percorrer os SimuladoQuestao ordenados e injetar
         o campo 'ordem' em cada objeto Questao antes de serializar.
         Evita N+1 queries com select_related.
         """
 
         # Busca os vínculos ordenados, com a questão em join — 1 query só
-        simulado_questoes = (
-            obj.simulado_questoes
-            .select_related('questao', 'questao__tema')
-            .order_by('ordem')
-        )
+        simulado_questoes = obj.simulado_questoes.select_related(
+            "questao", "questao__tema"
+        ).order_by("ordem")
 
         questoes_serializadas = []
         for sq in simulado_questoes:
