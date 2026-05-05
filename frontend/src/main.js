@@ -11,9 +11,6 @@ import './assets/main.css'
 // Importa o router que configuramos
 import router from './router/index.js'
 
-// Importa o arquivo de estilos globais
-import './style.css'
-
 // Cria a aplicação Vue
 // createApp(App) — inicializa o Vue com o componente App como raiz
 const app = createApp(App)
