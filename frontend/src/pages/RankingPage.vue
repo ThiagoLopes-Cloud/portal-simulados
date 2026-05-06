@@ -15,7 +15,9 @@
 
     <div v-else>
       <div v-if="ranking.length === 0" class="empty-state">
-        <div class="empty-icon">◆</div>
+        <div class="empty-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        </div>
         <h3 class="empty-title">Ranking em formação.</h3>
         <p class="empty-sub">Seja o primeiro a completar uma avaliação e conquiste o topo do laboratório.</p>
       </div>
@@ -169,7 +171,7 @@ function formatarData(data) {
   border: 1px dashed #e2e8f0;
   border-radius: 16px;
 }
-.empty-icon { font-size: 2.5rem; color: #2563eb; margin-bottom: 20px; }
+.empty-icon { color: #93c5fd; margin-bottom: 20px; }
 .empty-title {
   font-family: var(--font-display);
   font-size: 1.125rem;

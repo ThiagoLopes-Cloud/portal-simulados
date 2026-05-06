@@ -10,10 +10,12 @@
     <!-- Tabs -->
     <div class="tabs">
       <button class="tab" :class="{ 'tab--active': activeTab === 'globais' }" @click="activeTab = 'globais'">
-        <span class="tab-icon">◎</span> Banco Global
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Banco Global
       </button>
       <button class="tab tab--vip" :class="{ 'tab--active-vip': activeTab === 'exclusivos' }" @click="activeTab = 'exclusivos'">
-        <span class="tab-icon">◆</span> Missões de Turma
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        Missões de Turma
         <span v-if="simuladosExclusivos.length" class="tab-badge">{{ simuladosExclusivos.length }}</span>
       </button>
     </div>
@@ -27,7 +29,9 @@
       <!-- Global -->
       <div v-if="activeTab === 'globais'" class="grid-cards">
         <div v-if="simuladosGlobais.length === 0" class="empty-state">
-          <div class="empty-icon">◎</div>
+          <div class="empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
           <h3 class="empty-title">Banco Global Vazio</h3>
           <p class="empty-sub">Nenhuma avaliação pública disponível no momento.</p>
         </div>
@@ -53,7 +57,9 @@
       <!-- Exclusivos -->
       <div v-if="activeTab === 'exclusivos'" class="grid-cards">
         <div v-if="simuladosExclusivos.length === 0" class="empty-state">
-          <div class="empty-icon" style="color: #7c3aed">◆</div>
+          <div class="empty-icon" style="color: #7c3aed">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          </div>
           <h3 class="empty-title">Acesso Restrito</h3>
           <p class="empty-sub">
             Você ainda não possui missões fechadas. Junte-se a uma turma com um código de convite.
@@ -65,7 +71,7 @@
 
         <div v-for="simulado in simuladosExclusivos" :key="simulado.id" class="simulado-card simulado-card--vip">
           <div class="vip-glow" />
-          <div class="vip-badge">⭐ Exclusivo</div>
+          <div class="vip-badge">Exclusivo</div>
           <div>
             <h3 class="card-title mt-6">{{ simulado.titulo }}</h3>
             <p class="card-desc">{{ simulado.descricao || 'Simulação tática direcionada ao seu grupo de estudos.' }}</p>
@@ -136,7 +142,7 @@ onMounted(async () => {
 .tab {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   padding: 10px 16px;
   font-size: 0.875rem;
   font-weight: 600;
@@ -150,9 +156,7 @@ onMounted(async () => {
 }
 .tab:hover { color: #475569; }
 .tab--active { color: #2563eb; border-bottom-color: #2563eb; }
-.tab--vip { }
 .tab--active-vip { color: #7c3aed; border-bottom-color: #7c3aed; }
-.tab-icon { font-size: 1rem; }
 .tab-badge {
   margin-left: 4px;
   padding: 2px 8px;
@@ -246,7 +250,7 @@ onMounted(async () => {
   border: 1px dashed #e2e8f0;
   border-radius: 16px;
 }
-.empty-icon { font-size: 2.5rem; color: #2563eb; margin-bottom: 20px; }
+.empty-icon { color: #93c5fd; margin-bottom: 20px; }
 .empty-title {
   font-family: var(--font-display);
   font-size: 1.125rem;

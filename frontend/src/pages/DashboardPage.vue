@@ -73,10 +73,11 @@
       <div v-if="dados.total_simulados === 0 && !isAdmin" class="empty-state">
         <SimuslabCard>
           <div class="empty-content">
-            <div class="empty-icon">◎</div>
-            <h3 class="empty-title">Seu diagnóstico tático começa aqui.</h3>
+            <div class="empty-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <h3 class="empty-title">Seu diagnóstico começa aqui.</h3>
             <p class="empty-text">
-              O laboratório precisa de dados para calibrar sua estratégia.
               Realize sua primeira avaliação para destrancar seu painel de performance.
             </p>
             <SimuslabButton variant="primary" @click="$router.push('/simulados')">
@@ -368,7 +369,7 @@ function scoreBg(v)   { return v >= 70 ? 'fill--good' : v >= 50 ? 'fill--mid'  :
   padding: 48px 20px;
   gap: 16px;
 }
-.empty-icon { font-size: 2.5rem; color: #3b82f6; opacity: 0.4; }
+.empty-icon { color: #93c5fd; }
 .empty-title {
   font-family: var(--font-display);
   font-size: 1.25rem;

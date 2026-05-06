@@ -1,19 +1,24 @@
 <template>
-  <header class="simuslab-topbar" :style="topbarStyle">
-    <div class="topbar-left">
+  <header class="sl-topbar" :style="topbarStyle">
+    <div class="sl-topbar-left">
       <slot name="left" />
     </div>
 
-    <div class="topbar-center">
+    <div class="sl-topbar-center">
       <slot name="center" />
     </div>
 
-    <div class="topbar-right">
+    <div class="sl-topbar-right">
       <slot name="right" />
 
-      <div v-if="username" class="topbar-user">
-        <span class="topbar-username">{{ displayName }}</span>
-        <div class="topbar-avatar" :title="username">{{ initials }}</div>
+      <div v-if="username" class="sl-topbar-user">
+        <div class="sl-user-info">
+          <span class="sl-username">{{ displayName }}</span>
+          <span class="sl-user-role">{{ roleLabel }}</span>
+        </div>
+        <button class="sl-avatar" :title="username" aria-label="Menu do usuário">
+          {{ initials }}
+        </button>
       </div>
     </div>
   </header>
@@ -23,7 +28,7 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  username: { type: String, default: '' },
+  username:     { type: String, default: '' },
   sidebarWidth: { type: String, default: 'var(--sidebar-width)' },
 })
 
@@ -34,8 +39,12 @@ const initials = computed(() => {
 
 const displayName = computed(() => {
   if (!props.username) return ''
-  const parts = props.username.split(' ')
-  return parts[0]
+  return props.username.split(' ')[0]
+})
+
+const roleLabel = computed(() => {
+  const role = localStorage.getItem('user_role')
+  return role === 'admin' ? 'Administrador' : 'Aluno'
 })
 
 const topbarStyle = computed(() => ({
@@ -45,15 +54,15 @@ const topbarStyle = computed(() => ({
 </script>
 
 <style scoped>
-.simuslab-topbar {
+.sl-topbar {
   position: fixed;
   top: 0;
   right: 0;
   height: var(--topbar-height);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e8ecf2;
   z-index: var(--z-topbar);
   display: flex;
   align-items: center;
@@ -62,56 +71,73 @@ const topbarStyle = computed(() => ({
   transition: left var(--transition-slow), width var(--transition-slow);
 }
 
-/* ── Mobile: topbar ocupa a largura total (sem sidebar) ── */
 @media (max-width: 768px) {
-  .simuslab-topbar {
+  .sl-topbar {
     left: 0 !important;
     width: 100% !important;
   }
 }
 
-.topbar-left {
+.sl-topbar-left {
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
 
-.topbar-center {
+.sl-topbar-center {
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
-.topbar-right {
+.sl-topbar-right {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   flex-shrink: 0;
+  margin-left: auto;
 }
 
-/* ── User info ── */
-.topbar-user {
+/* ── User section ── */
+.sl-topbar-user {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
-.topbar-username {
+.sl-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.sl-username {
   font-family: var(--font-body);
   font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.sl-user-role {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
   font-weight: 500;
-  color: #64748b;
+  color: #94a3b8;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ── Avatar ── */
-.topbar-avatar {
-  width: 32px;
-  height: 32px;
+.sl-avatar {
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: #eff6ff;
   border: 1.5px solid #bfdbfe;
-  color: #2563eb;
+  color: #1d4ed8;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.75rem;
@@ -121,5 +147,15 @@ const topbarStyle = computed(() => ({
   cursor: default;
   flex-shrink: 0;
   letter-spacing: 0.02em;
+  transition: all 0.12s ease;
+}
+
+.sl-avatar:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+@media (max-width: 640px) {
+  .sl-user-info { display: none; }
 }
 </style>

@@ -4,7 +4,9 @@
     <!-- Modal de confirmação de saída -->
     <div v-if="mostrarConfirmacaoSaida" class="exit-overlay">
       <div class="exit-modal">
-        <div class="exit-icon">⚠</div>
+        <div class="exit-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
         <h3 class="exit-title">Abandonar Missão?</h3>
         <p class="exit-sub">Seus dados de performance serão perdidos. Você terá que recomeçar do zero.</p>
         <div class="exit-actions">
@@ -41,7 +43,9 @@
 
     <!-- Erro -->
     <div v-else-if="erro" class="state-center">
-      <div class="error-icon">⚠</div>
+      <div class="error-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
       <p class="state-text">{{ erro }}</p>
       <button class="btn-voltar" @click="$router.push('/simulados')">Retornar à Base</button>
     </div>
@@ -90,32 +94,34 @@
         </div>
 
         <div class="controles-btns">
-          <SimusButton
+          <SimuslabButton
             variant="secondary"
             :disabled="questaoAtual === 0"
             @click="anterior"
-          >Anterior</SimusButton>
+          >Anterior</SimuslabButton>
 
-          <SimusButton
+          <SimuslabButton
             v-if="questaoAtual < simulado.questoes.length - 1"
             variant="primary"
             @click="proxima"
-          >Avançar</SimusButton>
+          >Avançar</SimuslabButton>
 
-          <SimusButton
+          <SimuslabButton
             v-else
             variant="primary"
             :disabled="enviando || totalRespondidas < simulado.questoes.length"
+            :loading="enviando"
             @click="enviar"
           >
-            {{ enviando ? 'Compilando...' : 'Finalizar Simulação' }}
-          </SimusButton>
+            Finalizar Simulação
+          </SimuslabButton>
         </div>
       </div>
 
       <div v-if="questaoAtual === simulado.questoes.length - 1 && totalRespondidas < simulado.questoes.length"
            class="alerta alerta--flare">
-        ⚠ Existem {{ simulado.questoes.length - totalRespondidas }} questões sem resposta.
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Existem {{ simulado.questoes.length - totalRespondidas }} questões sem resposta.
       </div>
 
       <div v-if="erroEnvio" class="alerta alerta--nova">{{ erroEnvio }}</div>
@@ -128,7 +134,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api.js'
 import SimusOption from '../components/ui/SimusOption.vue'
-import SimusButton from '../components/ui/SimusButton.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -219,7 +225,7 @@ async function enviar() {
   width: 90%;
   text-align: center;
 }
-.exit-icon { font-size: 2.5rem; color: var(--color-flare); margin-bottom: var(--space-5); }
+.exit-icon { color: var(--color-flare); margin-bottom: var(--space-5); display: flex; justify-content: center; }
 .exit-title { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--weight-bold); color: var(--color-star); margin-bottom: var(--space-3); }
 .exit-sub { font-size: var(--text-sm); color: var(--color-comet); line-height: var(--leading-relaxed); margin-bottom: var(--space-8); }
 .exit-actions { display: flex; gap: var(--space-3); justify-content: center; }
@@ -258,7 +264,7 @@ async function enviar() {
 /* States */
 .state-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); color: var(--color-comet); }
 .state-text { font-size: var(--text-sm); }
-.error-icon { font-size: 3rem; color: var(--color-nova); }
+.error-icon { color: var(--color-nova); display: flex; justify-content: center; }
 .btn-voltar { margin-top: var(--space-2); padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); background: var(--color-orbit); color: var(--color-cosmos); font-family: var(--font-display); font-weight: var(--weight-semibold); font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; border: none; transition: all var(--transition-fast); }
 .load-card { width: 160px; height: 192px; background: rgba(255,255,255,0.05); border-radius: var(--radius-xl); }
 .skeleton { position: relative; overflow: hidden; }

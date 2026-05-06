@@ -20,7 +20,9 @@
 
     <!-- Erro -->
     <div v-else-if="erro" class="empty-state">
-      <div class="empty-icon nova">⚠</div>
+      <div class="empty-icon nova">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
       <h3 class="empty-title">Erro na decodificação.</h3>
       <p class="empty-sub">{{ erro }}</p>
       <SimuslabButton variant="primary" size="sm" class="mt-5" @click="$router.push('/simulados')">Voltar</SimuslabButton>
@@ -32,7 +34,9 @@
       <div class="score-hero">
         <div class="hero-left">
           <div class="hero-icon-wrap" :class="heroAccent(parseFloat(gabarito.score))">
-            {{ parseFloat(gabarito.score) >= 70 ? '◆' : parseFloat(gabarito.score) >= 50 ? '◈' : '◎' }}
+            <svg v-if="parseFloat(gabarito.score) >= 70" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+            <svg v-else-if="parseFloat(gabarito.score) >= 50" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            <svg v-else width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           </div>
           <div>
             <h2 class="hero-title">{{ mensagemMotivacional }}</h2>
@@ -96,7 +100,7 @@
             <div v-if="tema.materiais_recomendados?.length" class="materials">
               <a v-for="(m, i) in tema.materiais_recomendados" :key="i"
                  :href="m.url" target="_blank" class="material-link">
-                <span>{{ { VIDEO: '▶', PDF: '◧', LINK: '◉' }[m.tipo] || '◎' }}</span>
+                <span class="mat-tipo-icon" :data-tipo="m.tipo || 'LINK'" />
                 <span class="mat-title">{{ m.titulo }}</span>
                 <span class="mat-action">Acessar ↗</span>
               </a>
@@ -150,7 +154,12 @@
                 <span v-else-if="questao.correta === false" class="text-nova">{{ questao.opcao_escolhida }} → {{ questao.resposta_correta }}</span>
                 <span v-else class="text-dust">Em branco</span>
               </div>
-              <span class="q-toggle">{{ questoesAbertas.includes(questao.ordem) ? '▲' : '▼' }}</span>
+              <span class="q-toggle">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline v-if="questoesAbertas.includes(questao.ordem)" points="18 15 12 9 6 15"/>
+                  <polyline v-else points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
             </div>
 
             <div v-if="questoesAbertas.includes(questao.ordem)" class="q-body">
@@ -172,7 +181,7 @@
                 </div>
               </div>
               <div v-if="questao.explicacao" class="explicacao">
-                <div class="exp-title">◈ Resolução do Laboratório</div>
+                <div class="exp-title">Resolução do Laboratório</div>
                 <p class="exp-text">{{ questao.explicacao }}</p>
               </div>
               <div v-if="questao.correta === null" class="blank-warning">Questão deixada em branco.</div>
@@ -299,7 +308,7 @@ onMounted(async () => {
 
 /* Empty */
 .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-14) var(--space-8); background: var(--color-nebula); border: 1px dashed var(--color-border); border-radius: var(--radius-xl); }
-.empty-icon { font-size: 2.5rem; color: var(--color-orbit); margin-bottom: var(--space-5); }
+.empty-icon { color: var(--color-orbit); margin-bottom: var(--space-5); }
 .empty-icon.nova { color: var(--color-nova); }
 .empty-title { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-star); margin-bottom: var(--space-2); }
 .empty-sub { font-size: var(--text-sm); color: var(--color-comet); }
@@ -414,7 +423,8 @@ onMounted(async () => {
 .text-stellar { color: var(--color-stellar); font-weight: var(--weight-medium); }
 .text-nova { color: var(--color-nova); font-weight: var(--weight-medium); }
 .text-dust { color: var(--color-dust); }
-.q-toggle { color: var(--color-dust); font-size: var(--text-xs); }
+.q-toggle { color: var(--color-dust); display: flex; align-items: center; }
+.mat-tipo-icon::before { content: '→'; font-size: 0.75rem; color: var(--color-comet); }
 
 .q-body { padding: var(--space-6); border-top: 1px solid var(--color-border); }
 .q-texto { font-size: var(--text-base); color: var(--color-comet); line-height: var(--leading-relaxed); margin-bottom: var(--space-5); }
