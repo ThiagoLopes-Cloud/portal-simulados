@@ -1,35 +1,42 @@
 <template>
   <AuthLayout>
-    <div class="login-box">
+    <div class="w-full max-w-[400px] mx-auto">
 
       <!-- Cabeçalho do formulário -->
-      <div class="form-header">
-        <div class="form-badge">Plataforma de Simulados</div>
-        <h2 class="form-title">Bem-vindo de volta</h2>
-        <p class="form-sub">Acesse seu painel e continue evoluindo.</p>
+      <div class="mb-8">
+        <div class="inline-flex items-center px-3 py-1 rounded-full bg-simus-cyan/10 text-simus-cyan text-xs font-bold tracking-widest uppercase mb-4">
+          Plataforma de Simulados
+        </div>
+        <h2 class="font-display text-3xl font-bold text-white tracking-tight leading-tight mb-2">
+          Bem-vindo de volta
+        </h2>
+        <p class="text-sm text-slate-400">
+          Acesse seu painel e continue evoluindo.
+        </p>
       </div>
 
       <!-- Banner de erro -->
       <Transition name="slide-down">
-        <div v-if="loginError" class="error-banner" role="alert">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="error-icon">
-            <circle cx="8" cy="8" r="7" stroke="#b91c1c" stroke-width="1.5"/>
-            <path d="M8 5v3.5M8 10.5v.5" stroke="#b91c1c" stroke-width="1.5" stroke-linecap="round"/>
+        <div v-if="loginError" class="flex items-start gap-3 bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm font-medium mb-6" role="alert">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="flex-shrink-0 mt-[2px]">
+            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           <span>Usuário ou senha incorretos. Verifique e tente novamente.</span>
         </div>
       </Transition>
 
       <!-- Formulário -->
-      <form @submit.prevent="handleLogin" class="form-fields" novalidate>
-        <div class="field-group">
-          <label for="login-user" class="field-label">Usuário ou e-mail</label>
+      <form @submit.prevent="handleLogin" class="flex flex-col gap-5 mb-6" novalidate>
+        
+        <div class="flex flex-col gap-1.5">
+          <label for="login-user" class="text-sm font-medium text-slate-300">Usuário ou e-mail</label>
           <input
             id="login-user"
             v-model="username"
             type="text"
-            class="field-input"
-            :class="{ 'field-input--error': loginError }"
+            class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg font-body text-white placeholder:text-slate-500 focus:outline-none focus:border-simus-cyan focus:ring-1 focus:ring-simus-cyan focus:bg-white/10 transition-all"
+            :class="{ 'border-red-500/50 focus:border-red-500 focus:ring-red-500': loginError }"
             placeholder="seu.usuario"
             required
             autocomplete="username"
@@ -37,24 +44,26 @@
           />
         </div>
 
-        <div class="field-group">
-          <div class="field-label-row">
-            <label for="login-pass" class="field-label">Senha</label>
-            <a href="#" class="forgot-link" tabindex="-1">Esqueceu a senha?</a>
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <label for="login-pass" class="text-sm font-medium text-slate-300">Senha</label>
+            <a href="#" class="text-sm text-simus-cyan font-medium hover:text-cyan-300 hover:underline transition-colors" tabindex="-1">
+              Esqueceu a senha?
+            </a>
           </div>
-          <div class="password-wrap">
+          <div class="relative">
             <input
               id="login-pass"
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
-              class="field-input"
-              :class="{ 'field-input--error': loginError }"
+              class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg font-body text-white placeholder:text-slate-500 pr-11 focus:outline-none focus:border-simus-cyan focus:ring-1 focus:ring-simus-cyan focus:bg-white/10 transition-all"
+              :class="{ 'border-red-500/50 focus:border-red-500 focus:ring-red-500': loginError }"
               placeholder="••••••••"
               required
               autocomplete="current-password"
               @input="loginError = false"
             />
-            <button type="button" class="eye-btn" @click="showPassword = !showPassword" tabindex="-1" :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'">
+            <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-1" @click="showPassword = !showPassword" tabindex="-1" :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'">
               <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
                 <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/>
@@ -68,27 +77,28 @@
 
         <button
           type="submit"
-          class="submit-btn"
-          :class="{ 'submit-btn--loading': isLoading }"
+          class="w-full mt-2 py-3 bg-simus-cyan text-simus-bg font-display font-bold text-sm uppercase tracking-wider rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed flex items-center justify-center min-h-[48px]"
           :disabled="isLoading || !username || !password"
         >
-          <span v-if="!isLoading" class="submit-label">
+          <span v-if="!isLoading" class="flex items-center gap-2">
             Acessar Plataforma
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </span>
-          <span v-else class="submit-loading">
-            <span class="spinner" />
+          <span v-else class="flex items-center gap-2 opacity-90">
+            <span class="w-4 h-4 border-2 border-simus-bg/30 border-t-simus-bg rounded-full animate-spin flex-shrink-0" />
             Autenticando...
           </span>
         </button>
       </form>
 
       <!-- Rodapé do form -->
-      <p class="form-switch">
+      <p class="text-center text-sm text-slate-400">
         Ainda não tem acesso?
-        <router-link to="/register" class="switch-link">Criar conta gratuita</router-link>
+        <router-link to="/register" class="text-simus-cyan font-semibold ml-1 hover:underline transition-colors">
+          Criar conta gratuita
+        </router-link>
       </p>
 
     </div>
@@ -130,224 +140,10 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-.login-box {
-  width: 100%;
-  max-width: 400px;
-}
-
-/* ── Cabeçalho ── */
-.form-header {
-  margin-bottom: 32px;
-}
-
-.form-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-bottom: 14px;
-}
-
-.form-title {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.025em;
-  line-height: 1.2;
-  margin-bottom: 6px;
-}
-
-.form-sub {
-  font-size: 0.9375rem;
-  color: #64748b;
-  line-height: 1.5;
-}
-
-/* ── Error banner ── */
-.error-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 10px;
-  padding: 12px 14px;
-  color: #b91c1c;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 20px;
-}
-.error-icon { flex-shrink: 0; margin-top: 1px; }
-
-/* slide-down transition */
-.slide-down-enter-active { transition: all 0.2s ease; }
-.slide-down-leave-active { transition: all 0.15s ease; }
-.slide-down-enter-from   { opacity: 0; transform: translateY(-8px); }
-.slide-down-leave-to     { opacity: 0; transform: translateY(-4px); }
-
-/* ── Formulário ── */
-.form-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-bottom: 24px;
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.field-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.forgot-link {
-  font-size: 0.8125rem;
-  color: #2563eb;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.12s ease;
-}
-.forgot-link:hover { color: #1d4ed8; text-decoration: underline; }
-
-/* Input nativo — visual Stripe/Clerk */
-.field-input {
-  width: 100%;
-  padding: 10px 14px;
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  font-family: var(--font-body);
-  font-size: 0.9375rem;
-  color: #0f172a;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  -webkit-appearance: none;
-}
-.field-input::placeholder { color: #94a3b8; }
-.field-input:hover:not(:focus) { border-color: #cbd5e1; }
-.field-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
-}
-.field-input--error {
-  border-color: #fca5a5;
-  background: #fffafa;
-}
-.field-input--error:focus {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
-}
-
-/* Password wrapper */
-.password-wrap {
-  position: relative;
-}
-.password-wrap .field-input {
-  padding-right: 44px;
-}
-.eye-btn {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.12s ease;
-}
-.eye-btn:hover { color: #475569; }
-
-/* ── Botão primário ── */
-.submit-btn {
-  width: 100%;
-  padding: 11px 20px;
-  background: #2563eb;
-  color: #ffffff;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.9375rem;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.4), 0 1px 2px rgba(0, 0, 0, 0.06);
-  min-height: 44px;
-}
-.submit-btn:hover:not(:disabled) {
-  background: #1d4ed8;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-  transform: translateY(-1px);
-}
-.submit-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.99);
-}
-.submit-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.submit-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.submit-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-size: 0.875rem;
-  opacity: 0.9;
-}
-
-.spinner {
-  width: 15px;
-  height: 15px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin 0.65s linear infinite;
-  flex-shrink: 0;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── Link de cadastro ── */
-.form-switch {
-  text-align: center;
-  font-size: 0.875rem;
-  color: #64748b;
-}
-.switch-link {
-  color: #2563eb;
-  font-weight: 600;
-  text-decoration: none;
-  margin-left: 4px;
-  transition: color 0.12s ease;
-}
-.switch-link:hover { color: #1d4ed8; text-decoration: underline; }
+/* Removemos quase todo o CSS pois agora o Tailwind gerencia tudo! */
+/* Mantemos apenas a animação da notificação de erro, que o Vue Transition precisa */
+.slide-down-enter-active { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.slide-down-leave-active { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+.slide-down-enter-from   { opacity: 0; transform: translateY(-10px); }
+.slide-down-leave-to     { opacity: 0; transform: translateY(-5px); }
 </style>
