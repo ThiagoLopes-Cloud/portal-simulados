@@ -194,4 +194,11 @@ defineEmits(['toggle'])
 }
 .rotate-180 { transform: rotate(180deg); }
 .sidebar--collapsed .collapse-btn { justify-content: center; }
+
+/* ── Mobile: sidebar oculta (bottom nav assume) ── */
+@media (max-width: 768px) {
+  .simuslab-sidebar {
+    display: none;
+  }
+}
 </style>

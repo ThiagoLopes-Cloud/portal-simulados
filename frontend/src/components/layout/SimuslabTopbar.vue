@@ -62,6 +62,14 @@ const topbarStyle = computed(() => ({
   transition: left var(--transition-slow), width var(--transition-slow);
 }
 
+/* ── Mobile: topbar ocupa a largura total (sem sidebar) ── */
+@media (max-width: 768px) {
+  .simuslab-topbar {
+    left: 0 !important;
+    width: 100% !important;
+  }
+}
+
 .topbar-left {
   display: flex;
   align-items: center;
