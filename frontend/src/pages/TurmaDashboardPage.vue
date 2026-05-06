@@ -36,7 +36,12 @@
 
     <!-- Sem turma selecionada -->
     <div v-else-if="!dados" class="flex flex-col items-center justify-center py-20 px-4 text-center">
-      <span class="text-5xl mb-4">⚔️</span>
+      <div class="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4 text-indigo-400">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
       <p class="font-display font-semibold text-simus-text text-lg">Selecione uma turma</p>
       <p class="text-simus-muted text-sm mt-1">Escolha a turma acima para ver o desempenho coletivo.</p>
     </div>
@@ -110,8 +115,11 @@
       <!-- Pódio: Top 3 Alunos -->
       <section class="px-4 md:px-8 pb-24">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-simus-soft p-5">
-          <h2 class="font-display font-semibold text-sm text-simus-text mb-5">
-            🏆 Top Performers — {{ dados.turma.nome }}
+          <h2 class="font-display font-semibold text-sm text-simus-text mb-5 flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500">
+              <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+            </svg>
+            Top Performers — {{ dados.turma.nome }}
           </h2>
 
           <div v-if="!dados.top_alunos.length" class="text-center py-6 text-simus-muted text-sm">
@@ -133,7 +141,9 @@
 
             <!-- 1º lugar -->
             <div v-if="dados.top_alunos[0]" class="flex flex-col items-center gap-2 w-24">
-              <span class="text-2xl">👑</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400">
+                <path d="M2 16l3-10 4.5 5.5L12 3l2.5 8.5L19 6l3 10H2z"/><rect x="2" y="16" width="20" height="2" rx="1"/>
+              </svg>
               <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center font-display font-bold text-xl text-simus-primary ring-2 ring-simus-primary/30">
                 {{ initials(dados.top_alunos[0]) }}
               </div>

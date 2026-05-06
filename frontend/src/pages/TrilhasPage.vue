@@ -42,7 +42,11 @@
 
     <!-- Empty state -->
     <div v-else-if="!trilhas.length" class="flex flex-col items-center justify-center py-20 px-4 text-center">
-      <span class="text-5xl mb-4">📚</span>
+      <div class="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4 text-indigo-400">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
       <p class="font-display font-semibold text-simus-text text-lg">Nenhuma trilha disponível ainda</p>
       <p class="text-simus-muted text-sm mt-1">O professor está preparando o conteúdo para você.</p>
     </div>
@@ -91,7 +95,12 @@
             <button
               class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-simus-muted hover:bg-slate-200 transition-colors"
               @click="fecharTrilha"
-            >✕</button>
+              aria-label="Fechar"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </button>
           </div>
 
           <!-- Lista de módulos e aulas -->
