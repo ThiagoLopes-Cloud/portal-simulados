@@ -27,7 +27,6 @@
 
     <!-- Footer -->
     <div class="sidebar-footer">
-      <!-- Toggle button -->
       <button class="collapse-btn" @click="$emit('toggle')" :title="collapsed ? 'Expandir menu' : 'Recolher menu'">
         <span class="collapse-icon" :class="{ 'rotate-180': collapsed }">‹</span>
         <span class="nav-label">Recolher</span>
@@ -40,18 +39,9 @@
 import SimuslabLogo from '../ui/SimuslabLogo.vue'
 
 defineProps({
-  /** Collapsed state */
   collapsed: { type: Boolean, default: false },
-  /**
-   * Navigation groups:
-   * [{ id, label?, items: [{ to, icon, label, admin? }] }]
-   */
-  navigation: {
-    type: Array,
-    default: () => [],
-  },
+  navigation: { type: Array, default: () => [] },
 })
-
 defineEmits(['toggle'])
 </script>
 
@@ -62,8 +52,8 @@ defineEmits(['toggle'])
   left: 0;
   height: 100vh;
   width: var(--sidebar-width);
-  background: var(--color-nebula);
-  border-right: 1px solid var(--color-border);
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   z-index: var(--z-sidebar);
@@ -76,7 +66,7 @@ defineEmits(['toggle'])
 /* ── Logo ── */
 .sidebar-logo {
   padding: var(--space-5) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -91,15 +81,16 @@ defineEmits(['toggle'])
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 2px;
 }
 
 .nav-section-label {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
+  font-family: var(--font-body);
+  font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--color-dust);
+  color: #94a3b8;
+  font-weight: 600;
   padding: var(--space-4) var(--space-3) var(--space-1);
   white-space: nowrap;
   overflow: hidden;
@@ -107,7 +98,7 @@ defineEmits(['toggle'])
 
 .nav-divider-line {
   border: none;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid #f1f5f9;
   margin: var(--space-3) var(--space-2);
 }
 
@@ -115,42 +106,46 @@ defineEmits(['toggle'])
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  color: var(--color-comet);
+  padding: 10px var(--space-3);
+  border-radius: 10px;
+  color: #475569;
   font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: var(--weight-medium);
+  font-size: 0.875rem;
+  font-weight: 500;
   text-decoration: none;
-  transition: all var(--transition-normal);
+  transition: all 0.15s ease;
   white-space: nowrap;
   overflow: hidden;
   border: 1px solid transparent;
 }
 
 .nav-item:hover {
-  color: var(--color-star);
-  background: var(--color-surface-hover);
+  color: #1e293b;
+  background: #f8fafc;
 }
 
 .nav-item.router-link-exact-active {
-  color: var(--color-orbit);
-  background: var(--color-orbit-dim);
-  border-color: var(--color-orbit-border);
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  font-weight: 600;
 }
 
 .nav-item--admin.router-link-exact-active {
-  color: var(--color-pulsar);
-  background: var(--color-pulsar-dim);
-  border-color: var(--color-pulsar-border);
+  color: #6d28d9;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
 }
 
 .nav-icon {
-  font-size: 1.1rem;
+  font-size: 1rem;
   flex-shrink: 0;
   width: 20px;
   text-align: center;
+  opacity: 0.7;
 }
+
+.nav-item.router-link-exact-active .nav-icon { opacity: 1; }
 
 .nav-label {
   overflow: hidden;
@@ -158,7 +153,7 @@ defineEmits(['toggle'])
   transition: opacity var(--transition-slow), width var(--transition-slow);
 }
 
-/* ── Collapsed: hide labels ── */
+/* ── Collapsed ── */
 .sidebar--collapsed .nav-label  { opacity: 0; width: 0; }
 .sidebar--collapsed .nav-section-label { opacity: 0; }
 .sidebar--collapsed .nav-item { justify-content: center; }
@@ -166,7 +161,7 @@ defineEmits(['toggle'])
 /* ── Footer ── */
 .sidebar-footer {
   padding: var(--space-3);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid #f1f5f9;
   flex-shrink: 0;
 }
 
@@ -175,19 +170,19 @@ defineEmits(['toggle'])
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  color: var(--color-dust);
+  padding: 10px var(--space-3);
+  border-radius: 10px;
+  color: #94a3b8;
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: 0.875rem;
   background: none;
   border: none;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all 0.15s ease;
   white-space: nowrap;
   overflow: hidden;
 }
-.collapse-btn:hover { color: var(--color-comet); background: var(--color-surface-hover); }
+.collapse-btn:hover { color: #475569; background: #f8fafc; }
 
 .collapse-icon {
   font-size: 1.2rem;
@@ -198,6 +193,5 @@ defineEmits(['toggle'])
   transition: transform var(--transition-slow);
 }
 .rotate-180 { transform: rotate(180deg); }
-
 .sidebar--collapsed .collapse-btn { justify-content: center; }
 </style>

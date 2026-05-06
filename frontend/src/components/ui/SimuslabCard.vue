@@ -1,5 +1,7 @@
 <template>
-  <div class="simuslab-card" :class="[`card--${padding}`, accentClass]" :style="accentStyle">
+  <div class="simuslab-card" :class="[`card--${padding}`, { 'card--hoverable': hoverable }]">
+    <div v-if="accentColor" class="card-accent-bar" :class="`accent--${accentColor}`" />
+
     <div v-if="$slots.header" class="card-header">
       <slot name="header" />
     </div>
@@ -15,88 +17,53 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
-const props = defineProps({
-  /** Padding size: 'sm' | 'md' | 'lg' | 'none' */
-  padding: {
-    type: String,
-    default: 'md',
-    validator: v => ['sm', 'md', 'lg', 'none'].includes(v),
-  },
-  /**
-   * Accent color applied as top border gradient.
-   * 'orbit' | 'pulsar' | 'nova' | 'stellar' | 'flare' | string (custom CSS)
-   */
-  accentColor: { type: String, default: '' },
-  /** Hover glow effect */
-  hoverable: { type: Boolean, default: false },
-})
-
-const accentClass = computed(() => props.hoverable ? 'card--hoverable' : '')
-
-const accentGradients = {
-  orbit:   'linear-gradient(90deg, var(--color-orbit), var(--color-pulsar))',
-  pulsar:  'linear-gradient(90deg, var(--color-pulsar), var(--color-orbit))',
-  nova:    'linear-gradient(90deg, var(--color-nova), var(--color-flare))',
-  stellar: 'linear-gradient(90deg, var(--color-stellar), var(--color-orbit))',
-  flare:   'linear-gradient(90deg, var(--color-flare), var(--color-nova))',
-}
-
-const accentStyle = computed(() => {
-  if (!props.accentColor) return {}
-  const gradient = accentGradients[props.accentColor] || props.accentColor
-  return { '--card-accent': gradient }
+defineProps({
+  padding:    { type: String, default: 'md', validator: v => ['sm', 'md', 'lg', 'none'].includes(v) },
+  accentColor:{ type: String, default: '' },
+  hoverable:  { type: Boolean, default: false },
 })
 </script>
 
 <style scoped>
 .simuslab-card {
-  background: var(--color-nebula);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
-  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-/* Accent top bar */
-.simuslab-card[style*="--card-accent"]::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--card-accent);
-}
-
-/* Hoverable */
 .card--hoverable:hover {
-  border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-md), 0 0 0 1px var(--color-border-hover);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
 }
+
+/* ── Top accent bar (solid, not gradient) ── */
+.card-accent-bar {
+  height: 3px;
+  width: 100%;
+}
+.accent--orbit   { background: #3b82f6; }
+.accent--pulsar  { background: #8b5cf6; }
+.accent--nova    { background: #ef4444; }
+.accent--stellar { background: #10b981; }
+.accent--flare   { background: #f59e0b; }
 
 /* ── Padding variants ── */
-.card--sm  .card-body { padding: var(--space-4); }
-.card--md  .card-body { padding: var(--space-5); }
-.card--lg  .card-body { padding: var(--space-7); }
+.card--sm  .card-body { padding: 16px; }
+.card--md  .card-body { padding: 20px; }
+.card--lg  .card-body { padding: 28px; }
 .card--none .card-body { padding: 0; }
 
-/* Header / Footer */
+/* ── Header / Footer ── */
 .card-header {
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--color-border);
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
 }
 .card-footer {
-  padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--color-border);
+  padding: 16px 20px;
+  border-top: 1px solid #f1f5f9;
 }
-
-/* Adjust body padding when header/footer exist */
-.card--sm  .card-header,
-.card--sm  .card-footer  { padding: var(--space-3) var(--space-4); }
-.card--lg  .card-header,
-.card--lg  .card-footer  { padding: var(--space-5) var(--space-7); }
 </style>

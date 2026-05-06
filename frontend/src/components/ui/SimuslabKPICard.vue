@@ -1,9 +1,8 @@
 <template>
   <div class="simuslab-kpi" :class="`kpi--${accent}`">
-    <!-- Skeleton loading state -->
     <template v-if="loading">
-      <div class="kpi-skeleton-value skeleton" />
       <div class="kpi-skeleton-label skeleton" />
+      <div class="kpi-skeleton-value skeleton" />
     </template>
 
     <template v-else>
@@ -16,7 +15,7 @@
 
       <div v-if="change !== undefined" class="kpi-change" :class="`change--${changeDirection}`">
         <span class="change-icon">{{ changeIcon }}</span>
-        <span class="change-text">{{ Math.abs(change) }}{{ changeUnit }}</span>
+        <span>{{ Math.abs(change) }}{{ changeUnit }}</span>
         <span v-if="changeSuffix" class="change-suffix">{{ changeSuffix }}</span>
       </div>
     </template>
@@ -27,74 +26,63 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  /** Card label / title */
   label:        { type: String, required: true },
-  /** Main metric value */
   value:        { type: [String, Number], default: '—' },
-  /** Optional icon emoji/char */
   icon:         { type: String, default: '' },
-  /** Show skeleton loading */
   loading:      { type: Boolean, default: false },
-  /** Change value (positive = up, negative = down) */
   change:       { type: Number, default: undefined },
-  /** Unit for change display */
   changeUnit:   { type: String, default: '%' },
-  /** Extra text after change value */
   changeSuffix: { type: String, default: '' },
-  /** Force direction: 'up' | 'down' | 'neutral' (auto-detected from change) */
   direction:    { type: String, default: '' },
-  /** Accent color: 'orbit' | 'pulsar' | 'nova' | 'stellar' | 'flare' */
-  accent:       { type: String, default: 'orbit' },
+  accent:       { type: String, default: 'blue' },
 })
 
 const changeDirection = computed(() => {
   if (props.direction) return props.direction
   if (props.change === undefined) return 'neutral'
-  if (props.change > 0) return 'up'
-  if (props.change < 0) return 'down'
-  return 'neutral'
+  return props.change > 0 ? 'up' : props.change < 0 ? 'down' : 'neutral'
 })
-
-const changeIcon = computed(() => {
-  if (changeDirection.value === 'up')   return '↑'
-  if (changeDirection.value === 'down') return '↓'
-  return '→'
-})
+const changeIcon = computed(() => ({ up: '↑', down: '↓', neutral: '→' }[changeDirection.value]))
 </script>
 
 <style scoped>
 .simuslab-kpi {
-  background: var(--color-nebula);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-5);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  padding: 20px;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+  gap: 8px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-/* ── Top accent bar ── */
+.simuslab-kpi:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+/* ── Left accent bar (replaces neon top gradient) ── */
 .simuslab-kpi::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
+  top: 16px;
+  bottom: 16px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
 }
-.kpi--orbit::before   { background: linear-gradient(90deg, var(--color-orbit), var(--color-pulsar)); }
-.kpi--pulsar::before  { background: linear-gradient(90deg, var(--color-pulsar), var(--color-orbit)); }
-.kpi--nova::before    { background: linear-gradient(90deg, var(--color-nova), var(--color-flare)); }
-.kpi--stellar::before { background: linear-gradient(90deg, var(--color-stellar), var(--color-orbit)); }
-.kpi--flare::before   { background: linear-gradient(90deg, var(--color-flare), var(--color-nova)); }
+.kpi--orbit::before,
+.kpi--blue::before   { background: #3b82f6; }
+.kpi--pulsar::before { background: #8b5cf6; }
+.kpi--nova::before   { background: #ef4444; }
+.kpi--stellar::before{ background: #10b981; }
+.kpi--flare::before  { background: #f59e0b; }
 
-.simuslab-kpi:hover {
-  border-color: var(--color-border-hover);
-}
-
-/* ── Header row ── */
+/* ── Header ── */
 .kpi-header {
   display: flex;
   align-items: center;
@@ -102,27 +90,24 @@ const changeIcon = computed(() => {
 }
 
 .kpi-label {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-comet);
+  letter-spacing: 0.07em;
+  color: #94a3b8;
 }
 
-.kpi-icon {
-  font-size: 1.1rem;
-  opacity: 0.7;
-}
+.kpi-icon { font-size: 1rem; opacity: 0.5; }
 
-/* ── Value ── */
+/* ── Value — tipografia de dados moderna ── */
 .kpi-value {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
-  font-weight: var(--weight-extrabold);
-  color: var(--color-star);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #0f172a;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 /* ── Change indicator ── */
@@ -130,31 +115,36 @@ const changeIcon = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  margin-top: var(--space-1);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 2px;
 }
 
-.change--up      { color: var(--color-stellar); }
-.change--down    { color: var(--color-nova); }
-.change--neutral { color: var(--color-comet); }
+.change--up      { color: #059669; }
+.change--down    { color: #dc2626; }
+.change--neutral { color: #94a3b8; }
 
-.change-icon { font-weight: var(--weight-bold); }
-.change-suffix {
-  color: var(--color-dust);
-  font-size: var(--text-xs);
-  margin-left: var(--space-1);
-}
+.change-suffix { color: #94a3b8; font-size: 0.7rem; margin-left: 2px; }
 
 /* ── Skeleton ── */
 .kpi-skeleton-value {
   height: 40px;
-  width: 70%;
-  margin-top: var(--space-3);
+  width: 65%;
+  margin-top: 8px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
 }
 .kpi-skeleton-label {
-  height: 12px;
-  width: 45%;
+  height: 10px;
+  width: 40%;
+  background: #f1f5f9;
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>

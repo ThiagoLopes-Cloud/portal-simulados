@@ -7,20 +7,13 @@
 
 <script setup>
 defineProps({
-  /** 'orbit' | 'pulsar' | 'nova' | 'stellar' | 'flare' | 'neutral' */
   variant: {
     type: String,
-    default: 'orbit',
-    validator: v => ['orbit', 'pulsar', 'nova', 'stellar', 'flare', 'neutral'].includes(v),
+    default: 'blue',
+    validator: v => ['orbit', 'blue', 'pulsar', 'purple', 'nova', 'red', 'stellar', 'green', 'flare', 'amber', 'neutral'].includes(v),
   },
-  /** 'sm' | 'md' */
-  size: {
-    type: String,
-    default: 'sm',
-    validator: v => ['sm', 'md'].includes(v),
-  },
-  /** Show animated dot indicator */
-  dot: { type: Boolean, default: false },
+  size: { type: String, default: 'sm', validator: v => ['sm', 'md'].includes(v) },
+  dot:  { type: Boolean, default: false },
 })
 </script>
 
@@ -28,57 +21,54 @@ defineProps({
 .simuslab-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  font-family: var(--font-mono);
-  font-weight: var(--weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-radius: var(--radius-full);
+  gap: 5px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  border-radius: 999px;
   border: 1px solid transparent;
   line-height: 1;
   white-space: nowrap;
 }
 
 /* ── Sizes ── */
-.badge--sm {
-  font-size: var(--text-2xs);
-  padding: 3px 8px;
-}
-.badge--md {
-  font-size: var(--text-xs);
-  padding: 4px 10px;
-}
+.badge--sm { font-size: 0.7rem;  padding: 3px 10px; }
+.badge--md { font-size: 0.75rem; padding: 4px 12px; }
 
-/* ── Variants ── */
-.badge--orbit {
-  background: var(--color-orbit-dim);
-  color: var(--color-orbit);
-  border-color: var(--color-orbit-border);
+/* ── Variants — paleta clean light ── */
+.badge--orbit,
+.badge--blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
 }
-.badge--pulsar {
-  background: var(--color-pulsar-dim);
-  color: var(--color-pulsar);
-  border-color: var(--color-pulsar-border);
+.badge--pulsar,
+.badge--purple {
+  background: #f5f3ff;
+  color: #6d28d9;
+  border-color: #ddd6fe;
 }
-.badge--nova {
-  background: var(--color-nova-dim);
-  color: var(--color-nova);
-  border-color: var(--color-nova-border);
+.badge--nova,
+.badge--red {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
 }
-.badge--stellar {
-  background: var(--color-stellar-dim);
-  color: var(--color-stellar);
-  border-color: var(--color-stellar-border);
+.badge--stellar,
+.badge--green {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
 }
-.badge--flare {
-  background: var(--color-flare-dim);
-  color: var(--color-flare);
-  border-color: var(--color-flare-border);
+.badge--flare,
+.badge--amber {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
 }
 .badge--neutral {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-comet);
-  border-color: var(--color-border);
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
 }
 
 /* ── Dot indicator ── */

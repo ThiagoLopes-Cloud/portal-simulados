@@ -1,24 +1,19 @@
 <template>
   <header class="simuslab-topbar" :style="topbarStyle">
-    <!-- Left: logo slot -->
     <div class="topbar-left">
-      <slot name="left">
-        <SimuslabLogo size="sm" />
-      </slot>
+      <slot name="left" />
     </div>
 
-    <!-- Center: navigation slot -->
     <div class="topbar-center">
       <slot name="center" />
     </div>
 
-    <!-- Right: actions slot -->
     <div class="topbar-right">
       <slot name="right" />
 
-      <!-- User avatar -->
-      <div v-if="username" class="topbar-avatar" :title="username">
-        {{ initials }}
+      <div v-if="username" class="topbar-user">
+        <span class="topbar-username">{{ displayName }}</span>
+        <div class="topbar-avatar" :title="username">{{ initials }}</div>
       </div>
     </div>
   </header>
@@ -26,22 +21,21 @@
 
 <script setup>
 import { computed } from 'vue'
-import SimuslabLogo from '../ui/SimuslabLogo.vue'
 
 const props = defineProps({
-  /** Username for avatar initials */
   username: { type: String, default: '' },
-  /** Sidebar width to offset topbar left edge */
   sidebarWidth: { type: String, default: 'var(--sidebar-width)' },
 })
 
 const initials = computed(() => {
   if (!props.username) return ''
-  return props.username
-    .split(' ')
-    .slice(0, 2)
-    .map(w => w[0]?.toUpperCase())
-    .join('')
+  return props.username.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase()).join('')
+})
+
+const displayName = computed(() => {
+  if (!props.username) return ''
+  const parts = props.username.split(' ')
+  return parts[0]
 })
 
 const topbarStyle = computed(() => ({
@@ -56,10 +50,10 @@ const topbarStyle = computed(() => ({
   top: 0;
   right: 0;
   height: var(--topbar-height);
-  background: rgba(13, 16, 36, 0.75);
-  backdrop-filter: blur(var(--blur-md));
-  -webkit-backdrop-filter: blur(var(--blur-md));
-  border-bottom: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e2e8f0;
   z-index: var(--z-topbar);
   display: flex;
   align-items: center;
@@ -88,17 +82,31 @@ const topbarStyle = computed(() => ({
   flex-shrink: 0;
 }
 
+/* ── User info ── */
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.topbar-username {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
 /* ── Avatar ── */
 .topbar-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-orbit-dim), var(--color-pulsar-dim));
-  border: 1px solid var(--color-orbit-border);
-  color: var(--color-orbit);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  color: #2563eb;
   font-family: var(--font-display);
-  font-weight: var(--weight-bold);
-  font-size: var(--text-sm);
+  font-weight: 700;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
