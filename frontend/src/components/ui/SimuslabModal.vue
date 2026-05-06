@@ -75,7 +75,7 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: var(--z-modal);
-  background: rgba(8, 9, 26, 0.8);
+  background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
@@ -85,10 +85,10 @@ onUnmounted(() => {
 }
 
 .modal-panel {
-  background: var(--color-nebula);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg), 0 0 60px rgba(0, 229, 255, 0.04);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   max-height: 90vh;
@@ -107,52 +107,52 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
 }
 
 .modal-title {
   font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: var(--weight-bold);
-  color: var(--color-star);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
   margin: 0;
 }
 
 .modal-close {
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-md);
-  color: var(--color-comet);
+  border-radius: 8px;
+  color: #94a3b8;
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 .modal-close:hover {
-  color: var(--color-star);
-  background: var(--color-surface-hover);
-  border-color: var(--color-border);
+  color: #0f172a;
+  background: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 .modal-body {
-  padding: var(--space-6);
+  padding: 24px;
   overflow-y: auto;
   flex: 1;
 }
 
 .modal-footer {
-  padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--color-border);
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-3);
+  gap: 12px;
   flex-shrink: 0;
 }
 
