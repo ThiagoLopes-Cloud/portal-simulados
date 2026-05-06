@@ -1,55 +1,57 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 
-import LoginPage from '../pages/LoginPage.vue'
+// Eager: auth pages (carregamento imediato, UX crítica)
+import LoginPage    from '../pages/LoginPage.vue'
 import RegisterPage from '../pages/RegisterPage.vue'
-import DashboardPage from '../pages/DashboardPage.vue'
-import SimuladosPage from '../pages/SimuladosPage.vue'
-import ProvaPage from '../pages/ProvaPage.vue'
-import ResultadoPage from '../pages/ResultadoPage.vue'
-import RankingPage from '../pages/RankingPage.vue'
-import AdminAlunosPage from '../pages/AdminAlunosPage.vue'
-import AdminAlunoDashboardPage from '../pages/AdminAlunoDashboardPage.vue'
-import ImportarQuestoesPage from '../pages/ImportarQuestoesPage.vue'
 
-import TurmaPortal from '../pages/TurmaPortal.vue'
-import TrilhasPage from '../pages/TrilhasPage.vue'
-import TurmaDashboardPage from '../pages/TurmaDashboardPage.vue'
-import NotFoundPage from '../pages/NotFoundPage.vue'
+// Lazy: demais páginas (carregadas sob demanda)
+const DashboardPage           = () => import('../pages/DashboardPage.vue')
+const SimuladosPage           = () => import('../pages/SimuladosPage.vue')
+const ProvaPage               = () => import('../pages/ProvaPage.vue')
+const ResultadoPage           = () => import('../pages/ResultadoPage.vue')
+const RankingPage             = () => import('../pages/RankingPage.vue')
+const TurmaPortal             = () => import('../pages/TurmaPortal.vue')
+const TrilhasPage             = () => import('../pages/TrilhasPage.vue')
+const TurmaDashboardPage      = () => import('../pages/TurmaDashboardPage.vue')
+const AdminAlunosPage         = () => import('../pages/AdminAlunosPage.vue')
+const AdminAlunoDashboardPage = () => import('../pages/AdminAlunoDashboardPage.vue')
+const ImportarQuestoesPage    = () => import('../pages/ImportarQuestoesPage.vue')
+const NotFoundPage            = () => import('../pages/NotFoundPage.vue')
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
-  { path: '/login', name: 'login', component: LoginPage, meta: { guest: true } },
+  { path: '/login',    name: 'login',    component: LoginPage,    meta: { guest: true } },
   { path: '/register', name: 'register', component: RegisterPage, meta: { guest: true } },
-  { path: '/dashboard', name: 'dashboard', component: DashboardPage, meta: { requiresAuth: true } },
-  { path: '/simulados', name: 'simulados', component: SimuladosPage, meta: { requiresAuth: true } },
-  { path: '/simulado/:id', name: 'prova', component: ProvaPage, meta: { requiresAuth: true } },
+
+  { path: '/dashboard',     name: 'dashboard', component: DashboardPage, meta: { requiresAuth: true } },
+  { path: '/simulados',     name: 'simulados', component: SimuladosPage, meta: { requiresAuth: true } },
+  { path: '/simulado/:id',  name: 'prova',     component: ProvaPage,     meta: { requiresAuth: true } },
   { path: '/resultado/:id', name: 'resultado', component: ResultadoPage, meta: { requiresAuth: true } },
-  { path: '/ranking', name: 'ranking', component: RankingPage, meta: { requiresAuth: true } },
-  
-  { path: '/turmas', name: 'turmas', component: TurmaPortal, meta: { requiresAuth: true } },
-  { path: '/trilhas', name: 'trilhas', component: TrilhasPage, meta: { requiresAuth: true } },
+  { path: '/ranking',       name: 'ranking',   component: RankingPage,   meta: { requiresAuth: true } },
+
+  { path: '/turmas',          name: 'turmas',         component: TurmaPortal,       meta: { requiresAuth: true } },
+  { path: '/trilhas',         name: 'trilhas',         component: TrilhasPage,       meta: { requiresAuth: true } },
   { path: '/turma-dashboard', name: 'turma-dashboard', component: TurmaDashboardPage, meta: { requiresAuth: true } },
 
-  // Rotas de admin
   {
-    path: '/admin/alunos',           
+    path: '/admin/alunos',
     name: 'admin-alunos',
     component: AdminAlunosPage,
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/admin/alunos/:id',
     name: 'admin-aluno-dashboard',
     component: AdminAlunoDashboardPage,
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/admin/importar',
     name: 'importar',
     component: ImportarQuestoesPage,
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
+
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundPage },
 ]
 
@@ -60,7 +62,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('access_token')
-  const role = localStorage.getItem('user_role')
+  const role  = localStorage.getItem('user_role')
 
   if (to.meta.requiresAuth && !token) {
     next({ name: 'login' })

@@ -15,7 +15,9 @@
 
     <!-- Erro -->
     <div v-else-if="erro" class="empty-state">
-      <div class="empty-icon nova">⚠</div>
+      <div class="empty-icon nova">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
       <h3 class="empty-title">Falha de Conexão</h3>
       <p class="empty-sub">{{ erro }}</p>
       <SimuslabButton variant="primary" size="sm" class="mt-5" @click="carregarAlunos">Tentar Novamente</SimuslabButton>
@@ -24,7 +26,9 @@
     <div v-else>
       <!-- Vazio -->
       <div v-if="alunos.length === 0" class="empty-state">
-        <div class="empty-icon">◉</div>
+        <div class="empty-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
         <h3 class="empty-title">Nenhum Registro</h3>
         <p class="empty-sub">O banco de dados de alunos está vazio no momento.</p>
       </div>
@@ -159,7 +163,7 @@ function scoreBg(v) {
 
 /* Empty */
 .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-14) var(--space-8); background: var(--color-nebula); border: 1px dashed var(--color-border); border-radius: var(--radius-xl); }
-.empty-icon { font-size: 2.5rem; color: var(--color-orbit); margin-bottom: var(--space-5); }
+.empty-icon { color: var(--color-orbit); margin-bottom: var(--space-5); }
 .empty-icon.nova { color: var(--color-nova); }
 .empty-title { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-star); margin-bottom: var(--space-2); }
 .empty-sub { font-size: var(--text-sm); color: var(--color-comet); }

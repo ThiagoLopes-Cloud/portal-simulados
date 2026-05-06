@@ -21,8 +21,8 @@
               <h4 class="step-title">Selecionar Motor LLM</h4>
               <p class="step-desc">Escolha uma IA para processar o prompt de formatação.</p>
               <div class="ai-btns">
-                <a href="https://chat.openai.com" target="_blank" class="ai-btn ai-btn--gpt">⎔ ChatGPT ↗</a>
-                <a href="https://gemini.google.com" target="_blank" class="ai-btn ai-btn--gem">✧ Gemini ↗</a>
+                <a href="https://chat.openai.com" target="_blank" class="ai-btn ai-btn--gpt">ChatGPT ↗</a>
+                <a href="https://gemini.google.com" target="_blank" class="ai-btn ai-btn--gem">Gemini ↗</a>
               </div>
             </div>
           </div>
@@ -37,7 +37,9 @@
                 <div class="prompt-fade" />
               </div>
               <button class="btn-copy" :class="{ 'btn-copy--ok': promptCopiado }" @click="copiarPrompt">
-                {{ promptCopiado ? '✓ Copiado!' : '◧ Copiar Prompt Base' }}
+                <svg v-if="!promptCopiado" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {{ promptCopiado ? 'Copiado!' : 'Copiar Prompt Base' }}
               </button>
             </div>
           </div>
@@ -60,7 +62,9 @@
         </div>
 
         <div class="warning-box">
-          <span class="warning-icon">⚠</span>
+          <span class="warning-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
           <p class="warning-text">
             <strong>Protocolo de Revisão:</strong> Questões importadas entram como "Pendente". A avaliação só ficará visível após revisão manual no Django Admin.
           </p>
@@ -73,7 +77,10 @@
 
         <div class="editor-wrap">
           <div class="editor-bar">
-            <span class="editor-tab">◧ data_payload.json</span>
+            <span class="editor-tab">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              data_payload.json
+            </span>
             <span v-if="jsonTexto.trim()" class="editor-status" :class="statusJson.tipo === 'valid' ? 'status--ok' : 'status--fail'">
               {{ statusJson.mensagem }}
             </span>
@@ -93,7 +100,8 @@
         </div>
 
         <div v-if="questoesDetectadas > 0" class="detection-badge">
-          ◈ {{ questoesDetectadas }} questão(ões) detectada(s)
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ questoesDetectadas }} questão(ões) detectada(s)
         </div>
 
         <SimuslabButton
@@ -104,7 +112,7 @@
           :disabled="!podeImportar || importando"
           @click="importar"
         >
-          ◉ Iniciar Importação
+          Iniciar Importação
         </SimuslabButton>
 
         <div v-if="erroValidacao" class="alert alert--error">
@@ -115,7 +123,10 @@
         </div>
 
         <div v-if="resultado" class="alert alert--success">
-          <div class="success-header">◆ Importação Concluída!</div>
+          <div class="success-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Importação Concluída!
+          </div>
           <div class="summary">
             <div class="summary-row"><span>Avaliação</span><span>{{ resultado.simulado_titulo }}</span></div>
             <div class="summary-row"><span>Volume</span><span>{{ resultado.total_importadas }} questões</span></div>
@@ -309,18 +320,18 @@ function reiniciar() { jsonTexto.value = ''; resultado.value = null; erroValidac
 .prompt-code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-dust); line-height: var(--leading-relaxed); height: 38px; overflow: hidden; }
 .prompt-fade { position: absolute; bottom: 0; left: 0; width: 100%; height: 28px; background: linear-gradient(transparent, var(--color-nebula)); }
 
-.btn-copy { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--color-orbit); color: var(--color-orbit); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; transition: all var(--transition-fast); }
+.btn-copy { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--color-orbit); color: var(--color-orbit); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; gap: 6px; }
 .btn-copy:hover { background: rgba(0,229,255,0.08); }
 .btn-copy--ok { background: var(--color-stellar); border-color: var(--color-stellar); color: white; }
 
 .warning-box { display: flex; gap: var(--space-3); background: rgba(255,184,48,0.06); border: 1px solid rgba(255,184,48,0.2); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); }
-.warning-icon { font-size: 1.1rem; color: var(--color-flare); flex-shrink: 0; }
+.warning-icon { color: var(--color-flare); flex-shrink: 0; display: flex; align-items: flex-start; padding-top: 1px; }
 .warning-text { font-size: var(--text-sm); color: var(--color-comet); line-height: var(--leading-relaxed); }
 
 /* Terminal */
 .editor-wrap { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-4); }
 .editor-bar { background: rgba(255,255,255,0.04); border-bottom: 1px solid var(--color-border); padding: var(--space-2) var(--space-4); display: flex; justify-content: space-between; align-items: center; }
-.editor-tab { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--color-dust); }
+.editor-tab { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--color-dust); display: flex; align-items: center; gap: 5px; }
 .editor-status { font-size: var(--text-2xs); font-family: var(--font-mono); font-weight: var(--weight-bold); padding: 2px var(--space-2); border-radius: 3px; text-transform: uppercase; }
 .status--ok   { background: var(--color-stellar-dim); border: 1px solid var(--color-stellar-border); color: var(--color-stellar); }
 .status--fail { background: var(--color-nova-dim); border: 1px solid var(--color-nova-border); color: var(--color-nova); }
@@ -328,7 +339,7 @@ function reiniciar() { jsonTexto.value = ''; resultado.value = null; erroValidac
 .code-editor { width: 100%; height: 340px; padding: var(--space-4); border: none; background: rgba(255,255,255,0.02); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-comet); line-height: var(--leading-relaxed); resize: vertical; outline: none; }
 .code-editor:focus { background: rgba(255,255,255,0.03); }
 
-.detection-badge { background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.15); color: var(--color-orbit); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-family: var(--font-mono); font-weight: var(--weight-semibold); margin-bottom: var(--space-4); display: inline-block; }
+.detection-badge { background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.15); color: var(--color-orbit); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-family: var(--font-mono); font-weight: var(--weight-semibold); margin-bottom: var(--space-4); display: inline-flex; align-items: center; gap: 6px; }
 
 /* Alerts */
 .alert { margin-top: var(--space-5); padding: var(--space-5); border-radius: var(--radius-md); font-size: var(--text-sm); }
@@ -336,7 +347,7 @@ function reiniciar() { jsonTexto.value = ''; resultado.value = null; erroValidac
 .alert--error strong { color: var(--color-nova); display: block; margin-bottom: var(--space-1); }
 .alert--success { background: rgba(0,214,143,0.06); border: 1px solid rgba(0,214,143,0.2); color: var(--color-comet); }
 
-.success-header { font-family: var(--font-display); font-weight: var(--weight-bold); color: var(--color-stellar); font-size: var(--text-base); margin-bottom: var(--space-4); }
+.success-header { font-family: var(--font-display); font-weight: var(--weight-bold); color: var(--color-stellar); font-size: var(--text-base); margin-bottom: var(--space-4); display: flex; align-items: center; gap: 6px; }
 .summary { background: rgba(0,214,143,0.06); border-radius: var(--radius-sm); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
 .summary-row { display: flex; justify-content: space-between; font-size: var(--text-sm); }
 .summary-row span:first-child { color: var(--color-comet); }

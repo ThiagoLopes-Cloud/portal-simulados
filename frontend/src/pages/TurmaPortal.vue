@@ -15,7 +15,9 @@
 
       <!-- Painel: Ativar código -->
       <div class="join-card">
-        <div class="join-icon">◉</div>
+        <div class="join-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
         <h3 class="join-title">Ativar Código de Acesso</h3>
         <p class="join-sub">Recebeu um código do seu professor? Insira abaixo para destravar a sala da sua turma.</p>
 
@@ -38,8 +40,8 @@
           </SimuslabButton>
         </div>
 
-        <div v-if="mensagem" class="feedback feedback--success">✓ {{ mensagem }}</div>
-        <div v-if="erro" class="feedback feedback--error">⚠ {{ erro }}</div>
+        <div v-if="mensagem" class="feedback feedback--success">{{ mensagem }}</div>
+        <div v-if="erro" class="feedback feedback--error">{{ erro }}</div>
       </div>
 
       <!-- Lista de turmas -->
@@ -51,7 +53,9 @@
         </div>
 
         <div v-else-if="turmas.length === 0" class="empty-state">
-          <span class="empty-icon">◉</span>
+          <span class="empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
           <p class="empty-text">Você ainda não está vinculado a nenhuma sala de comando.</p>
         </div>
 
@@ -198,7 +202,7 @@ onMounted(carregarTurmas)
   gap: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
-.join-icon { font-size: 2rem; color: #2563eb; }
+.join-icon { color: #93c5fd; }
 .join-title { font-family: var(--font-display); font-size: 1.125rem; font-weight: 700; color: #0f172a; }
 .join-sub { font-size: 0.875rem; color: #64748b; line-height: 1.55; }
 .join-form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
@@ -246,7 +250,7 @@ onMounted(carregarTurmas)
 @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 16px; gap: 12px; }
-.empty-icon { font-size: 2.5rem; color: #cbd5e1; }
+.empty-icon { color: #cbd5e1; }
 .empty-text { font-size: 0.875rem; color: #94a3b8; max-width: 260px; }
 
 .turmas-list { display: flex; flex-direction: column; gap: 12px; }

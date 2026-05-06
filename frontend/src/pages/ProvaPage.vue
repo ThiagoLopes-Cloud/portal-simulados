@@ -74,7 +74,7 @@
              class="questao-img" alt="Material de apoio" />
 
         <div class="opcoes">
-          <SimusOption
+          <SimuslabOption
             v-for="opcao in opcoesDaQuestao(simulado.questoes[questaoAtual])"
             :key="opcao.letra"
             :label="opcao.letra"
@@ -133,7 +133,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api.js'
-import SimusOption from '../components/ui/SimusOption.vue'
+import SimuslabOption from '../components/ui/SimuslabOption.vue'
 import SimuslabButton from '../components/ui/SimuslabButton.vue'
 
 const router = useRouter()
