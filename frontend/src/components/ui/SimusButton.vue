@@ -16,22 +16,24 @@ const props = defineProps({
 })
 
 const base =
-  'inline-flex items-center justify-center gap-2 px-6 py-3 ' +
-  'font-display font-semibold text-sm uppercase tracking-widest ' +
-  'rounded-lg transition-all duration-200 ease-out ' +
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-simus-cyan/60 ' +
+  'w-full md:w-auto inline-flex items-center justify-center gap-2 ' +
+  'min-h-[48px] px-6 py-3 ' +
+  'font-display font-semibold text-sm ' +
+  'rounded-simus-sm transition-all duration-200 ease-out select-none ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-simus-primary/50 ' +
+  'active:scale-[0.98] ' +
   'disabled:opacity-40 disabled:pointer-events-none'
 
 const variants = {
   primary:
-    'bg-simus-cyan text-simus-bg ' +
-    'hover:scale-105 hover:shadow-[0_0_15px_rgba(0,229,255,0.3)]',
+    'bg-simus-primary text-white ' +
+    'md:hover:scale-[1.02] md:hover:shadow-[0_4px_14px_0_rgba(79,70,229,0.39)]',
   secondary:
-    'bg-transparent border border-simus-cyan text-simus-cyan ' +
-    'hover:bg-simus-cyan/10',
+    'bg-simus-surface text-simus-text border border-slate-200 ' +
+    'md:hover:bg-slate-50',
   ghost:
-    'bg-transparent text-slate-400 ' +
-    'hover:text-slate-50 hover:bg-white/5',
+    'bg-transparent text-simus-muted ' +
+    'md:hover:text-simus-text md:hover:bg-slate-100',
 }
 
 const classes = computed(() => `${base} ${variants[props.variant]}`)

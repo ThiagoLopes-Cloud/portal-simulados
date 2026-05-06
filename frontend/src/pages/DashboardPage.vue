@@ -8,12 +8,12 @@
         <p class="page-date">{{ formattedDate }}</p>
       </div>
       <div v-if="!carregando && dados.gamificacao" class="page-badges">
-        <OrbynBadge variant="orbit">
+        <SimuslabBadge variant="orbit">
           NÍVEL {{ nivelAtual }}
-        </OrbynBadge>
-        <OrbynBadge variant="flare" :dot="true">
+        </SimuslabBadge>
+        <SimuslabBadge variant="flare" :dot="true">
           🔥 {{ dados.gamificacao?.ofensiva || 0 }} dias
-        </OrbynBadge>
+        </SimuslabBadge>
         <div class="xp-bar">
           <div class="xp-fill" :style="{ width: progressoNivel + '%' }" />
         </div>
@@ -25,20 +25,20 @@
 
     <!-- KPI Cards skeleton -->
     <div class="kpi-grid">
-      <OrbynKPICard
+      <SimuslabKPICard
         label="Precisão Geral"
         :value="carregando ? '' : dados.score_geral + '%'"
         :loading="carregando"
         :change="scoreDelta"
         accent="orbit"
       />
-      <OrbynKPICard
+      <SimuslabKPICard
         label="Simulações"
         :value="carregando ? '' : dados.total_simulados"
         :loading="carregando"
         accent="pulsar"
       />
-      <OrbynKPICard
+      <SimuslabKPICard
         label="Disciplinas"
         :value="carregando ? '' : dados.por_materia.length"
         :loading="carregando"
@@ -50,28 +50,28 @@
 
       <!-- Admin panel -->
       <section v-if="isAdmin" class="section">
-        <OrbynCard accent-color="pulsar" hoverable>
+        <SimuslabCard accent-color="pulsar" hoverable>
           <div class="admin-panel">
             <div class="admin-panel-info">
-              <OrbynBadge variant="pulsar" size="sm">Admin</OrbynBadge>
+              <SimuslabBadge variant="pulsar" size="sm">Admin</SimuslabBadge>
               <h3 class="admin-title">Painel de Comando Ativo</h3>
               <p class="admin-sub">Acesso rápido às ferramentas de gestão e conteúdo do laboratório.</p>
             </div>
             <div class="admin-actions">
-              <OrbynButton variant="ghost" size="sm" @click="$router.push('/admin/alunos')">
+              <SimuslabButton variant="ghost" size="sm" @click="$router.push('/admin/alunos')">
                 Base de Alunos
-              </OrbynButton>
-              <OrbynButton variant="primary" size="sm" @click="$router.push('/admin/importar')">
+              </SimuslabButton>
+              <SimuslabButton variant="primary" size="sm" @click="$router.push('/admin/importar')">
                 Importar Questões
-              </OrbynButton>
+              </SimuslabButton>
             </div>
           </div>
-        </OrbynCard>
+        </SimuslabCard>
       </section>
 
       <!-- Empty state -->
       <div v-if="dados.total_simulados === 0 && !isAdmin" class="empty-state">
-        <OrbynCard>
+        <SimuslabCard>
           <div class="empty-content">
             <div class="empty-icon">◎</div>
             <h3 class="empty-title">Seu diagnóstico tático começa aqui.</h3>
@@ -79,34 +79,34 @@
               O laboratório precisa de dados para calibrar sua estratégia.
               Realize sua primeira avaliação para destrancar seu painel de performance.
             </p>
-            <OrbynButton variant="primary" @click="$router.push('/simulados')">
+            <SimuslabButton variant="primary" @click="$router.push('/simulados')">
               Iniciar Primeira Simulação
-            </OrbynButton>
+            </SimuslabButton>
           </div>
-        </OrbynCard>
+        </SimuslabCard>
       </div>
 
       <div v-if="dados.total_simulados > 0 || isAdmin" class="content-grid">
 
         <!-- Tactical recommendation -->
         <section v-if="recomendacaoPrincipal.titulo" class="section">
-          <OrbynCard accent-color="orbit">
+          <SimuslabCard accent-color="orbit">
             <div class="recomendacao">
               <div class="recomendacao-top">
-                <OrbynBadge variant="orbit" :dot="true">FASE 7: Recomendação Tática</OrbynBadge>
-                <OrbynBadge variant="stellar">Inteligência Ativa</OrbynBadge>
+                <SimuslabBadge variant="orbit" :dot="true">FASE 7: Recomendação Tática</SimuslabBadge>
+                <SimuslabBadge variant="stellar">Inteligência Ativa</SimuslabBadge>
               </div>
               <div class="recomendacao-body">
                 <div>
                   <h3 class="rec-title">{{ recomendacaoPrincipal.titulo }}</h3>
                   <p class="rec-desc">{{ recomendacaoPrincipal.descricao }}</p>
                 </div>
-                <OrbynButton variant="secondary" size="sm" @click="$router.push('/simulados')">
+                <SimuslabButton variant="secondary" size="sm" @click="$router.push('/simulados')">
                   Executar Plano
-                </OrbynButton>
+                </SimuslabButton>
               </div>
             </div>
-          </OrbynCard>
+          </SimuslabCard>
         </section>
 
         <!-- Performance diagnosis + Recent activity -->
@@ -116,7 +116,7 @@
           <section>
             <h3 class="section-heading">Diagnóstico de Performance</h3>
             <div class="materia-list">
-              <OrbynCard
+              <SimuslabCard
                 v-for="materia in dados.por_materia"
                 :key="materia.codigo"
                 padding="sm"
@@ -140,7 +140,7 @@
                     </span>
                   </div>
                 </div>
-              </OrbynCard>
+              </SimuslabCard>
             </div>
           </section>
 
@@ -152,7 +152,7 @@
               Nenhuma atividade recente encontrada.
             </div>
 
-            <OrbynCard v-else padding="none">
+            <SimuslabCard v-else padding="none">
               <div
                 v-for="item in historicoComTendencia"
                 :key="item.resultado_id"
@@ -168,7 +168,7 @@
                   <span class="activity-arrow">→</span>
                 </div>
               </div>
-            </OrbynCard>
+            </SimuslabCard>
           </section>
 
         </div>
@@ -183,10 +183,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
-import OrbynCard       from '../components/ui/OrbynCard.vue'
-import OrbynBadge      from '../components/ui/OrbynBadge.vue'
-import OrbynButton     from '../components/ui/OrbynButton.vue'
-import OrbynKPICard    from '../components/ui/OrbynKPICard.vue'
+import SimuslabCard       from '../components/ui/SimuslabCard.vue'
+import SimuslabBadge      from '../components/ui/SimuslabBadge.vue'
+import SimuslabButton     from '../components/ui/SimuslabButton.vue'
+import SimuslabKPICard    from '../components/ui/SimuslabKPICard.vue'
 
 const router   = useRouter()
 const username = ref('')

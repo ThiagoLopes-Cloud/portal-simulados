@@ -25,6 +25,8 @@ urlpatterns = [
     path("api/importar/", include("importador.urls")),
     # Rotas de gerenciamento de turmas e convites
     path("api/escolas/", include("escolas.urls")),
+    # Trilhas de Evolução + Materiais de Apoio + progresso
+    path("api/aulas/", include("aulas.urls")),
 ]
 
 if settings.DEBUG:

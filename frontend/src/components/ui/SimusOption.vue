@@ -5,15 +5,10 @@
     :aria-pressed="state === 'selected'"
     v-bind="$attrs"
   >
-    <!-- Label (A, B, C…) -->
     <span :class="labelClasses">{{ label }}</span>
-
-    <!-- Texto da alternativa -->
     <span class="flex-1 text-left text-sm leading-snug">{{ text }}</span>
-
-    <!-- Ícone de estado -->
-    <span v-if="state === 'correct'" class="shrink-0 text-emerald-400">✓</span>
-    <span v-else-if="state === 'error'" class="shrink-0 text-red-400">✗</span>
+    <span v-if="state === 'correct'" class="shrink-0 text-emerald-600">✓</span>
+    <span v-else-if="state === 'error'" class="shrink-0 text-red-500">✗</span>
   </button>
 </template>
 
@@ -31,30 +26,30 @@ const props = defineProps({
 })
 
 const base =
-  'flex items-center gap-4 w-full min-h-[56px] px-4 py-3 ' +
-  'rounded-xl border transition-all duration-150 ease-out ' +
-  'font-body text-slate-50 cursor-pointer ' +
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-simus-cyan/60 ' +
+  'flex items-start gap-3 w-full min-h-[56px] p-4 ' +
+  'rounded-simus-sm border transition-all duration-150 ease-out ' +
+  'font-body text-simus-text cursor-pointer select-none ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-simus-primary/50 ' +
   'disabled:opacity-40 disabled:pointer-events-none'
 
 const stateClasses = {
-  default:  'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10',
-  selected: 'border-2 border-simus-cyan bg-simus-cyan/5',
-  correct:  'border-emerald-500 bg-emerald-500/10',
-  error:    'border-red-500 bg-red-500/10',
+  default:  'bg-white border-slate-200 active:bg-slate-50',
+  selected: 'bg-indigo-50 border-2 border-simus-primary',
+  correct:  'bg-emerald-50 border border-emerald-500',
+  error:    'bg-red-50 border border-red-400',
 }
 
 const labelBase =
   'shrink-0 w-8 h-8 flex items-center justify-center ' +
-  'rounded-lg text-xs font-display font-bold uppercase'
+  'rounded-lg text-xs font-display font-bold uppercase mt-0.5'
 
 const labelState = {
-  default:  'bg-white/10 text-slate-300',
-  selected: 'bg-simus-cyan/20 text-simus-cyan',
-  correct:  'bg-emerald-500/20 text-emerald-400',
-  error:    'bg-red-500/20 text-red-400',
+  default:  'bg-slate-100 text-simus-muted',
+  selected: 'bg-indigo-100 text-simus-primary',
+  correct:  'bg-emerald-100 text-emerald-700',
+  error:    'bg-red-100 text-red-600',
 }
 
-const classes     = computed(() => `${base} ${stateClasses[props.state]}`)
+const classes      = computed(() => `${base} ${stateClasses[props.state]}`)
 const labelClasses = computed(() => `${labelBase} ${labelState[props.state]}`)
 </script>

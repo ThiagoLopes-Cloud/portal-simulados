@@ -1,5 +1,5 @@
 <template>
-  <div class="orbyn-field" :class="{ 'field--error': error, 'field--disabled': disabled }">
+  <div class="simuslab-field" :class="{ 'field--error': error, 'field--disabled': disabled }">
     <label v-if="label" :for="inputId" class="field-label">{{ label }}</label>
 
     <div class="field-wrapper" :class="wrapperClasses">
@@ -57,7 +57,7 @@ defineEmits(['update:modelValue'])
 defineOptions({ inheritAttrs: false })
 
 const focused = ref(false)
-const inputId = useId ? useId() : `orbyn-input-${Math.random().toString(36).slice(2)}`
+const inputId = useId ? useId() : `simuslab-input-${Math.random().toString(36).slice(2)}`
 
 const wrapperClasses = computed(() => ({
   'wrapper--focused': focused.value,
@@ -67,7 +67,7 @@ const wrapperClasses = computed(() => ({
 </script>
 
 <style scoped>
-.orbyn-field {
+.simuslab-field {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);

@@ -1,8 +1,8 @@
 <template>
-  <aside class="orbyn-sidebar" :class="{ 'sidebar--collapsed': collapsed }">
+  <aside class="simuslab-sidebar" :class="{ 'sidebar--collapsed': collapsed }">
     <!-- Logo -->
     <div class="sidebar-logo">
-      <OrbynLogo :variant="collapsed ? 'icon-only' : 'default'" size="sm" />
+      <SimuslabLogo :variant="collapsed ? 'icon-only' : 'default'" size="sm" />
     </div>
 
     <!-- Navigation -->
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import OrbynLogo from '../ui/OrbynLogo.vue'
+import SimuslabLogo from '../ui/SimuslabLogo.vue'
 
 defineProps({
   /** Collapsed state */
@@ -56,7 +56,7 @@ defineEmits(['toggle'])
 </script>
 
 <style scoped>
-.orbyn-sidebar {
+.simuslab-sidebar {
   position: fixed;
   top: 0;
   left: 0;

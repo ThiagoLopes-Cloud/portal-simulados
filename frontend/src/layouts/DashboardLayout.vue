@@ -1,14 +1,14 @@
 <template>
   <div class="dashboard-layout">
     <!-- Sidebar -->
-    <OrbynSidebar
+    <SimuslabSidebar
       :collapsed="ui.sidebarCollapsed"
       :navigation="navigation"
       @toggle="ui.toggleSidebar()"
     />
 
     <!-- Topbar -->
-    <OrbynTopbar
+    <SimuslabTopbar
       :username="username"
       :sidebar-width="sidebarWidth"
     >
@@ -19,7 +19,7 @@
           </svg>
         </button>
       </template>
-    </OrbynTopbar>
+    </SimuslabTopbar>
 
     <!-- Main content -->
     <main class="dashboard-main" :style="mainStyle">
@@ -35,7 +35,7 @@
     </nav>
 
     <!-- Toast notifications -->
-    <OrbynToast />
+    <SimuslabToast />
   </div>
 </template>
 
@@ -43,9 +43,9 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore } from '../stores/ui.store.js'
-import OrbynSidebar from '../components/layout/OrbynSidebar.vue'
-import OrbynTopbar  from '../components/layout/OrbynTopbar.vue'
-import OrbynToast   from '../components/ui/OrbynToast.vue'
+import SimuslabSidebar from '../components/layout/SimuslabSidebar.vue'
+import SimuslabTopbar  from '../components/layout/SimuslabTopbar.vue'
+import SimuslabToast   from '../components/ui/SimuslabToast.vue'
 
 const props = defineProps({
   username: { type: String, default: '' },
@@ -77,10 +77,12 @@ const navigation = computed(() => {
     {
       id: 'main',
       items: [
-        { to: '/dashboard', icon: '◈', label: 'Dashboard' },
-        { to: '/simulados', icon: '◎', label: 'Avaliações' },
-        { to: '/turmas',    icon: '◉', label: 'Minhas Turmas' },
-        { to: '/ranking',   icon: '◆', label: 'Ranking' },
+        { to: '/dashboard',       icon: '◈', label: 'Dashboard' },
+        { to: '/simulados',       icon: '◎', label: 'Avaliações' },
+        { to: '/trilhas',         icon: '▶', label: 'Trilhas' },
+        { to: '/turmas',          icon: '◉', label: 'Minhas Turmas' },
+        { to: '/turma-dashboard', icon: '⬟', label: 'Dashboard Turma' },
+        { to: '/ranking',         icon: '◆', label: 'Ranking' },
       ],
     },
   ]
@@ -100,10 +102,11 @@ const navigation = computed(() => {
 })
 
 const mobileNav = computed(() => [
-  { to: '/dashboard', icon: '◈', label: 'Dashboard' },
-  { to: '/simulados', icon: '◎', label: 'Avaliações' },
-  { to: '/turmas',    icon: '◉', label: 'Turmas' },
-  { to: '/ranking',   icon: '◆', label: 'Ranking' },
+  { to: '/dashboard',       icon: '◈', label: 'Dashboard' },
+  { to: '/simulados',       icon: '◎', label: 'Avaliações' },
+  { to: '/trilhas',         icon: '▶', label: 'Trilhas' },
+  { to: '/turma-dashboard', icon: '⬟', label: 'Batalha' },
+  { to: '/ranking',         icon: '◆', label: 'Ranking' },
 ])
 
 function logout() {

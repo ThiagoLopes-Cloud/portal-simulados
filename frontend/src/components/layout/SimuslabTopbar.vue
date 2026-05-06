@@ -1,9 +1,9 @@
 <template>
-  <header class="orbyn-topbar" :style="topbarStyle">
+  <header class="simuslab-topbar" :style="topbarStyle">
     <!-- Left: logo slot -->
     <div class="topbar-left">
       <slot name="left">
-        <OrbynLogo size="sm" />
+        <SimuslabLogo size="sm" />
       </slot>
     </div>
 
@@ -26,7 +26,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import OrbynLogo from '../ui/OrbynLogo.vue'
+import SimuslabLogo from '../ui/SimuslabLogo.vue'
 
 const props = defineProps({
   /** Username for avatar initials */
@@ -51,7 +51,7 @@ const topbarStyle = computed(() => ({
 </script>
 
 <style scoped>
-.orbyn-topbar {
+.simuslab-topbar {
   position: fixed;
   top: 0;
   right: 0;

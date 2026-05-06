@@ -1,6 +1,4 @@
 /** @type {import('tailwindcss').Config} */
-// Tailwind CSS v4 — tokens de tema definidos via @theme no CSS (src/assets/main.css)
-// Este arquivo é mantido para plugins e configurações futuras.
 export default {
   content: [
     './index.html',
@@ -9,17 +7,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        'simus-bg':      '#0B0D17',
-        'simus-surface': '#1A1D27',
-        'simus-cyan':    '#00E5FF',
-        'simus-purple':  '#8A2BE2',
+        'simus-bg':      '#F8FAFC',
+        'simus-surface': '#FFFFFF',
+        'simus-primary': '#4F46E5',
+        'simus-text':    '#0F172A',
+        'simus-muted':   '#64748B',
       },
       fontFamily: {
         display: ['Space Grotesk', 'sans-serif'],
         body:    ['Inter', 'sans-serif'],
       },
       borderRadius: {
-        simus: '16px',
+        simus:    '16px',
+        'simus-sm': '12px',
+      },
+      boxShadow: {
+        'simus-soft': '0 8px 30px rgba(0, 0, 0, 0.04)',
       },
     },
   },

@@ -1,4 +1,4 @@
-// Orbyn Design System — fundação CSS (ordem importa)
+// SIMUSLAB Design System — fundação CSS (ordem importa)
 import './assets/styles/tokens.css'
 import './assets/styles/base.css'
 import './assets/styles/utilities.css'

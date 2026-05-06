@@ -43,7 +43,7 @@ const props = defineProps({
 defineEmits(['click'])
 
 const classes = computed(() => [
-  'orbyn-btn',
+  'simuslab-btn',
   `btn--${props.variant}`,
   `btn--${props.size}`,
   { 'btn--loading': props.loading, 'btn--block': props.block },
@@ -51,7 +51,7 @@ const classes = computed(() => [
 </script>
 
 <style scoped>
-.orbyn-btn {
+.simuslab-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -70,13 +70,13 @@ const classes = computed(() => [
   overflow: hidden;
 }
 
-.orbyn-btn:focus-visible {
+.simuslab-btn:focus-visible {
   outline: 2px solid var(--color-orbit);
   outline-offset: 2px;
 }
 
-.orbyn-btn:disabled,
-.orbyn-btn.btn--loading {
+.simuslab-btn:disabled,
+.simuslab-btn.btn--loading {
   opacity: 0.5;
   pointer-events: none;
 }

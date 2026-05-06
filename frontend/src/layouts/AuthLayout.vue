@@ -7,7 +7,7 @@
       <div class="glow-blob glow-blob--bottom" />
 
       <div class="auth-brand-content">
-        <OrbynLogo size="lg" class="mb-10" />
+        <SimuslabLogo size="lg" class="mb-10" />
 
         <h1 class="brand-headline">
           O futuro da<br />sua aprovação<br />começa aqui.
@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import OrbynLogo from '../components/ui/OrbynLogo.vue'
+import SimuslabLogo from '../components/ui/SimuslabLogo.vue'
 </script>
 
 <style scoped>

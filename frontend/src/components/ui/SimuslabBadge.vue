@@ -1,5 +1,5 @@
 <template>
-  <span class="orbyn-badge" :class="[`badge--${variant}`, `badge--${size}`]">
+  <span class="simuslab-badge" :class="[`badge--${variant}`, `badge--${size}`]">
     <span v-if="dot" class="badge-dot" />
     <slot />
   </span>
@@ -25,7 +25,7 @@ defineProps({
 </script>
 
 <style scoped>
-.orbyn-badge {
+.simuslab-badge {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -87,6 +87,6 @@ defineProps({
   height: 6px;
   border-radius: 50%;
   background: currentColor;
-  animation: orbynPulse 2s ease-in-out infinite;
+  animation: simuslabPulse 2s ease-in-out infinite;
 }
 </style>

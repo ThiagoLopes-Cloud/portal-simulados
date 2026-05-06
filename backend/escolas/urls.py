@@ -5,6 +5,7 @@ from .views import (
     TurmasAlunoView,
     TurmasAlunoOuProfessorView,
     TurmasAdminCreateView,
+    TurmaDashboardView,
 )
 
 urlpatterns = [
@@ -12,4 +13,5 @@ urlpatterns = [
     path("minhas-turmas/", TurmasAlunoOuProfessorView.as_view(), name="minhas-turmas"),
     path("minhas-turmas-aluno/", TurmasAlunoView.as_view(), name="minhas-turmas-aluno"),
     path("turmas/", TurmasAdminCreateView.as_view(), name="criar-turma"),
+    path("turmas/<int:turma_id>/dashboard/", TurmaDashboardView.as_view(), name="turma-dashboard"),
 ]

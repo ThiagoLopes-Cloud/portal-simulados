@@ -6,9 +6,9 @@
         <p class="page-sub">Conecte-se ao seu instrutor e acesse missões exclusivas.</p>
       </div>
 
-      <OrbynButton v-if="isAdmin" variant="primary" size="sm" @click="mostrarCriarTurma = true">
+      <SimuslabButton v-if="isAdmin" variant="primary" size="sm" @click="mostrarCriarTurma = true">
         + Nova Turma
-      </OrbynButton>
+      </SimuslabButton>
     </header>
 
     <div class="turmas-grid">
@@ -27,7 +27,7 @@
             @keyup.enter="entrarNaTurma"
             class="code-input"
           />
-          <OrbynButton
+          <SimuslabButton
             variant="primary"
             size="md"
             block
@@ -35,7 +35,7 @@
             @click="entrarNaTurma"
           >
             Validar Acesso
-          </OrbynButton>
+          </SimuslabButton>
         </div>
 
         <div v-if="mensagem" class="feedback feedback--success">✓ {{ mensagem }}</div>
@@ -70,9 +70,9 @@
     </div>
 
     <!-- Modal criar turma (admin) -->
-    <OrbynModal v-model="mostrarCriarTurma" title="Criar Nova Turma" size="sm">
+    <SimuslabModal v-model="mostrarCriarTurma" title="Criar Nova Turma" size="sm">
       <div class="modal-form">
-        <OrbynInput v-model="novaTurmaNome" label="Nome da Turma" placeholder="Ex: Turma A — Manhã 2025" />
+        <SimuslabInput v-model="novaTurmaNome" label="Nome da Turma" placeholder="Ex: Turma A — Manhã 2025" />
         <div v-if="erroCriar" class="feedback feedback--error mt-3">{{ erroCriar }}</div>
         <div v-if="turmaCriada" class="turma-criada-box">
           <p class="turma-criada-nome">{{ turmaCriada.nome }}</p>
@@ -81,12 +81,12 @@
         </div>
       </div>
       <template #footer>
-        <OrbynButton variant="ghost" @click="fecharModalTurma">Cancelar</OrbynButton>
-        <OrbynButton variant="primary" :loading="criandoTurma" :disabled="!novaTurmaNome || !!turmaCriada" @click="criarTurma">
+        <SimuslabButton variant="ghost" @click="fecharModalTurma">Cancelar</SimuslabButton>
+        <SimuslabButton variant="primary" :loading="criandoTurma" :disabled="!novaTurmaNome || !!turmaCriada" @click="criarTurma">
           Criar Turma
-        </OrbynButton>
+        </SimuslabButton>
       </template>
-    </OrbynModal>
+    </SimuslabModal>
   </DashboardLayout>
 </template>
 
@@ -94,9 +94,9 @@
 import { ref, onMounted } from 'vue'
 import api from '../services/api.js'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
-import OrbynInput from '../components/ui/OrbynInput.vue'
-import OrbynModal from '../components/ui/OrbynModal.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
+import SimuslabInput from '../components/ui/SimuslabInput.vue'
+import SimuslabModal from '../components/ui/SimuslabModal.vue'
 
 const username = localStorage.getItem('username') || ''
 const isAdmin = localStorage.getItem('user_role') === 'admin'

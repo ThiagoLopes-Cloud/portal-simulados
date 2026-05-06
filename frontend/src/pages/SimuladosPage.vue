@@ -38,7 +38,7 @@
             <h3 class="card-title">{{ simulado.titulo }}</h3>
             <p class="card-desc">{{ simulado.descricao || 'Bateria padrão para nivelamento de conhecimento.' }}</p>
           </div>
-          <OrbynButton
+          <SimuslabButton
             variant="primary"
             size="md"
             block
@@ -46,7 +46,7 @@
             @click="$router.push(`/simulado/${simulado.id}`)"
           >
             Iniciar Avaliação
-          </OrbynButton>
+          </SimuslabButton>
         </div>
       </div>
 
@@ -58,9 +58,9 @@
           <p class="empty-sub">
             Você ainda não possui missões fechadas. Junte-se a uma turma com um código de convite.
           </p>
-          <OrbynButton variant="ghost" size="sm" @click="$router.push('/turmas')" class="mt-5">
+          <SimuslabButton variant="ghost" size="sm" @click="$router.push('/turmas')" class="mt-5">
             Procurar Turmas
-          </OrbynButton>
+          </SimuslabButton>
         </div>
 
         <div v-for="simulado in simuladosExclusivos" :key="simulado.id" class="simulado-card simulado-card--vip">
@@ -70,7 +70,7 @@
             <h3 class="card-title mt-6">{{ simulado.titulo }}</h3>
             <p class="card-desc">{{ simulado.descricao || 'Simulação tática direcionada ao seu grupo de estudos.' }}</p>
           </div>
-          <OrbynButton
+          <SimuslabButton
             variant="secondary"
             size="md"
             block
@@ -78,7 +78,7 @@
             @click="$router.push(`/simulado/${simulado.id}`)"
           >
             Acessar Missão
-          </OrbynButton>
+          </SimuslabButton>
         </div>
       </div>
     </div>
@@ -89,7 +89,7 @@
 import { ref, onMounted } from 'vue'
 import api from '../services/api.js'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
 
 const username = localStorage.getItem('username') || ''
 const isAdmin = localStorage.getItem('user_role') === 'admin'

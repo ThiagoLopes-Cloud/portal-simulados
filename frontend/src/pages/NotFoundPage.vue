@@ -1,17 +1,17 @@
 <template>
   <div class="nf-layout starfield">
     <div class="nf-content">
-      <OrbynLogo size="md" class="mb-10" />
+      <SimuslabLogo size="md" class="mb-10" />
       <div class="nf-code">404</div>
       <h1 class="nf-title">Rota não encontrada.</h1>
       <p class="nf-sub">Esta coordenada não existe no laboratório. Pode ser que a URL esteja incorreta ou que a página tenha sido removida.</p>
       <div class="nf-actions">
-        <OrbynButton variant="primary" size="md" @click="$router.push('/dashboard')">
+        <SimuslabButton variant="primary" size="md" @click="$router.push('/dashboard')">
           Voltar ao Dashboard
-        </OrbynButton>
-        <OrbynButton variant="ghost" size="md" @click="$router.go(-1)">
+        </SimuslabButton>
+        <SimuslabButton variant="ghost" size="md" @click="$router.go(-1)">
           Página Anterior
-        </OrbynButton>
+        </SimuslabButton>
       </div>
     </div>
     <div class="nf-glow-top" />
@@ -20,8 +20,8 @@
 </template>
 
 <script setup>
-import OrbynLogo from '../components/ui/OrbynLogo.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
+import SimuslabLogo from '../components/ui/SimuslabLogo.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
 </script>
 
 <style scoped>

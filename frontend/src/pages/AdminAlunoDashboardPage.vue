@@ -15,16 +15,16 @@
       <div class="empty-icon nova">⚠</div>
       <h3 class="empty-title">Falha de Leitura</h3>
       <p class="empty-sub">{{ erro }}</p>
-      <OrbynButton variant="primary" size="sm" class="mt-5" @click="$router.push('/admin/alunos')">
+      <SimuslabButton variant="primary" size="sm" class="mt-5" @click="$router.push('/admin/alunos')">
         Voltar para Base de Alunos
-      </OrbynButton>
+      </SimuslabButton>
     </div>
 
     <div v-else>
       <!-- Breadcrumb -->
       <div class="page-header">
-        <OrbynButton variant="ghost" size="sm" @click="$router.push('/admin/alunos')">← Voltar para Base</OrbynButton>
-        <OrbynBadge variant="pulsar">Admin</OrbynBadge>
+        <SimuslabButton variant="ghost" size="sm" @click="$router.push('/admin/alunos')">← Voltar para Base</SimuslabButton>
+        <SimuslabBadge variant="pulsar">Admin</SimuslabBadge>
       </div>
 
       <!-- Perfil do aluno -->
@@ -34,7 +34,7 @@
           <h2 class="profile-name">{{ dados.aluno.username }}</h2>
           <p class="profile-email">{{ dados.aluno.email }}</p>
         </div>
-        <OrbynBadge variant="stellar" dot>Ativo no Laboratório</OrbynBadge>
+        <SimuslabBadge variant="stellar" dot>Ativo no Laboratório</SimuslabBadge>
       </div>
 
       <!-- KPIs -->
@@ -148,8 +148,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api.js'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
-import OrbynBadge from '../components/ui/OrbynBadge.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
+import SimuslabBadge from '../components/ui/SimuslabBadge.vue'
 
 const router = useRouter()
 const route = useRoute()

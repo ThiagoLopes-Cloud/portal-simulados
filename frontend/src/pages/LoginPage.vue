@@ -2,7 +2,7 @@
   <AuthLayout>
     <!-- Logo mobile (só aparece sem o painel esquerdo) -->
     <div class="login-logo-mobile">
-      <OrbynLogo size="md" />
+      <SimuslabLogo size="md" />
     </div>
 
     <div class="login-header">
@@ -18,7 +18,7 @@
 
     <!-- Formulário -->
     <form @submit.prevent="handleLogin" class="login-form">
-      <OrbynInput
+      <SimuslabInput
         v-model="username"
         label="Usuário ou E-mail"
         placeholder="Digite seu usuário"
@@ -27,7 +27,7 @@
         @input="loginError = false"
       />
 
-      <OrbynInput
+      <SimuslabInput
         v-model="password"
         label="Senha"
         type="password"
@@ -37,7 +37,7 @@
         @input="loginError = false"
       />
 
-      <OrbynButton
+      <SimuslabButton
         type="submit"
         variant="primary"
         size="lg"
@@ -46,7 +46,7 @@
       >
         Acessar Plataforma
         <template #loading>Autenticando...</template>
-      </OrbynButton>
+      </SimuslabButton>
     </form>
 
     <p class="login-register">
@@ -61,9 +61,9 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
 import AuthLayout  from '../layouts/AuthLayout.vue'
-import OrbynLogo   from '../components/ui/OrbynLogo.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
-import OrbynInput  from '../components/ui/OrbynInput.vue'
+import SimuslabLogo   from '../components/ui/SimuslabLogo.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
+import SimuslabInput  from '../components/ui/SimuslabInput.vue'
 
 const router    = useRouter()
 const username  = ref('')

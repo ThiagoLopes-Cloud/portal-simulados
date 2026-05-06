@@ -1,5 +1,5 @@
 <template>
-  <div class="orbyn-card" :class="[`card--${padding}`, accentClass]" :style="accentStyle">
+  <div class="simuslab-card" :class="[`card--${padding}`, accentClass]" :style="accentStyle">
     <div v-if="$slots.header" class="card-header">
       <slot name="header" />
     </div>
@@ -51,7 +51,7 @@ const accentStyle = computed(() => {
 </script>
 
 <style scoped>
-.orbyn-card {
+.simuslab-card {
   background: var(--color-nebula);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -62,7 +62,7 @@ const accentStyle = computed(() => {
 }
 
 /* Accent top bar */
-.orbyn-card[style*="--card-accent"]::before {
+.simuslab-card[style*="--card-accent"]::before {
   content: '';
   position: absolute;
   top: 0;

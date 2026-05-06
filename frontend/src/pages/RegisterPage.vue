@@ -1,7 +1,7 @@
 <template>
   <AuthLayout>
     <div class="mb-8">
-      <OrbynLogo size="md" class="mb-6" />
+      <SimuslabLogo size="md" class="mb-6" />
       <h2 class="register-title">Crie sua conta</h2>
       <p class="register-sub">Junte-se ao laboratório e inicie sua jornada de alta performance.</p>
     </div>
@@ -10,14 +10,14 @@
     <div v-if="sucesso" class="alert alert--success">Conta criada! Redirecionando...</div>
 
     <form @submit.prevent="register" class="form-stack">
-      <OrbynInput
+      <SimuslabInput
         v-model="username"
         label="Usuário"
         placeholder="ex: joao.silva"
         :disabled="carregando || sucesso"
         required
       />
-      <OrbynInput
+      <SimuslabInput
         v-model="email"
         label="E-mail"
         type="email"
@@ -26,7 +26,7 @@
         required
       />
       <div class="grid-2">
-        <OrbynInput
+        <SimuslabInput
           v-model="password"
           label="Senha"
           type="password"
@@ -34,7 +34,7 @@
           :disabled="carregando || sucesso"
           required
         />
-        <OrbynInput
+        <SimuslabInput
           v-model="password2"
           label="Confirmar"
           type="password"
@@ -44,7 +44,7 @@
         />
       </div>
 
-      <OrbynButton
+      <SimuslabButton
         type="submit"
         variant="primary"
         size="lg"
@@ -53,7 +53,7 @@
         :disabled="sucesso"
       >
         Criar Conta
-      </OrbynButton>
+      </SimuslabButton>
     </form>
 
     <p class="register-footer">
@@ -68,9 +68,9 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
 import AuthLayout from '../layouts/AuthLayout.vue'
-import OrbynLogo from '../components/ui/OrbynLogo.vue'
-import OrbynInput from '../components/ui/OrbynInput.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
+import SimuslabLogo from '../components/ui/SimuslabLogo.vue'
+import SimuslabInput from '../components/ui/SimuslabInput.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
 
 const router = useRouter()
 const username = ref('')

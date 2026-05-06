@@ -1,5 +1,5 @@
 <template>
-  <div class="orbyn-kpi" :class="`kpi--${accent}`">
+  <div class="simuslab-kpi" :class="`kpi--${accent}`">
     <!-- Skeleton loading state -->
     <template v-if="loading">
       <div class="kpi-skeleton-value skeleton" />
@@ -63,7 +63,7 @@ const changeIcon = computed(() => {
 </script>
 
 <style scoped>
-.orbyn-kpi {
+.simuslab-kpi {
   background: var(--color-nebula);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -78,7 +78,7 @@ const changeIcon = computed(() => {
 }
 
 /* ── Top accent bar ── */
-.orbyn-kpi::before {
+.simuslab-kpi::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -90,7 +90,7 @@ const changeIcon = computed(() => {
 .kpi--stellar::before { background: linear-gradient(90deg, var(--color-stellar), var(--color-orbit)); }
 .kpi--flare::before   { background: linear-gradient(90deg, var(--color-flare), var(--color-nova)); }
 
-.orbyn-kpi:hover {
+.simuslab-kpi:hover {
   border-color: var(--color-border-hover);
 }
 

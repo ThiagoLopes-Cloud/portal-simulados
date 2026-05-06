@@ -5,7 +5,7 @@
         <h2 class="page-title">Gestão de Alunos</h2>
         <p class="page-sub">Visão geral e acesso aos relatórios individuais de performance.</p>
       </div>
-      <OrbynBadge variant="pulsar">Admin</OrbynBadge>
+      <SimuslabBadge variant="pulsar">Admin</SimuslabBadge>
     </header>
 
     <!-- Skeleton -->
@@ -18,7 +18,7 @@
       <div class="empty-icon nova">⚠</div>
       <h3 class="empty-title">Falha de Conexão</h3>
       <p class="empty-sub">{{ erro }}</p>
-      <OrbynButton variant="primary" size="sm" class="mt-5" @click="carregarAlunos">Tentar Novamente</OrbynButton>
+      <SimuslabButton variant="primary" size="sm" class="mt-5" @click="carregarAlunos">Tentar Novamente</SimuslabButton>
     </div>
 
     <div v-else>
@@ -69,14 +69,14 @@
                 <span v-else class="no-data">Sem dados</span>
               </td>
               <td class="td text-right">
-                <OrbynButton
+                <SimuslabButton
                   variant="ghost"
                   size="sm"
                   :disabled="aluno.total_simulados === 0"
                   @click="verDashboard(aluno.id)"
                 >
                   Ver Relatório
-                </OrbynButton>
+                </SimuslabButton>
               </td>
             </tr>
           </tbody>
@@ -95,9 +95,9 @@
             <div class="mobile-row-stats">
               <span class="stat-label">{{ aluno.total_simulados }} avaliações</span>
               <span v-if="aluno.total_simulados > 0" class="score-badge" :class="scoreBg(aluno.score_medio)">{{ aluno.score_medio }}%</span>
-              <OrbynButton variant="ghost" size="sm" :disabled="aluno.total_simulados === 0" @click="verDashboard(aluno.id)">
+              <SimuslabButton variant="ghost" size="sm" :disabled="aluno.total_simulados === 0" @click="verDashboard(aluno.id)">
                 Relatório
-              </OrbynButton>
+              </SimuslabButton>
             </div>
           </div>
         </div>
@@ -111,8 +111,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
-import OrbynBadge from '../components/ui/OrbynBadge.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
+import SimuslabBadge from '../components/ui/SimuslabBadge.vue'
 
 const router = useRouter()
 const username = localStorage.getItem('username') || ''

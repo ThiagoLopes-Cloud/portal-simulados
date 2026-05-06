@@ -5,9 +5,9 @@
         <h2 class="page-title">Análise de Resultado</h2>
         <p class="page-sub">Diagnóstico detalhado da sua simulação.</p>
       </div>
-      <OrbynButton variant="ghost" size="sm" @click="$router.push('/simulados')">
+      <SimuslabButton variant="ghost" size="sm" @click="$router.push('/simulados')">
         ← Voltar
-      </OrbynButton>
+      </SimuslabButton>
     </header>
 
     <!-- Skeleton -->
@@ -23,7 +23,7 @@
       <div class="empty-icon nova">⚠</div>
       <h3 class="empty-title">Erro na decodificação.</h3>
       <p class="empty-sub">{{ erro }}</p>
-      <OrbynButton variant="primary" size="sm" class="mt-5" @click="$router.push('/simulados')">Voltar</OrbynButton>
+      <SimuslabButton variant="primary" size="sm" class="mt-5" @click="$router.push('/simulados')">Voltar</SimuslabButton>
     </div>
 
     <div v-else class="resultado-stack">
@@ -190,7 +190,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api.js'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
 import EvolucaoGrafico from '../components/EvolucaoGrafico.vue'
 
 const router = useRouter()

@@ -12,8 +12,9 @@ import AdminAlunosPage from '../pages/AdminAlunosPage.vue'
 import AdminAlunoDashboardPage from '../pages/AdminAlunoDashboardPage.vue'
 import ImportarQuestoesPage from '../pages/ImportarQuestoesPage.vue'
 
-// Importamos a página correta que você acabou de criar
 import TurmaPortal from '../pages/TurmaPortal.vue'
+import TrilhasPage from '../pages/TrilhasPage.vue'
+import TurmaDashboardPage from '../pages/TurmaDashboardPage.vue'
 import NotFoundPage from '../pages/NotFoundPage.vue'
 
 const routes = [
@@ -26,13 +27,9 @@ const routes = [
   { path: '/resultado/:id', name: 'resultado', component: ResultadoPage, meta: { requiresAuth: true } },
   { path: '/ranking', name: 'ranking', component: RankingPage, meta: { requiresAuth: true } },
   
-  // AQUI ENTROU A NOVA ROTA DA FASE 8
-  { 
-    path: '/turmas', 
-    name: 'turmas', 
-    component: TurmaPortal, 
-    meta: { requiresAuth: true } 
-  },
+  { path: '/turmas', name: 'turmas', component: TurmaPortal, meta: { requiresAuth: true } },
+  { path: '/trilhas', name: 'trilhas', component: TrilhasPage, meta: { requiresAuth: true } },
+  { path: '/turma-dashboard', name: 'turma-dashboard', component: TurmaDashboardPage, meta: { requiresAuth: true } },
 
   // Rotas de admin
   {

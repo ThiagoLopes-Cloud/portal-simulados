@@ -5,7 +5,7 @@
         <h2 class="page-title">Motor de Inteligência Artificial</h2>
         <p class="page-sub">Gere baterias de questões via LLMs e importe os dados estruturados.</p>
       </div>
-      <OrbynBadge variant="pulsar">Admin</OrbynBadge>
+      <SimuslabBadge variant="pulsar">Admin</SimuslabBadge>
     </header>
 
     <div class="import-grid">
@@ -96,7 +96,7 @@
           ◈ {{ questoesDetectadas }} questão(ões) detectada(s)
         </div>
 
-        <OrbynButton
+        <SimuslabButton
           variant="primary"
           size="lg"
           block
@@ -105,7 +105,7 @@
           @click="importar"
         >
           ◉ Iniciar Importação
-        </OrbynButton>
+        </SimuslabButton>
 
         <div v-if="erroValidacao" class="alert alert--error">
           <strong>Erro de Sintaxe:</strong> {{ erroValidacao }}
@@ -129,7 +129,7 @@
               <li><a href="https://portal-simulados-production.up.railway.app/admin/simulados/simulado/" target="_blank">Ative a avaliação ↗</a></li>
             </ol>
           </div>
-          <OrbynButton variant="ghost" size="sm" @click="reiniciar" class="mt-4">+ Preparar Novo Lote</OrbynButton>
+          <SimuslabButton variant="ghost" size="sm" @click="reiniciar" class="mt-4">+ Preparar Novo Lote</SimuslabButton>
         </div>
       </div>
 
@@ -141,8 +141,8 @@
 import { ref, computed } from 'vue'
 import api from '../services/api.js'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
-import OrbynButton from '../components/ui/OrbynButton.vue'
-import OrbynBadge from '../components/ui/OrbynBadge.vue'
+import SimuslabButton from '../components/ui/SimuslabButton.vue'
+import SimuslabBadge from '../components/ui/SimuslabBadge.vue'
 
 const username = localStorage.getItem('username') || ''
 const jsonTexto = ref('')

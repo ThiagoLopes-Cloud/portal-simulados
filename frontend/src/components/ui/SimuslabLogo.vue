@@ -1,5 +1,5 @@
 <template>
-  <div class="orbyn-logo" :class="[`logo--${size}`, `logo--${variant}`]">
+  <div class="simuslab-logo" :class="[`logo--${size}`, `logo--${variant}`]">
     <!-- Orbital icon -->
     <div class="logo-icon">
       <div class="logo-core" />
@@ -37,7 +37,7 @@ defineProps({
 </script>
 
 <style scoped>
-.orbyn-logo {
+.simuslab-logo {
   display: inline-flex;
   align-items: center;
   gap: 10px;
