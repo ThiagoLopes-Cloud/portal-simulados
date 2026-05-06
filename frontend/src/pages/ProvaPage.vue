@@ -70,16 +70,14 @@
              class="questao-img" alt="Material de apoio" />
 
         <div class="opcoes">
-          <div v-for="opcao in opcoesDaQuestao(simulado.questoes[questaoAtual])" :key="opcao.letra"
-               class="opcao"
-               :class="respostas[simulado.questoes[questaoAtual].id] === opcao.letra ? 'opcao--selected' : ''"
-               @click="selecionar(simulado.questoes[questaoAtual].id, opcao.letra)">
-            <div class="opcao-letra"
-                 :class="respostas[simulado.questoes[questaoAtual].id] === opcao.letra ? 'opcao-letra--selected' : ''">
-              {{ opcao.letra }}
-            </div>
-            <span class="opcao-texto">{{ opcao.texto }}</span>
-          </div>
+          <SimusOption
+            v-for="opcao in opcoesDaQuestao(simulado.questoes[questaoAtual])"
+            :key="opcao.letra"
+            :label="opcao.letra"
+            :text="opcao.texto"
+            :state="respostas[simulado.questoes[questaoAtual].id] === opcao.letra ? 'selected' : 'default'"
+            @click="selecionar(simulado.questoes[questaoAtual].id, opcao.letra)"
+          />
         </div>
       </div>
 
@@ -92,19 +90,26 @@
         </div>
 
         <div class="controles-btns">
-          <button class="btn-anterior" @click="anterior" :disabled="questaoAtual === 0">Anterior</button>
+          <SimusButton
+            variant="secondary"
+            :disabled="questaoAtual === 0"
+            @click="anterior"
+          >Anterior</SimusButton>
 
-          <button v-if="questaoAtual < simulado.questoes.length - 1"
-                  class="btn-proxima" @click="proxima">
-            Avançar
-          </button>
+          <SimusButton
+            v-if="questaoAtual < simulado.questoes.length - 1"
+            variant="primary"
+            @click="proxima"
+          >Avançar</SimusButton>
 
-          <button v-else class="btn-finalizar"
-                  @click="enviar"
-                  :disabled="enviando || totalRespondidas < simulado.questoes.length">
-            <span v-if="enviando" class="spinner" />
+          <SimusButton
+            v-else
+            variant="primary"
+            :disabled="enviando || totalRespondidas < simulado.questoes.length"
+            @click="enviar"
+          >
             {{ enviando ? 'Compilando...' : 'Finalizar Simulação' }}
-          </button>
+          </SimusButton>
         </div>
       </div>
 
@@ -122,6 +127,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api.js'
+import SimusOption from '../components/ui/SimusOption.vue'
+import SimusButton from '../components/ui/SimusButton.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -276,34 +283,6 @@ async function enviar() {
 .questao-img { max-width: 100%; border-radius: var(--radius-md); margin-bottom: var(--space-8); border: 1px solid var(--color-border); }
 
 .opcoes { display: flex; flex-direction: column; gap: var(--space-3); }
-.opcao {
-  display: flex;
-  align-items: stretch;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--color-border);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  overflow: hidden;
-}
-.opcao:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); }
-.opcao--selected { border-color: var(--color-orbit); background: rgba(0,229,255,0.05); }
-
-.opcao-letra {
-  width: 48px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-right: 1px solid var(--color-border);
-  background: rgba(255,255,255,0.03);
-  font-family: var(--font-display);
-  font-weight: var(--weight-bold);
-  font-size: var(--text-sm);
-  color: var(--color-dust);
-  transition: all var(--transition-fast);
-}
-.opcao-letra--selected { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3); color: var(--color-orbit); }
-.opcao-texto { flex: 1; padding: var(--space-4) var(--space-5); font-size: var(--text-sm); color: var(--color-comet); line-height: var(--leading-snug); }
 
 /* Controles */
 .controles {
@@ -320,21 +299,7 @@ async function enviar() {
 .controles-status { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-dust); }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: all var(--transition-fast); }
 .status-dot--done { background: var(--color-stellar); box-shadow: 0 0 8px rgba(0,214,143,0.5); }
-.controles-btns { display: flex; gap: var(--space-3); }
-
-.btn-anterior { padding: var(--space-2) var(--space-5); border-radius: var(--radius-md); border: 1px solid var(--color-border); color: var(--color-comet); background: transparent; font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; transition: all var(--transition-fast); }
-.btn-anterior:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
-.btn-anterior:disabled { opacity: 0.3; cursor: not-allowed; }
-
-.btn-proxima { padding: var(--space-2) var(--space-6); border-radius: var(--radius-md); background: var(--color-orbit); color: var(--color-cosmos); font-family: var(--font-display); font-weight: var(--weight-semibold); font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.08em; border: none; cursor: pointer; transition: all var(--transition-fast); }
-.btn-proxima:hover { box-shadow: 0 0 15px rgba(0,229,255,0.3); transform: scale(1.02); }
-
-.btn-finalizar { padding: var(--space-2) var(--space-6); border-radius: var(--radius-md); background: var(--color-stellar); color: white; font-family: var(--font-display); font-weight: var(--weight-semibold); font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.08em; border: none; cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; gap: var(--space-2); }
-.btn-finalizar:hover:not(:disabled) { box-shadow: 0 0 15px rgba(0,214,143,0.3); transform: scale(1.02); }
-.btn-finalizar:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-
-.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.controles-btns { display: flex; gap: var(--space-3); flex-wrap: wrap; }
 
 /* Alertas */
 .alerta { margin-top: var(--space-4); display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); }
