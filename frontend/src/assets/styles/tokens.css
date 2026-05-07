@@ -1,110 +1,140 @@
-/* ═══════════════════════════════════════════════════════════════
-   SIMUSLAB DESIGN SYSTEM — TOKENS v1.0
-   ═══════════════════════════════════════════════════════════════ */
-
 :root {
-  /* ── Colors: Background Layers ── */
-  --color-cosmos:        #08091A;
-  --color-nebula:        #0D1024;
-  --color-void:          #111428;
-  --color-horizon:       #1A1D38;
-  --color-eclipse:       #222645;
+  /* ── Backgrounds ───────────────────────────── */
+  --color-cosmos:  #08091A;
+  --color-nebula:  #0D1024;
+  --color-void:    #111428;
+  --color-horizon: #1A1D38;
+  --color-eclipse: #222645;
 
-  /* ── Colors: Brand Primary (Orbit Cyan) ── */
-  --color-orbit:         #00E5FF;
-  --color-orbit-bright:  #40EEFF;
-  --color-orbit-glow:    rgba(0, 229, 255, 0.25);
-  --color-orbit-mid:     rgba(0, 229, 255, 0.15);
-  --color-orbit-dim:     rgba(0, 229, 255, 0.08);
-  --color-orbit-border:  rgba(0, 229, 255, 0.25);
+  /* Aliases semânticos */
+  --color-bg-base:     var(--color-cosmos);
+  --color-bg-panel:    var(--color-nebula);
+  --color-bg-surface:  var(--color-void);
+  --color-bg-elevated: var(--color-horizon);
+  --color-bg-overlay:  rgba(8, 9, 26, 0.85);
 
-  /* ── Colors: Brand Secondary (Pulsar Purple) ── */
+  /* ── Brand Primary — Orbit Cyan ────────────── */
+  --color-orbit:        #00E5FF;
+  --color-orbit-bright: #40EEFF;
+  --color-orbit-glow:   rgba(0, 229, 255, 0.15);
+  --color-orbit-mid:    rgba(0, 229, 255, 0.25);
+  --color-orbit-dim:    rgba(0, 229, 255, 0.08);
+  --color-orbit-border: rgba(0, 229, 255, 0.25);
+
+  /* ── Brand Secondary — Pulsar Purple ──────── */
   --color-pulsar:        #7C6EFF;
-  --color-pulsar-bright: #9D92FF;
-  --color-pulsar-glow:   rgba(124, 110, 255, 0.25);
+  --color-pulsar-bright: #9B8FFF;
+  --color-pulsar-glow:   rgba(124, 110, 255, 0.15);
   --color-pulsar-dim:    rgba(124, 110, 255, 0.08);
   --color-pulsar-border: rgba(124, 110, 255, 0.25);
 
-  /* ── Colors: Semantic ── */
-  --color-nova:          #FF4D6D;
-  --color-nova-glow:     rgba(255, 77, 109, 0.25);
-  --color-nova-dim:      rgba(255, 77, 109, 0.08);
-  --color-nova-border:   rgba(255, 77, 109, 0.25);
+  /* ── Semantic — Success ────────────────────── */
+  --color-stellar:        #00D68F;
+  --color-stellar-bright: #00F0A0;
+  --color-stellar-glow:   rgba(0, 214, 143, 0.15);
+  --color-stellar-dim:    rgba(0, 214, 143, 0.08);
+  --color-stellar-border: rgba(0, 214, 143, 0.25);
 
-  --color-stellar:       #00D68F;
-  --color-stellar-glow:  rgba(0, 214, 143, 0.25);
-  --color-stellar-dim:   rgba(0, 214, 143, 0.08);
-  --color-stellar-border:rgba(0, 214, 143, 0.25);
+  /* ── Semantic — Error ──────────────────────── */
+  --color-nova:        #FF4D6D;
+  --color-nova-glow:   rgba(255, 77, 109, 0.15);
+  --color-nova-dim:    rgba(255, 77, 109, 0.08);
+  --color-nova-border: rgba(255, 77, 109, 0.25);
 
-  --color-flare:         #FFB830;
-  --color-flare-glow:    rgba(255, 184, 48, 0.25);
-  --color-flare-dim:     rgba(255, 184, 48, 0.08);
-  --color-flare-border:  rgba(255, 184, 48, 0.25);
+  /* ── Semantic — Warning ────────────────────── */
+  --color-flare:        #FFB830;
+  --color-flare-glow:   rgba(255, 184, 48, 0.15);
+  --color-flare-dim:    rgba(255, 184, 48, 0.08);
+  --color-flare-border: rgba(255, 184, 48, 0.25);
 
-  --color-info:          #3D8EFF;
-  --color-info-dim:      rgba(61, 142, 255, 0.08);
-  --color-info-border:   rgba(61, 142, 255, 0.25);
+  /* ── Semantic — Info ───────────────────────── */
+  --color-info:        #3D8EFF;
+  --color-info-dim:    rgba(61, 142, 255, 0.08);
+  --color-info-border: rgba(61, 142, 255, 0.25);
 
-  /* ── Colors: Text ── */
-  --color-star:          #F0F2FF;
-  --color-comet:         #8892B0;
-  --color-dust:          #4A5278;
+  /* ── Text ──────────────────────────────────── */
+  --color-star:  #F0F2FF;
+  --color-comet: #8892B0;
+  --color-dust:  #4A5278;
 
-  /* ── Colors: Border & Surface ── */
-  --color-border:        rgba(255, 255, 255, 0.06);
-  --color-border-hover:  rgba(255, 255, 255, 0.12);
-  --color-surface-hover: rgba(255, 255, 255, 0.03);
+  /* Aliases semânticos */
+  --color-text-primary:   var(--color-star);
+  --color-text-secondary: var(--color-comet);
+  --color-text-tertiary:  var(--color-dust);
 
-  /* ── Typography: Families ── */
-  --font-display:   'Syne', sans-serif;
-  --font-body:      'DM Sans', sans-serif;
-  --font-mono:      'JetBrains Mono', monospace;
+  /* ── Borders & Surfaces ────────────────────── */
+  --color-border:        rgba(255, 255, 255, 0.08);
+  --color-border-hover:  rgba(255, 255, 255, 0.14);
+  --color-border-focus:  var(--color-orbit);
+  --color-surface-hover: rgba(255, 255, 255, 0.04);
 
-  /* ── Typography: Scale ── */
-  --text-2xs:  0.625rem;
-  --text-xs:   0.6875rem;
-  --text-sm:   0.75rem;
-  --text-base: 0.875rem;
-  --text-md:   1rem;
-  --text-lg:   1.125rem;
-  --text-xl:   1.25rem;
-  --text-2xl:  1.5rem;
-  --text-3xl:  1.875rem;
-  --text-4xl:  2.25rem;
-  --text-5xl:  3rem;
+  /* ── Gamificação ───────────────────────────── */
+  --color-gold:   #FFD700;
+  --color-silver: #C0C8D8;
+  --color-bronze: #CD7F32;
 
-  /* ── Typography: Weight ── */
+  /* ── Typography: Families ──────────────────── */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  /* ── Typography: Scale ─────────────────────── */
+  --text-2xs:  0.625rem;   /* 10px */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.875rem;   /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+  --text-5xl:  3rem;       /* 48px */
+
+  /* ── Typography: Weight ────────────────────── */
   --weight-regular:   400;
   --weight-medium:    500;
   --weight-semibold:  600;
   --weight-bold:      700;
   --weight-extrabold: 800;
 
-  /* ── Typography: Line Height ── */
+  /* ── Typography: Line Height ───────────────── */
   --leading-tight:   1.2;
   --leading-snug:    1.35;
   --leading-normal:  1.5;
   --leading-relaxed: 1.7;
 
-  /* ── Space Scale ── */
-  --space-0:  0px;
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-7:  28px;
-  --space-8:  32px;
-  --space-9:  36px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-14: 56px;
-  --space-16: 64px;
-  --space-20: 80px;
-  --space-24: 96px;
+  /* ── Typography: Letter Spacing ────────────── */
+  --tracking-tighter: -0.03em;
+  --tracking-tight:   -0.01em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.04em;
+  --tracking-wider:   0.08em;
 
-  /* ── Border Radius ── */
+  /* ── Spacing Scale (base: 4px) ─────────────── */
+  --space-0:   0px;
+  --space-px:  1px;
+  --space-0-5: 2px;
+  --space-1:   4px;
+  --space-1-5: 6px;
+  --space-2:   8px;
+  --space-2-5: 10px;
+  --space-3:   12px;
+  --space-3-5: 14px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-7:   28px;
+  --space-8:   32px;
+  --space-9:   36px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-14:  56px;
+  --space-16:  64px;
+  --space-20:  80px;
+  --space-24:  96px;
+
+  /* ── Border Radius ──────────────────────────── */
+  --radius-none: 0px;
   --radius-xs:   4px;
   --radius-sm:   6px;
   --radius-md:   10px;
@@ -113,37 +143,86 @@
   --radius-2xl:  28px;
   --radius-full: 9999px;
 
-  /* ── Shadows ── */
-  --shadow-sm:     0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md:     0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg:     0 8px 32px rgba(0, 0, 0, 0.5);
+  /* ── Shadows ────────────────────────────────── */
+  --shadow-xs:     0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm:     0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md:     0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg:     0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-xl:     0 16px 48px rgba(0, 0, 0, 0.7);
   --shadow-card:   0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 4px 24px rgba(0, 0, 0, 0.35);
   --shadow-orbit:  0 0 20px rgba(0, 229, 255, 0.2), 0 0 60px rgba(0, 229, 255, 0.06);
   --shadow-pulsar: 0 0 20px rgba(124, 110, 255, 0.2), 0 0 60px rgba(124, 110, 255, 0.06);
+  --shadow-stellar: 0 0 20px rgba(0, 214, 143, 0.2);
   --shadow-nova:   0 0 20px rgba(255, 77, 109, 0.2);
+  --shadow-focus:  0 0 0 3px rgba(0, 229, 255, 0.3);
 
-  /* ── Transitions ── */
-  --transition-fast:   100ms ease;
-  --transition-normal: 200ms ease;
-  --transition-slow:   350ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* ── Motion: Durations ──────────────────────── */
+  --duration-instant: 50ms;
+  --duration-fast:    100ms;
+  --duration-normal:  200ms;
+  --duration-slow:    350ms;
+  --duration-slower:  500ms;
 
-  /* ── Z-Index Layers ── */
-  --z-base:    1;
+  /* ── Motion: Easings ────────────────────────── */
+  --ease-linear: linear;
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Aliases legados */
+  --transition-fast:   var(--duration-fast) var(--ease-out);
+  --transition-normal: var(--duration-normal) var(--ease-out);
+  --transition-slow:   var(--duration-slow) var(--ease-in-out);
+  --transition-spring: var(--duration-slow) var(--ease-spring);
+
+  /* ── Z-Index ────────────────────────────────── */
+  --z-base:     1;
+  --z-raised:   10;
   --z-dropdown: 30;
+  --z-sticky:   40;
   --z-sidebar:  50;
   --z-topbar:   60;
   --z-modal:    100;
   --z-toast:    110;
   --z-tooltip:  120;
+  --z-overlay:  150;
 
-  /* ── Blur ── */
+  /* ── Blur ───────────────────────────────────── */
   --blur-sm: 8px;
   --blur-md: 12px;
   --blur-lg: 20px;
+  --blur-xl: 40px;
 
-  /* ── Layout: Sidebar ── */
+  /* ── Icon Sizes ─────────────────────────────── */
+  --icon-xs:  14px;
+  --icon-sm:  16px;
+  --icon-md:  20px;
+  --icon-lg:  24px;
+  --icon-xl:  32px;
+
+  /* ── Layout ──────────────────────────────────── */
   --sidebar-width:           220px;
   --sidebar-width-collapsed: 68px;
   --topbar-height:           60px;
+  --content-max-width:       1280px;
+
+  /* ── Component Tokens ────────────────────────── */
+  --btn-height-sm:    32px;
+  --btn-height-md:    40px;
+  --btn-height-lg:    48px;
+  --btn-radius:       var(--radius-md);
+
+  --input-radius:     var(--radius-md);
+  --input-bg:         var(--color-bg-surface);
+  --input-border:     var(--color-border);
+
+  --card-radius:      var(--radius-lg);
+  --card-bg:          var(--color-bg-surface);
+  --card-border:      var(--color-border);
+  --card-shadow:      var(--shadow-card);
+
+  --modal-radius:     var(--radius-xl);
+  --modal-bg:         var(--color-bg-surface);
+  --badge-radius:     var(--radius-full);
 }

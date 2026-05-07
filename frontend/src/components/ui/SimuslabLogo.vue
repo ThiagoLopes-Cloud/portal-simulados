@@ -3,14 +3,10 @@
     <!-- Icon mark -->
     <div class="logo-icon">
       <svg :width="iconSize" :height="iconSize" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <!-- Outer ring -->
-        <circle cx="16" cy="16" r="14" stroke="#bfdbfe" stroke-width="1.5" />
-        <!-- Middle ring -->
-        <circle cx="16" cy="16" r="9" stroke="#93c5fd" stroke-width="1.5" />
-        <!-- Core -->
-        <circle cx="16" cy="16" r="4" fill="#2563eb" />
-        <!-- Orbit dot -->
-        <circle cx="16" cy="2" r="2.5" fill="#2563eb" />
+        <circle cx="16" cy="16" r="14" class="logo-ring-outer" stroke-width="1.5" />
+        <circle cx="16" cy="16" r="9"  class="logo-ring-mid"   stroke-width="1.5" />
+        <circle cx="16" cy="16" r="4"  class="logo-core" />
+        <circle cx="16" cy="2"  r="2.5" class="logo-dot" />
       </svg>
     </div>
 
@@ -55,6 +51,12 @@ const iconSize = computed(() => ({ sm: 24, md: 32, lg: 44 }[props.size]))
   flex-shrink: 0;
 }
 
+/* ── SVG rings ── */
+.logo-ring-outer { stroke: var(--color-orbit); opacity: 0.35; }
+.logo-ring-mid   { stroke: var(--color-orbit); opacity: 0.65; }
+.logo-core       { fill: var(--color-orbit); }
+.logo-dot        { fill: var(--color-orbit); }
+
 /* ── Wordmark ── */
 .logo-wordmark {
   font-family: var(--font-display);
@@ -63,11 +65,8 @@ const iconSize = computed(() => ({ sm: 24, md: 32, lg: 44 }[props.size]))
   letter-spacing: -0.03em;
 }
 
-.logo-simus { color: #2563eb; }
-.logo-lab   { color: #0f172a; }
-
-/* ── Light variant (for dark backgrounds) ── */
-.logo--light .logo-lab { color: #f8fafc; }
+.logo-simus { color: var(--color-orbit); }
+.logo-lab   { color: var(--color-star); }
 
 /* ── Sizes ── */
 .logo--sm .logo-wordmark { font-size: 1rem; }

@@ -18,52 +18,56 @@
 
 <script setup>
 defineProps({
-  padding:    { type: String, default: 'md', validator: v => ['sm', 'md', 'lg', 'none'].includes(v) },
-  accentColor:{ type: String, default: '' },
-  hoverable:  { type: Boolean, default: false },
+  padding:     { type: String, default: 'md', validator: v => ['sm', 'md', 'lg', 'none'].includes(v) },
+  accentColor: { type: String, default: '' },
+  hoverable:   { type: Boolean, default: false },
 })
 </script>
 
 <style scoped>
 .simuslab-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
   position: relative;
   overflow: hidden;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow var(--duration-slow) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
 }
 
 .card--hoverable:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-  border-color: #cbd5e1;
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-border-hover);
+  transform: translateY(-3px);
 }
 
-/* ── Top accent bar (solid, not gradient) ── */
+/* ── Top accent bar ── */
 .card-accent-bar {
   height: 3px;
   width: 100%;
 }
-.accent--orbit   { background: #3b82f6; }
-.accent--pulsar  { background: #8b5cf6; }
-.accent--nova    { background: #ef4444; }
-.accent--stellar { background: #10b981; }
-.accent--flare   { background: #f59e0b; }
+.accent--orbit   { background: var(--color-orbit); }
+.accent--pulsar  { background: var(--color-pulsar); }
+.accent--nova    { background: var(--color-nova); }
+.accent--stellar { background: var(--color-stellar); }
+.accent--flare   { background: var(--color-flare); }
 
 /* ── Padding variants ── */
-.card--sm  .card-body { padding: 16px; }
-.card--md  .card-body { padding: 20px; }
-.card--lg  .card-body { padding: 28px; }
+.card--sm   .card-body { padding: var(--space-4); }
+.card--md   .card-body { padding: var(--space-5); }
+.card--lg   .card-body { padding: var(--space-7); }
 .card--none .card-body { padding: 0; }
 
 /* ── Header / Footer ── */
 .card-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
 }
 .card-footer {
-  padding: 16px 20px;
-  border-top: 1px solid #f1f5f9;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
 }
 </style>

@@ -9,18 +9,21 @@
 
     <div v-if="erro" class="alert alert--error">{{ erro }}</div>
 
+    <!-- Skeleton -->
     <div v-else-if="carregando" class="skeleton-list">
-      <div v-for="n in 6" :key="n" class="skeleton-row" />
+      <SimuslabSkeleton v-for="n in 6" :key="n" variant="rect" height="56px" />
     </div>
 
     <div v-else>
-      <div v-if="ranking.length === 0" class="empty-state">
-        <div class="empty-icon">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-        </div>
-        <h3 class="empty-title">Ranking em formação.</h3>
-        <p class="empty-sub">Seja o primeiro a completar uma avaliação e conquiste o topo do laboratório.</p>
-      </div>
+      <!-- Empty state -->
+      <SimuslabEmptyState
+        v-if="ranking.length === 0"
+        icon="trophy"
+        title="Ranking em formação."
+        description="Seja o primeiro a completar uma avaliação e conquiste o topo do laboratório."
+        color="orbit"
+        card
+      />
 
       <div v-else class="rank-card">
         <!-- Desktop table -->
@@ -93,13 +96,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../services/api.js'
-import DashboardLayout from '../layouts/DashboardLayout.vue'
+import DashboardLayout    from '../layouts/DashboardLayout.vue'
+import SimuslabSkeleton   from '../components/ui/SimuslabSkeleton.vue'
+import SimuslabEmptyState from '../components/ui/SimuslabEmptyState.vue'
 
-const username = localStorage.getItem('username') || ''
-const isAdmin = localStorage.getItem('user_role') === 'admin'
-const ranking = ref([])
+const username   = localStorage.getItem('username') || ''
+const isAdmin    = localStorage.getItem('user_role') === 'admin'
+const ranking    = ref([])
 const carregando = ref(true)
-const erro = ref('')
+const erro       = ref('')
 
 onMounted(async () => {
   try {
@@ -125,163 +130,128 @@ function formatarData(data) {
 </script>
 
 <style scoped>
-.page-header { margin-bottom: 32px; }
+.page-header { margin-bottom: var(--space-8); }
 .page-title {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-star);
 }
-.page-sub { font-size: 0.875rem; color: #64748b; margin-top: 4px; }
+.page-sub { font-size: var(--text-sm); color: var(--color-comet); margin-top: var(--space-1); }
 
 .alert {
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  margin-bottom: 20px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-5);
 }
-.alert--error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.alert--error { background: var(--color-nova-dim); border: 1px solid var(--color-nova-border); color: var(--color-nova); }
 
-/* Skeleton */
-.skeleton-list { display: flex; flex-direction: column; gap: 8px; }
-.skeleton-row {
-  height: 56px;
-  background: #f1f5f9;
-  border-radius: 10px;
-  position: relative;
-  overflow: hidden;
-}
-.skeleton-row::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-  animation: shimmer 1.5s infinite;
-}
-@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+/* ── Skeleton ── */
+.skeleton-list { display: flex; flex-direction: column; gap: var(--space-2); }
 
-/* Empty state */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 56px 32px;
-  background: #ffffff;
-  border: 1px dashed #e2e8f0;
-  border-radius: 16px;
-}
-.empty-icon { color: #93c5fd; margin-bottom: 20px; }
-.empty-title {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 8px;
-}
-.empty-sub { font-size: 0.875rem; color: #64748b; }
-
-/* Table */
+/* ── Table ── */
 .rank-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--card-shadow);
 }
 .rank-table { width: 100%; border-collapse: collapse; }
-.table-head-row { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+.table-head-row { background: var(--color-bg-elevated); border-bottom: 1px solid var(--color-border); }
 .th {
-  padding: 12px 20px;
+  padding: var(--space-3) var(--space-5);
   text-align: left;
-  font-size: 0.7rem;
+  font-size: var(--text-2xs);
   font-family: var(--font-body);
-  font-weight: 600;
-  color: #64748b;
+  font-weight: var(--weight-bold);
+  color: var(--color-dust);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-wider);
 }
 .text-center { text-align: center; }
-.text-right { text-align: right; }
-.td { padding: 14px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
-.table-row { transition: background 0.12s ease; }
-.table-row:hover { background: #f8fafc; }
-.table-row--gold   { background: #fffbeb; }
-.table-row--silver { background: #f8fafc; }
-.table-row--bronze { background: #fff7ed; }
+.text-right  { text-align: right; }
+.td { padding: var(--space-3-5) var(--space-5); vertical-align: middle; border-bottom: 1px solid var(--color-border); }
+.table-row { transition: background var(--duration-fast) var(--ease-out); }
+.table-row:last-child .td { border-bottom: none; }
+.table-row:hover { background: var(--color-surface-hover); }
+.table-row--gold   { background: rgba(248, 184, 0, 0.06); }
+.table-row--silver { background: var(--color-surface-hover); }
+.table-row--bronze { background: rgba(255, 119, 0, 0.04); }
 
 .medal {
   width: 32px; height: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
   margin: 0 auto;
 }
-.medal--gold   { background: #fef3c7; }
-.medal--silver { background: #f1f5f9; }
-.medal--bronze { background: #ffedd5; }
+.medal--gold   { background: rgba(248, 184, 0, 0.15); }
+.medal--silver { background: var(--color-bg-elevated); }
+.medal--bronze { background: rgba(255, 119, 0, 0.12); }
 
-.rank-num { font-size: 0.875rem; font-weight: 700; color: #94a3b8; }
+.rank-num { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-dust); }
 
-.user-cell { display: flex; align-items: center; gap: 12px; }
+.user-cell { display: flex; align-items: center; gap: var(--space-3); }
 .user-avatar {
   width: 32px; height: 32px;
-  border-radius: 50%;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-full);
+  background: var(--color-orbit-dim);
+  border: 1px solid var(--color-orbit-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2563eb;
-  font-size: 0.875rem;
-  font-weight: 700;
+  color: var(--color-orbit);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   flex-shrink: 0;
 }
-.user-name { font-size: 0.875rem; font-weight: 600; color: #0f172a; }
+.user-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-star); }
 
 .score-badge {
   display: inline-block;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  padding: 3px var(--space-2-5);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
   border: 1px solid transparent;
 }
-.score--stellar { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
-.score--flare   { background: #fffbeb; color: #92400e; border-color: #fde68a; }
-.score--nova    { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.score--stellar { background: var(--color-stellar-dim); color: var(--color-stellar-bright); border-color: var(--color-stellar-border); }
+.score--flare   { background: var(--color-flare-dim);   color: var(--color-flare);          border-color: var(--color-flare-border); }
+.score--nova    { background: var(--color-nova-dim);    color: var(--color-nova);           border-color: var(--color-nova-border); }
 
-.text-comet { color: #64748b; }
-.text-star  { color: #0f172a; }
-.text-dust  { color: #94a3b8; }
-.text-sm    { font-size: 0.875rem; }
-.font-semibold { font-weight: 600; }
+.text-comet { color: var(--color-comet); }
+.text-star  { color: var(--color-star); }
+.text-dust  { color: var(--color-dust); }
+.text-sm    { font-size: var(--text-sm); }
+.font-semibold { font-weight: var(--weight-semibold); }
 
-/* Mobile list */
-.rank-table { display: table; }
+/* ── Mobile list ── */
+.rank-table  { display: table; }
 .mobile-list { display: none; }
 
 @media (max-width: 640px) {
-  .rank-table { display: none; }
+  .rank-table  { display: none; }
   .mobile-list { display: block; }
   .mobile-row {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 14px 20px;
-    border-bottom: 1px solid #f1f5f9;
+    gap: var(--space-4);
+    padding: var(--space-3-5) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
   }
   .mobile-medal {
     width: 32px; height: 32px;
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     display: flex; align-items: center; justify-content: center;
     font-size: 1.1rem;
     flex-shrink: 0;
   }
-  .mobile-rank { width: 32px; text-align: center; font-size: 0.875rem; font-weight: 700; color: #94a3b8; flex-shrink: 0; }
+  .mobile-rank { width: 32px; text-align: center; font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-dust); flex-shrink: 0; }
   .mobile-info { flex: 1; min-width: 0; }
-  .mobile-sim { font-size: 0.75rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mobile-sim  { font-size: var(--text-xs); color: var(--color-dust); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 </style>

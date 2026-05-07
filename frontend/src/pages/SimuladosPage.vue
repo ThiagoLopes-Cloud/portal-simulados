@@ -8,33 +8,29 @@
     </header>
 
     <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab" :class="{ 'tab--active': activeTab === 'globais' }" @click="activeTab = 'globais'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Banco Global
-      </button>
-      <button class="tab tab--vip" :class="{ 'tab--active-vip': activeTab === 'exclusivos' }" @click="activeTab = 'exclusivos'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-        Missões de Turma
-        <span v-if="simuladosExclusivos.length" class="tab-badge">{{ simuladosExclusivos.length }}</span>
-      </button>
-    </div>
+    <SimuslabTabs
+      v-model="activeTab"
+      :tabs="tabs"
+      class="page-tabs"
+    />
 
     <!-- Skeleton -->
     <div v-if="carregando" class="grid-cards">
-      <div v-for="n in 3" :key="n" class="skeleton-card" />
+      <SimuslabSkeleton v-for="n in 3" :key="n" variant="rect" height="200px" />
     </div>
 
     <div v-else>
       <!-- Global -->
       <div v-if="activeTab === 'globais'" class="grid-cards">
-        <div v-if="simuladosGlobais.length === 0" class="empty-state">
-          <div class="empty-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          </div>
-          <h3 class="empty-title">Banco Global Vazio</h3>
-          <p class="empty-sub">Nenhuma avaliação pública disponível no momento.</p>
-        </div>
+        <SimuslabEmptyState
+          v-if="simuladosGlobais.length === 0"
+          icon="document"
+          title="Banco Global Vazio"
+          description="Nenhuma avaliação pública disponível no momento."
+          color="orbit"
+          card
+          class="grid-full"
+        />
 
         <div v-for="simulado in simuladosGlobais" :key="simulado.id" class="simulado-card">
           <div>
@@ -56,18 +52,19 @@
 
       <!-- Exclusivos -->
       <div v-if="activeTab === 'exclusivos'" class="grid-cards">
-        <div v-if="simuladosExclusivos.length === 0" class="empty-state">
-          <div class="empty-icon" style="color: #7c3aed">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-          </div>
-          <h3 class="empty-title">Acesso Restrito</h3>
-          <p class="empty-sub">
-            Você ainda não possui missões fechadas. Junte-se a uma turma com um código de convite.
-          </p>
-          <SimuslabButton variant="ghost" size="sm" @click="$router.push('/turmas')" class="mt-5">
-            Procurar Turmas
-          </SimuslabButton>
-        </div>
+        <SimuslabEmptyState
+          v-if="simuladosExclusivos.length === 0"
+          icon="trophy"
+          title="Acesso Restrito"
+          description="Você ainda não possui missões fechadas. Junte-se a uma turma com um código de convite."
+          color="pulsar"
+          action-label="Procurar Turmas"
+          action-variant="ghost"
+          action-size="sm"
+          card
+          class="grid-full"
+          @action="$router.push('/turmas')"
+        />
 
         <div v-for="simulado in simuladosExclusivos" :key="simulado.id" class="simulado-card simulado-card--vip">
           <div class="vip-glow" />
@@ -92,22 +89,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '../services/api.js'
-import DashboardLayout from '../layouts/DashboardLayout.vue'
-import SimuslabButton from '../components/ui/SimuslabButton.vue'
+import DashboardLayout    from '../layouts/DashboardLayout.vue'
+import SimuslabButton     from '../components/ui/SimuslabButton.vue'
+import SimuslabTabs       from '../components/ui/SimuslabTabs.vue'
+import SimuslabSkeleton   from '../components/ui/SimuslabSkeleton.vue'
+import SimuslabEmptyState from '../components/ui/SimuslabEmptyState.vue'
 
 const username = localStorage.getItem('username') || ''
-const isAdmin = localStorage.getItem('user_role') === 'admin'
+const isAdmin  = localStorage.getItem('user_role') === 'admin'
 const carregando = ref(true)
-const activeTab = ref('globais')
-const simuladosGlobais = ref([])
+const activeTab  = ref('globais')
+const simuladosGlobais    = ref([])
 const simuladosExclusivos = ref([])
+
+const svgDocument = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>`
+const svgTrophy  = `<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>`
+
+const iconOf = (paths) =>
+  `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
+
+const tabs = computed(() => [
+  { id: 'globais',    label: 'Banco Global',    icon: iconOf(svgDocument), color: 'orbit' },
+  { id: 'exclusivos', label: 'Missões de Turma', icon: iconOf(svgTrophy),  color: 'pulsar',
+    badge: simuladosExclusivos.value.length || undefined },
+])
 
 onMounted(async () => {
   try {
     const res = await api.get('/api/simulados/')
-    simuladosGlobais.value = res.data.globais || []
+    simuladosGlobais.value    = res.data.globais    || []
     simuladosExclusivos.value = res.data.exclusivos || []
   } catch (error) {
     console.error('Erro ao carregar simulados:', error)
@@ -122,104 +134,73 @@ onMounted(async () => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-6);
 }
 .page-title {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-star);
 }
-.page-sub { font-size: 0.875rem; color: #64748b; margin-top: 4px; }
+.page-sub { font-size: var(--text-sm); color: var(--color-comet); margin-top: var(--space-1); }
 
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 4px;
-  border-bottom: 1px solid #e2e8f0;
-  margin-bottom: 32px;
-}
-.tab {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 10px 16px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #94a3b8;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  margin-bottom: -1px;
-}
-.tab:hover { color: #475569; }
-.tab--active { color: #2563eb; border-bottom-color: #2563eb; }
-.tab--active-vip { color: #7c3aed; border-bottom-color: #7c3aed; }
-.tab-badge {
-  margin-left: 4px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #7c3aed;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
-}
+.page-tabs { margin-bottom: var(--space-8); }
 
-/* Grid */
+/* ── Grid ── */
 .grid-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  gap: var(--space-5);
 }
+.grid-full { grid-column: 1 / -1; }
 
-/* Card */
+/* ── Card ── */
 .simulado-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 16px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  gap: var(--space-4);
+  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--card-shadow);
 }
-.simulado-card:hover { border-color: #cbd5e1; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
-.simulado-card--vip { border-color: #ddd6fe; }
-.simulado-card--vip:hover { border-color: #a78bfa; }
+.simulado-card:hover { border-color: var(--color-border-hover); box-shadow: var(--shadow-lg); }
+.simulado-card--vip { border-color: var(--color-pulsar-border); }
+.simulado-card--vip:hover { border-color: var(--color-pulsar); }
 
 .card-tag {
   display: inline-block;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: #f1f5f9;
-  color: #64748b;
-  font-size: 0.65rem;
-  font-weight: 700;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+  color: var(--color-comet);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 16px;
+  letter-spacing: var(--tracking-wider);
+  margin-bottom: var(--space-4);
 }
 .card-title {
   font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 10px;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--color-star);
+  margin-bottom: var(--space-2-5);
 }
-.card-desc { font-size: 0.875rem; color: #64748b; line-height: 1.55; }
-.card-cta { margin-top: 8px; }
+.mt-6 { margin-top: var(--space-6); }
+.card-desc { font-size: var(--text-sm); color: var(--color-comet); line-height: var(--leading-snug); }
+.card-cta  { margin-top: var(--space-2); }
 
 .vip-glow {
   position: absolute;
   top: 0; right: 0;
   width: 120px; height: 120px;
-  background: rgba(124, 58, 237, 0.05);
+  background: var(--color-pulsar-glow);
   border-radius: 50%;
   filter: blur(20px);
   transform: translate(50%, -50%);
@@ -227,57 +208,14 @@ onMounted(async () => {
 }
 .vip-badge {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #7c3aed;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
+  top: var(--space-4);
+  right: var(--space-4);
+  padding: 3px var(--space-2-5);
+  border-radius: var(--radius-full);
+  background: var(--color-pulsar);
+  color: var(--color-cosmos);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
 }
-
-/* Empty state */
-.empty-state {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 56px 32px;
-  background: #ffffff;
-  border: 1px dashed #e2e8f0;
-  border-radius: 16px;
-}
-.empty-icon { color: #93c5fd; margin-bottom: 20px; }
-.empty-title {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 8px;
-}
-.empty-sub { font-size: 0.875rem; color: #64748b; max-width: 360px; }
-
-/* Skeleton */
-.skeleton-card {
-  height: 200px;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  position: relative;
-  overflow: hidden;
-}
-.skeleton-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-  animation: shimmer 1.5s infinite;
-}
-@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-.mt-5 { margin-top: 20px; }
-.mt-6 { margin-top: 24px; }
 </style>

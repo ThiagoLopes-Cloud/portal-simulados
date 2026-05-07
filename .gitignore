@@ -41,6 +41,7 @@ yarn-error.log*
 Thumbs.db
 
 # =========================
-# SimusLab Progress Tracker
+# Misc
 # =========================
 .simuslab-progress.md
+anotacoes/

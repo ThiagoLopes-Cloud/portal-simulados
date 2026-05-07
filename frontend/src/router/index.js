@@ -20,8 +20,8 @@ const NotFoundPage            = () => import('../pages/NotFoundPage.vue')
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
-  { path: '/login',    name: 'login',    component: LoginPage,    meta: { guest: true } },
-  { path: '/register', name: 'register', component: RegisterPage, meta: { guest: true } },
+  { path: '/login',    name: 'login',    component: LoginPage,    meta: { guest: true,  transition: 'fade' } },
+  { path: '/register', name: 'register', component: RegisterPage, meta: { guest: true,  transition: 'fade' } },
 
   { path: '/dashboard',     name: 'dashboard', component: DashboardPage, meta: { requiresAuth: true } },
   { path: '/simulados',     name: 'simulados', component: SimuladosPage, meta: { requiresAuth: true } },

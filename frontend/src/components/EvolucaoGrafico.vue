@@ -1,10 +1,10 @@
 <template>
-  <div class="evolucao-container clean-card" v-if="evolucao && evolucao.length > 0">
+  <div class="evolucao-container" v-if="evolucao && evolucao.length > 0">
     <div class="chart-header">
       <h3 class="chart-title">Curva de Aprendizado</h3>
       <p class="chart-subtitle">Sua evolução histórica de precisão nesta avaliação.</p>
     </div>
-    
+
     <div class="canvas-wrapper">
       <Line v-if="chartDataVisivel" :data="chartData" :options="chartOptions" />
     </div>
@@ -26,7 +26,6 @@ import {
   Filler
 } from 'chart.js'
 
-// Registrando os módulos necessários do Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -48,137 +47,118 @@ const props = defineProps({
 
 const chartDataVisivel = ref(false)
 
-// Prepara os dados lendo exatamente as propriedades que você já usava
+// DS hex values for Chart.js (CSS vars not supported in Chart.js)
+const DS = {
+  orbit:      '#00E5FF',
+  orbitFill:  'rgba(0, 229, 255, 0.08)',
+  cosmos:     '#08091A',
+  gridLine:   'rgba(255, 255, 255, 0.06)',
+  tick:       'rgba(255, 255, 255, 0.35)',
+  tooltipBg:  '#1A1D3D',
+  font:       'DM Sans',
+}
+
 const chartData = computed(() => {
-  // Se tiver a data usa a data, senão usa o formato "T1", "T2" (Tentativa)
   const labels = props.evolucao.map((item, index) => item.data || `T${item.tentativa || index + 1}`)
   const dataPoints = props.evolucao.map(item => parseFloat(item.score))
 
   return {
-    labels: labels,
-    datasets: [
-      {
-        label: 'Aproveitamento',
-        data: dataPoints,
-        borderColor: '#0052FF', // Azul Clean Tech
-        backgroundColor: 'rgba(0, 82, 255, 0.1)', // Fundo translúcido abaixo da linha
-        borderWidth: 3,
-        pointBackgroundColor: '#FFFFFF',
-        pointBorderColor: '#0052FF',
-        pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        pointHoverBackgroundColor: '#0052FF',
-        pointHoverBorderColor: '#FFFFFF',
-        fill: true, 
-        tension: 0.4 // Deixa a linha suavemente curvada (Premium)
-      }
-    ]
+    labels,
+    datasets: [{
+      label: 'Aproveitamento',
+      data: dataPoints,
+      borderColor: DS.orbit,
+      backgroundColor: DS.orbitFill,
+      borderWidth: 2.5,
+      pointBackgroundColor: DS.cosmos,
+      pointBorderColor: DS.orbit,
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      pointHoverBackgroundColor: DS.orbit,
+      pointHoverBorderColor: DS.cosmos,
+      fill: true,
+      tension: 0.4,
+    }],
   }
 })
 
-// Configurações de design do gráfico
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: {
-      display: false // Escondemos a legenda padrão
-    },
+    legend: { display: false },
     tooltip: {
-      backgroundColor: '#0F172A',
-      titleFont: { size: 13, family: "'Inter', sans-serif" },
-      bodyFont: { size: 14, weight: 'bold', family: "'Inter', sans-serif" },
+      backgroundColor: DS.tooltipBg,
+      titleFont: { size: 13, family: DS.font },
+      bodyFont: { size: 14, weight: 'bold', family: DS.font },
       padding: 12,
       displayColors: false,
       callbacks: {
-        label: function(context) {
-          return `Score: ${context.parsed.y}%`
-        }
-      }
-    }
+        label: (context) => `Score: ${context.parsed.y}%`,
+      },
+    },
   },
   scales: {
     y: {
       beginAtZero: true,
       max: 100,
-      grid: {
-        color: '#F1F5F9',
-        drawBorder: false,
-      },
+      grid: { color: DS.gridLine, drawBorder: false },
       ticks: {
-        color: '#64748B',
-        font: { family: "'Inter', sans-serif", size: 11, weight: '500' },
+        color: DS.tick,
+        font: { family: DS.font, size: 11, weight: '500' },
         stepSize: 20,
-        callback: function(value) {
-          return value + '%'
-        }
-      }
+        callback: (value) => value + '%',
+      },
     },
     x: {
-      grid: {
-        display: false,
-        drawBorder: false,
-      },
-      ticks: {
-        color: '#64748B',
-        font: { family: "'Inter', sans-serif", size: 11, weight: '600' },
-      }
-    }
-  }
+      grid: { display: false, drawBorder: false },
+      ticks: { color: DS.tick, font: { family: DS.font, size: 11, weight: '600' } },
+    },
+  },
 }
 
-// Garante que o canvas só renderize após a montagem do componente
 onMounted(() => {
   if (props.evolucao.length > 0) {
     setTimeout(() => { chartDataVisivel.value = true }, 100)
   }
 })
 
-// Se os dados atualizarem depois que a página carregou, ele re-renderiza
 watch(() => props.evolucao, (newVal) => {
-  if (newVal.length > 0) {
-    chartDataVisivel.value = true
-  }
+  if (newVal.length > 0) chartDataVisivel.value = true
 }, { deep: true })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 .evolucao-container {
-  margin-bottom: 24px;
-  font-family: 'Inter', sans-serif;
+  margin-bottom: var(--space-6);
+  font-family: var(--font-body);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: var(--space-7-5, 30px);
 }
 
-.clean-card {
-  background: white;
-  border: 1px solid #E2E8F0;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
-  padding: 30px;
-}
-
-.chart-header {
-  margin-bottom: 20px;
-}
+.chart-header { margin-bottom: var(--space-5); }
 
 .chart-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #0F172A;
-  margin: 0 0 4px 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-star);
+  margin: 0 0 var(--space-1) 0;
 }
 
 .chart-subtitle {
-  color: #64748B;
-  font-size: 0.95rem;
+  color: var(--color-comet);
+  font-size: var(--text-sm);
   margin: 0;
 }
 
 .canvas-wrapper {
   position: relative;
-  height: 280px; /* Altura perfeita para visualização sem ocupar a tela toda */
+  height: 280px;
   width: 100%;
 }
 </style>

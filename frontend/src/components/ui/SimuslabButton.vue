@@ -18,26 +18,20 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  /** 'primary' | 'secondary' | 'ghost' | 'danger' */
   variant: {
     type: String,
     default: 'primary',
     validator: v => ['primary', 'secondary', 'ghost', 'danger'].includes(v),
   },
-  /** 'sm' | 'md' | 'lg' */
   size: {
     type: String,
     default: 'md',
     validator: v => ['sm', 'md', 'lg'].includes(v),
   },
-  /** Show loading spinner */
-  loading: { type: Boolean, default: false },
-  /** Disabled state */
+  loading:  { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
-  /** Renders as button or anchor */
-  as: { type: String, default: 'button' },
-  /** Full width */
-  block: { type: Boolean, default: false },
+  as:       { type: String, default: 'button' },
+  block:    { type: Boolean, default: false },
 })
 
 defineEmits(['click'])
@@ -57,27 +51,32 @@ const classes = computed(() => [
   justify-content: center;
   gap: var(--space-2);
   font-family: var(--font-body);
-  font-weight: 600;
-  border-radius: 10px;
+  font-weight: var(--weight-semibold);
+  border-radius: var(--btn-radius);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.15s ease;
   white-space: nowrap;
   text-decoration: none;
   position: relative;
   overflow: hidden;
   letter-spacing: 0;
   text-transform: none;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring);
 }
 
 .simuslab-btn:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }
 
 .simuslab-btn:disabled,
 .simuslab-btn.btn--loading {
-  opacity: 0.5;
+  opacity: 0.45;
   pointer-events: none;
 }
 
@@ -85,81 +84,87 @@ const classes = computed(() => [
 
 /* ── Sizes ── */
 .btn--sm {
-  padding: 6px 14px;
-  font-size: 0.8125rem;
-  gap: 5px;
+  height: var(--btn-height-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+  gap: var(--space-1-5);
 }
 
 .btn--md {
-  padding: 9px 20px;
-  font-size: 0.875rem;
+  height: var(--btn-height-md);
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
 }
 
 .btn--lg {
-  padding: 12px 28px;
-  font-size: 1rem;
+  height: var(--btn-height-lg);
+  padding: 0 var(--space-6);
+  font-size: var(--text-base);
 }
 
 /* ── Variants ── */
 .btn--primary {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+  background: var(--color-orbit);
+  color: var(--color-cosmos);
+  border-color: var(--color-orbit);
+  box-shadow: 0 1px 3px var(--color-orbit-glow);
 }
 .btn--primary:hover {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  background: var(--color-orbit-bright);
+  border-color: var(--color-orbit-bright);
+  box-shadow: var(--shadow-orbit);
   transform: translateY(-1px);
 }
-.btn--primary:active { transform: scale(0.98); }
+.btn--primary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
 
 .btn--secondary {
-  background: #ffffff;
-  color: #374151;
-  border-color: #e2e8f0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: var(--color-bg-surface);
+  color: var(--color-star);
+  border-color: var(--color-border);
 }
 .btn--secondary:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-hover);
 }
+.btn--secondary:active { transform: scale(0.98); }
 
 .btn--ghost {
   background: transparent;
-  color: #64748b;
-  border-color: #e2e8f0;
+  color: var(--color-comet);
+  border-color: transparent;
 }
 .btn--ghost:hover {
-  color: #0f172a;
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  color: var(--color-star);
+  background: var(--color-surface-hover);
 }
+.btn--ghost:active { transform: scale(0.98); }
 
 .btn--danger {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: #fecaca;
+  background: var(--color-nova-dim);
+  color: var(--color-nova);
+  border-color: var(--color-nova-border);
 }
 .btn--danger:hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
+  background: rgba(255, 77, 109, 0.15);
+  border-color: var(--color-nova);
+  box-shadow: var(--shadow-nova);
 }
+.btn--danger:active { transform: scale(0.98); }
 
 /* ── Spinner ── */
 .btn-spinner {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.25);
   border-top-color: currentColor;
   border-radius: 50%;
   animation: spinnerRing 0.6s linear infinite;
   flex-shrink: 0;
 }
-
-@keyframes spinnerRing { to { transform: rotate(360deg); } }
 
 .btn-loading-text { font-size: inherit; }
 </style>

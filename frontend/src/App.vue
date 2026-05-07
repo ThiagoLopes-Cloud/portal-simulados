@@ -1,13 +1,12 @@
 <template>
-  <!-- router-view é o componente do Vue Router -->
-  <!-- Ele renderiza a página correspondente à URL atual -->
-  <!-- Ex: se a URL for /login, renderiza o LoginPage.vue -->
-  <router-view />
+  <router-view v-slot="{ Component, route }">
+    <Transition :name="route.meta.transition || 'page'" mode="out-in">
+      <component :is="Component" :key="route.path" />
+    </Transition>
+  </router-view>
 </template>
 
 <script setup>
-// App.vue é o componente raiz — ele só precisa do router-view
-// Toda a lógica fica nas páginas individuais
 </script>
 
 <style>
@@ -19,5 +18,33 @@ html {
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation;
+}
+
+/* ── Page transitions ── */
+.page-enter-active {
+  animation: pageEnter var(--duration-normal) var(--ease-out) both;
+}
+.page-leave-active {
+  animation: pageLeave var(--duration-fast) var(--ease-in) both;
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pageLeave {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+
+/* ── Fade transition (auth pages) ── */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

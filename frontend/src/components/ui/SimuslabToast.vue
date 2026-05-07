@@ -103,7 +103,7 @@ const icons = {
 .toast-message {
   flex: 1;
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   color: var(--color-star);
   line-height: var(--leading-snug);
 }
@@ -123,7 +123,7 @@ const icons = {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color var(--transition-fast);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 .toast-close:hover { color: var(--color-star); }
 

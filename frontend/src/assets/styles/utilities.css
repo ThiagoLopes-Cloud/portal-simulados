@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════
-   SIMUSLAB DESIGN SYSTEM — UTILITIES
-   ═══════════════════════════════════════════════════════════════ */
-
 /* ── Glow effects ── */
 .glow-orbit   { box-shadow: var(--shadow-orbit); }
 .glow-pulsar  { box-shadow: var(--shadow-pulsar); }

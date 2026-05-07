@@ -1,6 +1,6 @@
 <template>
   <span class="simuslab-badge" :class="[`badge--${variant}`, `badge--${size}`]">
-    <span v-if="dot" class="badge-dot" />
+    <span v-if="dot" class="badge-dot" aria-hidden="true" />
     <slot />
   </span>
 </template>
@@ -9,8 +9,8 @@
 defineProps({
   variant: {
     type: String,
-    default: 'blue',
-    validator: v => ['orbit', 'blue', 'pulsar', 'purple', 'nova', 'red', 'stellar', 'green', 'flare', 'amber', 'neutral'].includes(v),
+    default: 'neutral',
+    validator: v => ['orbit', 'blue', 'pulsar', 'purple', 'nova', 'red', 'stellar', 'green', 'flare', 'amber', 'neutral', 'info'].includes(v),
   },
   size: { type: String, default: 'sm', validator: v => ['sm', 'md'].includes(v) },
   dot:  { type: Boolean, default: false },
@@ -21,54 +21,68 @@ defineProps({
 .simuslab-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-1);
   font-family: var(--font-body);
-  font-weight: 600;
-  border-radius: 999px;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  border-radius: var(--badge-radius);
   border: 1px solid transparent;
   line-height: 1;
   white-space: nowrap;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
 /* ── Sizes ── */
-.badge--sm { font-size: 0.7rem;  padding: 3px 10px; }
-.badge--md { font-size: 0.75rem; padding: 4px 12px; }
+.badge--sm { padding: 3px 10px; }
+.badge--md { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
 
-/* ── Variants — paleta clean light ── */
+/* ── Variants — dark-friendly ── */
 .badge--orbit,
 .badge--blue {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
+  background: var(--color-orbit-dim);
+  color: var(--color-orbit-bright);
+  border-color: var(--color-orbit-border);
 }
+
 .badge--pulsar,
 .badge--purple {
-  background: #f5f3ff;
-  color: #6d28d9;
-  border-color: #ddd6fe;
+  background: var(--color-pulsar-dim);
+  color: var(--color-pulsar-bright);
+  border-color: var(--color-pulsar-border);
 }
+
 .badge--nova,
 .badge--red {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: #fecaca;
+  background: var(--color-nova-dim);
+  color: var(--color-nova);
+  border-color: var(--color-nova-border);
 }
+
 .badge--stellar,
 .badge--green {
-  background: #f0fdf4;
-  color: #166534;
-  border-color: #bbf7d0;
+  background: var(--color-stellar-dim);
+  color: var(--color-stellar-bright);
+  border-color: var(--color-stellar-border);
 }
+
 .badge--flare,
 .badge--amber {
-  background: #fffbeb;
-  color: #92400e;
-  border-color: #fde68a;
+  background: var(--color-flare-dim);
+  color: var(--color-flare);
+  border-color: var(--color-flare-border);
 }
+
+.badge--info {
+  background: var(--color-info-dim);
+  color: var(--color-info);
+  border-color: var(--color-info-border);
+}
+
 .badge--neutral {
-  background: #f8fafc;
-  color: #475569;
-  border-color: #e2e8f0;
+  background: var(--color-bg-elevated);
+  color: var(--color-comet);
+  border-color: var(--color-border);
 }
 
 /* ── Dot indicator ── */
@@ -77,6 +91,6 @@ defineProps({
   height: 6px;
   border-radius: 50%;
   background: currentColor;
-  animation: simuslabPulse 2s ease-in-out infinite;
+  animation: pulse 2s ease-in-out infinite;
 }
 </style>

@@ -8,15 +8,21 @@
         <p class="page-date">{{ formattedDate }}</p>
       </div>
       <div v-if="!carregando && dados.gamificacao" class="page-badges">
-        <SimuslabBadge variant="orbit">
-          NÍVEL {{ nivelAtual }}
-        </SimuslabBadge>
-        <SimuslabBadge variant="flare" :dot="true">
-          🔥 {{ dados.gamificacao?.ofensiva || 0 }} dias
-        </SimuslabBadge>
-        <div class="xp-bar">
-          <div class="xp-fill" :style="{ width: progressoNivel + '%' }" />
-        </div>
+        <SimuslabGamification
+          type="level"
+          :level="nivelAtual"
+          :xp="dados.gamificacao?.xp || 0"
+        />
+        <SimuslabGamification
+          type="streak"
+          :streak="dados.gamificacao?.ofensiva || 0"
+        />
+        <SimuslabGamification
+          type="xpbar"
+          :level="nivelAtual"
+          :xp="dados.gamificacao?.xp || 0"
+          :xp-per-level="XP_POR_NIVEL"
+        />
       </div>
     </header>
 
@@ -70,22 +76,16 @@
       </section>
 
       <!-- Empty state -->
-      <div v-if="dados.total_simulados === 0 && !isAdmin" class="empty-state">
-        <SimuslabCard>
-          <div class="empty-content">
-            <div class="empty-icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            </div>
-            <h3 class="empty-title">Seu diagnóstico começa aqui.</h3>
-            <p class="empty-text">
-              Realize sua primeira avaliação para destrancar seu painel de performance.
-            </p>
-            <SimuslabButton variant="primary" @click="$router.push('/simulados')">
-              Iniciar Primeira Simulação
-            </SimuslabButton>
-          </div>
-        </SimuslabCard>
-      </div>
+      <SimuslabEmptyState
+        v-if="dados.total_simulados === 0 && !isAdmin"
+        icon="document"
+        title="Seu diagnóstico começa aqui."
+        description="Realize sua primeira avaliação para destrancar seu painel de performance."
+        action-label="Iniciar Primeira Simulação"
+        color="orbit"
+        card
+        @action="$router.push('/simulados')"
+      />
 
       <div v-if="dados.total_simulados > 0 || isAdmin" class="content-grid">
 
@@ -183,11 +183,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
-import DashboardLayout from '../layouts/DashboardLayout.vue'
-import SimuslabCard       from '../components/ui/SimuslabCard.vue'
-import SimuslabBadge      from '../components/ui/SimuslabBadge.vue'
-import SimuslabButton     from '../components/ui/SimuslabButton.vue'
-import SimuslabKPICard    from '../components/ui/SimuslabKPICard.vue'
+import DashboardLayout       from '../layouts/DashboardLayout.vue'
+import SimuslabCard          from '../components/ui/SimuslabCard.vue'
+import SimuslabButton        from '../components/ui/SimuslabButton.vue'
+import SimuslabKPICard       from '../components/ui/SimuslabKPICard.vue'
+import SimuslabEmptyState    from '../components/ui/SimuslabEmptyState.vue'
+import SimuslabGamification  from '../components/ui/SimuslabGamification.vue'
 
 const router   = useRouter()
 const username = ref('')
@@ -269,77 +270,65 @@ function scoreBg(v)   { return v >= 70 ? 'fill--good' : v >= 50 ? 'fill--mid'  :
   align-items: flex-start;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
 }
 
 .page-greeting {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.025em;
-  margin-bottom: 4px;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-star);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-1);
 }
 
 .page-date {
   font-family: var(--font-body);
-  font-size: 0.8125rem;
-  color: #64748b;
+  font-size: var(--text-sm);
+  color: var(--color-comet);
   text-transform: capitalize;
 }
 
 .page-badges {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
-.xp-bar {
-  width: 56px;
-  height: 4px;
-  background: #e2e8f0;
-  border-radius: 99px;
-  overflow: hidden;
-}
-.xp-fill {
-  height: 100%;
-  background: #3b82f6;
-  border-radius: 99px;
-  transition: width 0.6s ease;
-}
+/* xp bar → SimuslabGamification */
 
 /* ── Error ── */
 .error-banner {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 0.875rem;
-  margin-bottom: 24px;
+  background: var(--color-nova-dim);
+  border: 1px solid var(--color-nova-border);
+  color: var(--color-nova);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-6);
 }
 
 /* ── KPI grid ── */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
 }
 
 /* ── Sections ── */
-.section { margin-bottom: 24px; }
+.section { margin-bottom: var(--space-6); }
 
 .section-heading {
   font-family: var(--font-body);
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-  margin-bottom: 12px;
+  letter-spacing: var(--tracking-wider);
+  color: var(--color-dust);
+  margin-bottom: var(--space-3);
 }
 
 /* ── Admin panel ── */
@@ -348,79 +337,58 @@ function scoreBg(v)   { return v >= 70 ? 'fill--good' : v >= 50 ? 'fill--mid'  :
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: var(--space-5);
 }
-.admin-panel-info { display: flex; flex-direction: column; gap: 6px; }
+.admin-panel-info { display: flex; flex-direction: column; gap: var(--space-1-5); }
 .admin-title {
   font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--color-star);
 }
-.admin-sub { font-size: 0.875rem; color: #64748b; }
-.admin-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.admin-sub { font-size: var(--text-sm); color: var(--color-comet); }
+.admin-actions { display: flex; gap: var(--space-2-5); flex-wrap: wrap; }
 
-/* ── Empty state ── */
-.empty-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 48px 20px;
-  gap: 16px;
-}
-.empty-icon { color: #93c5fd; }
-.empty-title {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-.empty-text {
-  font-size: 0.875rem;
-  color: #64748b;
-  line-height: 1.6;
-  max-width: 420px;
-}
+/* empty state → SimuslabEmptyState */
 
 /* ── Recomendação ── */
-.recomendacao { display: flex; flex-direction: column; gap: 16px; }
-.recomendacao-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.recomendacao { display: flex; flex-direction: column; gap: var(--space-4); }
+.recomendacao-top { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
 .recomendacao-body {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
+  gap: var(--space-6);
   flex-wrap: wrap;
 }
 .rec-title {
   font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 6px;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--color-star);
+  margin-bottom: var(--space-1-5);
 }
-.rec-desc { font-size: 0.875rem; color: #475569; line-height: 1.6; max-width: 520px; }
+.rec-desc { font-size: var(--text-sm); color: var(--color-comet); line-height: var(--leading-relaxed); max-width: 520px; }
 
 /* ── Two column layout ── */
 .two-col {
   display: grid;
   grid-template-columns: 3fr 2fr;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 /* ── Matéria list ── */
-.materia-list { display: flex; flex-direction: column; gap: 8px; }
+.materia-list { display: flex; flex-direction: column; gap: var(--space-2); }
 .materia-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .materia-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
   flex: 1;
 }
@@ -428,19 +396,19 @@ function scoreBg(v)   { return v >= 70 ? 'fill--good' : v >= 50 ? 'fill--mid'  :
   flex-shrink: 0;
   font-family: var(--font-body);
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748b;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-comet);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   padding: 2px 7px;
 }
 .materia-name {
-  font-size: 0.875rem;
-  color: #334155;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--color-comet);
+  font-weight: var(--weight-medium);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -448,24 +416,24 @@ function scoreBg(v)   { return v >= 70 ? 'fill--good' : v >= 50 ? 'fill--mid'  :
 .materia-score-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   flex-shrink: 0;
 }
 .score-bar-track {
   width: 80px;
   height: 5px;
-  background: #f1f5f9;
-  border-radius: 99px;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 .score-bar-fill {
   height: 100%;
-  border-radius: 99px;
-  transition: width 0.6s ease;
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease-out);
 }
-.fill--good { background: #10b981; }
-.fill--mid  { background: #f59e0b; }
-.fill--low  { background: #ef4444; }
+.fill--good { background: var(--color-stellar); }
+.fill--mid  { background: var(--color-flare); }
+.fill--low  { background: var(--color-nova); }
 
 /* ── Score pill badges ── */
 .score-pill {
@@ -473,64 +441,64 @@ function scoreBg(v)   { return v >= 70 ? 'fill--good' : v >= 50 ? 'fill--mid'  :
   align-items: center;
   justify-content: center;
   font-family: var(--font-body);
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 99px;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
   border: 1px solid transparent;
   min-width: 44px;
 }
-.pill--green { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
-.pill--amber { background: #fffbeb; color: #92400e; border-color: #fde68a; }
-.pill--red   { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.pill--green { background: var(--color-stellar-dim); color: var(--color-stellar-bright); border-color: var(--color-stellar-border); }
+.pill--amber { background: var(--color-flare-dim);   color: var(--color-flare);          border-color: var(--color-flare-border); }
+.pill--red   { background: var(--color-nova-dim);    color: var(--color-nova);           border-color: var(--color-nova-border); }
 
 /* ── Activity feed ── */
 .empty-activity {
-  font-size: 0.875rem;
-  color: #94a3b8;
+  font-size: var(--text-sm);
+  color: var(--color-dust);
   text-align: center;
-  padding: 32px;
+  padding: var(--space-8);
 }
 
 .activity-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  border-bottom: 1px solid #f8fafc;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background var(--duration-fast) var(--ease-out);
 }
 .activity-row:last-child { border-bottom: none; }
-.activity-row:hover { background: #f8fafc; }
+.activity-row:hover { background: var(--color-surface-hover); }
 
-.activity-info { flex: 1; min-width: 0; margin-right: 16px; }
+.activity-info { flex: 1; min-width: 0; margin-right: var(--space-4); }
 .activity-name {
-  font-size: 0.875rem;
-  color: #1e293b;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--color-star);
+  font-weight: var(--weight-medium);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 2px;
+  margin-bottom: var(--space-0-5);
 }
-.activity-date { font-size: 0.75rem; color: #94a3b8; }
+.activity-date { font-size: var(--text-xs); color: var(--color-dust); }
 
-.activity-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.activity-right { display: flex; align-items: center; gap: var(--space-2-5); flex-shrink: 0; }
 .activity-arrow {
-  color: #3b82f6;
-  font-size: 0.75rem;
+  color: var(--color-orbit);
+  font-size: var(--text-xs);
   opacity: 0;
-  transition: opacity 0.12s ease;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 .activity-row:hover .activity-arrow { opacity: 1; }
 
 /* ── Responsive ── */
 @media (max-width: 1024px) { .two-col { grid-template-columns: 1fr; } }
 @media (max-width: 768px)  {
-  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: var(--space-3); }
   .page-header { flex-direction: column; }
-  .page-greeting { font-size: 1.25rem; }
+  .page-greeting { font-size: var(--text-xl); }
 }
 @media (max-width: 480px) {
   .kpi-grid { grid-template-columns: 1fr; }

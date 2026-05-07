@@ -1,9 +1,6 @@
-// SIMUSLAB Design System — fundação CSS (ordem importa)
 import './assets/styles/tokens.css'
 import './assets/styles/base.css'
 import './assets/styles/utilities.css'
-
-// Tailwind + SIMUS bridge
 import './assets/main.css'
 
 import { createApp } from 'vue'

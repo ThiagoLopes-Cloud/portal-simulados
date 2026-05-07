@@ -1,5 +1,7 @@
 <template>
   <div class="sl-layout">
+    <a href="#sl-main" class="skip-link">Ir para o conteúdo principal</a>
+
     <!-- Sidebar -->
     <SimuslabSidebar
       :collapsed="ui.sidebarCollapsed"
@@ -13,8 +15,14 @@
       :sidebar-width="sidebarWidth"
     >
       <template #right>
-        <button class="sl-logout-btn" @click="logout" title="Sair" aria-label="Sair da plataforma">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <button
+          class="sl-logout-btn"
+          type="button"
+          title="Sair"
+          aria-label="Sair da plataforma"
+          @click="logout"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>
@@ -24,13 +32,19 @@
     </SimuslabTopbar>
 
     <!-- Main content -->
-    <main class="sl-main" :style="mainStyle">
+    <main id="sl-main" class="sl-main" :style="mainStyle">
       <slot />
     </main>
 
     <!-- Mobile bottom nav -->
     <nav class="sl-mobile-nav" aria-label="Navegação principal">
-      <router-link v-for="item in mobileNav" :key="item.to" :to="item.to" class="sl-mnav-item">
+      <router-link
+        v-for="item in mobileNav"
+        :key="item.to"
+        :to="item.to"
+        class="sl-mnav-item"
+        :aria-label="item.label"
+      >
         <svg
           class="sl-mnav-icon"
           width="20"
@@ -41,6 +55,7 @@
           stroke-width="1.75"
           stroke-linecap="round"
           stroke-linejoin="round"
+          aria-hidden="true"
           v-html="item.svg"
         />
         <span class="sl-mnav-label">{{ item.label }}</span>
@@ -80,7 +95,7 @@ const sidebarWidth = computed(() =>
 
 const mainStyle = computed(() => ({
   marginLeft: sidebarWidth.value,
-  transition: `margin-left var(--transition-slow)`,
+  transition: `margin-left var(--duration-slow) var(--ease-in-out)`,
 }))
 
 const navigation = computed(() => {
@@ -88,12 +103,12 @@ const navigation = computed(() => {
     {
       id: 'main',
       items: [
-        { to: '/dashboard',       icon: 'dashboard',        label: 'Dashboard' },
-        { to: '/simulados',       icon: 'simulados',        label: 'Avaliações' },
-        { to: '/trilhas',         icon: 'trilhas',          label: 'Trilhas' },
-        { to: '/turmas',          icon: 'turmas',           label: 'Minhas Turmas' },
-        { to: '/turma-dashboard', icon: 'turma-dashboard',  label: 'Dashboard Turma' },
-        { to: '/ranking',         icon: 'ranking',          label: 'Ranking' },
+        { to: '/dashboard',       icon: 'dashboard',       label: 'Dashboard' },
+        { to: '/simulados',       icon: 'simulados',       label: 'Avaliações' },
+        { to: '/trilhas',         icon: 'trilhas',         label: 'Trilhas' },
+        { to: '/turmas',          icon: 'turmas',          label: 'Minhas Turmas' },
+        { to: '/turma-dashboard', icon: 'turma-dashboard', label: 'Dashboard Turma' },
+        { to: '/ranking',         icon: 'ranking',         label: 'Ranking' },
       ],
     },
   ]
@@ -103,7 +118,7 @@ const navigation = computed(() => {
       id: 'admin',
       label: 'Administração',
       items: [
-        { to: '/admin/alunos',   icon: 'gestao-alunos', label: 'Gestão Alunos',    admin: true },
+        { to: '/admin/alunos',   icon: 'gestao-alunos', label: 'Gestão Alunos',     admin: true },
         { to: '/admin/importar', icon: 'importar',      label: 'Importar Questões', admin: true },
       ],
     })
@@ -113,11 +128,11 @@ const navigation = computed(() => {
 })
 
 const mobileNav = computed(() => [
-  { to: '/dashboard',       svg: icons.dashboard,       label: 'Início' },
-  { to: '/simulados',       svg: icons.simulados,       label: 'Avaliações' },
-  { to: '/trilhas',         svg: icons.trilhas,         label: 'Trilhas' },
-  { to: '/turma-dashboard', svg: icons['turma-dashboard'], label: 'Turma' },
-  { to: '/ranking',         svg: icons.ranking,         label: 'Ranking' },
+  { to: '/dashboard',       svg: icons.dashboard,            label: 'Início' },
+  { to: '/simulados',       svg: icons.simulados,            label: 'Avaliações' },
+  { to: '/trilhas',         svg: icons.trilhas,              label: 'Trilhas' },
+  { to: '/turma-dashboard', svg: icons['turma-dashboard'],   label: 'Turma' },
+  { to: '/ranking',         svg: icons.ranking,              label: 'Ranking' },
 ])
 
 function logout() {
@@ -129,7 +144,7 @@ function logout() {
 <style scoped>
 .sl-layout {
   min-height: 100vh;
-  background: #f8fafc;
+  background: var(--color-bg-base);
   display: flex;
   flex-direction: column;
 }
@@ -149,17 +164,24 @@ function logout() {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
-  color: #94a3b8;
+  border-radius: var(--radius-sm);
+  color: var(--color-dust);
   background: transparent;
-  border: 1px solid #e8ecf2;
+  border: 1px solid var(--color-border);
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
 }
 .sl-logout-btn:hover {
-  color: #dc2626;
-  border-color: #fecaca;
-  background: #fef2f2;
+  color: var(--color-nova);
+  border-color: var(--color-nova-border);
+  background: var(--color-nova-dim);
+}
+.sl-logout-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }
 
 /* ── Mobile nav ── */
@@ -169,10 +191,10 @@ function logout() {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid #e8ecf2;
+  background: rgba(13, 16, 36, 0.95);
+  backdrop-filter: blur(var(--blur-md));
+  -webkit-backdrop-filter: blur(var(--blur-md));
+  border-top: 1px solid var(--color-border);
   z-index: var(--z-topbar);
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
@@ -183,24 +205,24 @@ function logout() {
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  padding: 8px 4px 6px;
-  color: #94a3b8;
+  padding: var(--space-2) var(--space-1) var(--space-1-5);
+  color: var(--color-dust);
   text-decoration: none;
-  transition: color 0.12s ease;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .sl-mnav-item.router-link-exact-active {
-  color: #2563eb;
+  color: var(--color-orbit);
 }
 
 .sl-mnav-icon { flex-shrink: 0; }
 
 .sl-mnav-label {
   font-family: var(--font-body);
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--tracking-wide);
 }
 
 /* ── Responsive ── */
@@ -208,6 +230,8 @@ function logout() {
   .sl-mobile-nav { display: flex; }
   .sl-main {
     margin-left: 0 !important;
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
     padding-bottom: calc(var(--space-16) + env(safe-area-inset-bottom, 0));
   }
 }
