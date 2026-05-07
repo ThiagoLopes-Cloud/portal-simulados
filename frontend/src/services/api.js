@@ -12,18 +12,26 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-let isRefreshing = false
-let failedQueue = []
+let isRefreshing  = false
+let isLoggingOut  = false
+let failedQueue   = []
 
 function processQueue(error, token = null) {
   failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error)
-    } else {
-      prom.resolve(token)
-    }
+    if (error) prom.reject(error)
+    else       prom.resolve(token)
   })
   failedQueue = []
+}
+
+function forceLogout() {
+  if (isLoggingOut) return
+  isLoggingOut = true
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  localStorage.removeItem('user_role')
+  localStorage.removeItem('username')
+  window.location.replace('/login')
 }
 
 api.interceptors.response.use(
@@ -35,10 +43,7 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refresh_token')
 
       if (!refreshToken) {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('user_role')
-        window.location.href = '/login'
+        forceLogout()
         return Promise.reject(error)
       }
 
@@ -67,10 +72,7 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('user_role')
-        window.location.href = '/login'
+        forceLogout()
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

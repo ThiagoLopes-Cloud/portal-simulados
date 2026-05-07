@@ -12,6 +12,7 @@ const ResultadoPage           = () => import('../pages/ResultadoPage.vue')
 const RankingPage             = () => import('../pages/RankingPage.vue')
 const TurmaPortal             = () => import('../pages/TurmaPortal.vue')
 const TrilhasPage             = () => import('../pages/TrilhasPage.vue')
+const TrilhaDetailPage        = () => import('../pages/TrilhaDetailPage.vue')
 const TurmaDashboardPage      = () => import('../pages/TurmaDashboardPage.vue')
 const AdminAlunosPage         = () => import('../pages/AdminAlunosPage.vue')
 const AdminAlunoDashboardPage = () => import('../pages/AdminAlunoDashboardPage.vue')
@@ -31,6 +32,7 @@ const routes = [
 
   { path: '/turmas',          name: 'turmas',         component: TurmaPortal,       meta: { requiresAuth: true } },
   { path: '/trilhas',         name: 'trilhas',         component: TrilhasPage,       meta: { requiresAuth: true } },
+  { path: '/trilhas/:id',    name: 'trilha-detalhe',  component: TrilhaDetailPage,  meta: { requiresAuth: true } },
   { path: '/turma-dashboard', name: 'turma-dashboard', component: TurmaDashboardPage, meta: { requiresAuth: true } },
 
   {
