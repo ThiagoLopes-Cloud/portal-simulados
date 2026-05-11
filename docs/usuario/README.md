@@ -1,59 +1,65 @@
-# 🚀 SimusLab
+# 📘 Guia Oficial do Usuário — SimusLab
 
-Plataforma moderna de simulados educacionais desenvolvida para potencializar o aprendizado através de tecnologia, métricas inteligentes e experiência imersiva.
+Bem-vindo ao guia oficial da plataforma SimusLab.
 
----
-
-# 📚 Documentação Oficial
-
-## 👨‍🎓 Guia do Usuário
-
-Acesse o manual completo da plataforma:
-
-➡️ [Abrir Guia do Usuário](./docs/usuario/README.md)
+Este material foi desenvolvido para auxiliar estudantes e usuários da plataforma na utilização dos recursos disponíveis.
 
 ---
 
-## 👨‍💻 Documentação Técnica
+# 📑 Índice
 
-➡️ [Abrir Documentação Técnica](./docs/desenvolvedor/README.md)
+## 🔐 Acesso à Plataforma
 
----
-
-## 🛠️ Guia Administrativo
-
-➡️ [Abrir Guia Administrativo](./docs/administrador/README.md)
+- [Login](./login.md)
+- [Cadastro](./cadastro.md)
+- [Recuperação de Senha](./recuperacao-senha.md)
 
 ---
 
-# ✨ Recursos da Plataforma
+## 🧭 Navegação
+
+- [Dashboard](./dashboard.md)
+- [Perfil do Usuário](./perfil.md)
+
+---
+
+## 📝 Simulados
+
+- [Como realizar simulados](./simulados.md)
+- [Resultados](./resultados.md)
+- [Ranking](./ranking.md)
+
+---
+
+## ❓ Suporte
+
+- [Perguntas Frequentes](./faq.md)
+
+---
+
+# 🎯 Objetivo da Plataforma
+
+A SimusLab foi desenvolvida para proporcionar uma experiência moderna de aprendizagem através de simulados inteligentes, métricas de desempenho e acompanhamento da evolução acadêmica.
+
+---
+
+# 🚀 Recursos Disponíveis
 
 - Simulados online
+- Correção automática
 - Ranking de desempenho
-- Dashboard inteligente
-- Trilhas de aprendizagem
-- Relatórios de evolução
-- Sistema de autenticação seguro
-- Plataforma responsiva
+- Histórico de resultados
+- Interface responsiva
+- Acompanhamento de evolução
 
 ---
 
 # 📷 Interface da Plataforma
 
-> Em breve screenshots oficiais da plataforma.
+🚧 Em breve screenshots oficiais da plataforma.
 
 ---
 
-# 🧠 Tecnologias Utilizadas
+# 🛡️ Segurança
 
-- Vue.js
-- Django
-- JWT Authentication
-- REST API
-- PostgreSQL
-
----
-
-# 📄 Licença
-
-Projeto acadêmico desenvolvido para fins educacionais.
+A plataforma utiliza autenticação segura baseada em JWT para proteção da sessão dos usuários.
